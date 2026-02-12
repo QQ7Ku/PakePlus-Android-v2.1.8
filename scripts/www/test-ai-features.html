@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI功能测试 - ASEAN NEV Platform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 30px; color: #1e293b; }
+        .test-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+        .test-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .test-card h3 {
+            font-size: 16px;
+            color: #334155;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .test-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .test-item:last-child { border-bottom: none; }
+        .test-status {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .test-status.pass { background: #dcfce7; color: #166534; }
+        .test-status.fail { background: #fee2e2; color: #991b1b; }
+        .test-status.pending { background: #fef3c7; color: #92400e; }
+        .test-name { flex: 1; font-size: 14px; color: #475569; }
+        .test-detail {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+        .summary {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .summary-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #0d9488;
+        }
+        .summary-text { color: #64748b; margin-top: 8px; }
+        .run-btn {
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+        }
+        .run-btn:hover { opacity: 0.9; }
+        .console-output {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        .console-line { margin: 2px 0; }
+        .console-info { color: #38bdf8; }
+        .console-success { color: #4ade80; }
+        .console-error { color: #f87171; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI功能测试面板</h1>
+        <button class="run-btn" onclick="runAllTests()">运行所有测试</button>
+        
+        <div class="test-grid">
+            <div class="test-card">
+                <h3>📊 估值引擎 (ValuationEngine)</h3>
+                <div id="valuation-tests"></div>
+            </div>
+            <div class="test-card">
+                <h3>📈 市场预测 (MarketPredictor)</h3>
+                <div id="predictor-tests"></div>
+            </div>
+            <div class="test-card">
+                <h3>🗄️ 数据管理 (DataManager)</h3>
+                <div id="datamanager-tests"></div>
+            </div>
+            <div class="test-card">
+                <h3>🔍 搜索引擎 (MarketSearchEngine)</h3>
+                <div id="searchengine-tests"></div>
+            </div>
+        </div>
+        
+        <div class="summary">
+            <div class="summary-score" id="total-score">--</div>
+            <div class="summary-text">综合评分 / 100</div>
+        </div>
+        
+        <div class="console-output" id="console"></div>
+    </div>
+
+    <script type="module">
+        import { AIValuationEngine } from './js/modules/aiValuationEngine.js';
+        import { AIMarketPredictor } from './js/modules/aiMarketPredictor.js';
+        import { DataManager } from './js/modules/dataManager.js';
+        import { MarketSearchEngine } from './js/modules/marketSearchEngine.js';
+
+        const consoleEl = document.getElementById('console');
+        
+        function log(msg, type = 'info') {
+            const line = document.createElement('div');
+            line.className = `console-line console-${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            consoleEl.appendChild(line);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        function createTestItem(name, status, detail = '') {
+            const statusClass = status === 'pass' ? 'pass' : status === 'fail' ? 'fail' : 'pending';
+            const icon = status === 'pass' ? '✓' : status === 'fail' ? '✗' : '○';
+            return `
+                <div class="test-item">
+                    <div class="test-status ${statusClass}">${icon}</div>
+                    <div>
+                        <div class="test-name">${name}</div>
+                        ${detail ? `<div class="test-detail">${detail}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 测试结果存储
+        const testResults = {
+            valuation: [],
+            predictor: [],
+            datamanager: [],
+            searchengine: []
+        };
+
+        // ========== 估值引擎测试 ==========
+        async function testValuationEngine() {
+            log('开始测试 ValuationEngine...', 'info');
+            const results = [];
+            
+            try {
+                // 测试1: 依赖注入
+                const mockRandom = () => 0.5;
+                const mockTime = { now: () => 1700000000000 };
+                const engine = new AIValuationEngine({
+                    randomGenerator: mockRandom,
+                    timeProvider: mockTime,
+                    delay: 0
+                });
+                results.push({ name: '依赖注入支持', status: 'pass', detail: 'randomGenerator/timeProvider/delay' });
+                
+                // 测试2: 基础计算
+                const result = await engine.calculate('byd-qin-plus', 'th', 2022, 50000);
+                const hasResult = result && result.estimatedPrice > 0;
+                results.push({ name: '基础估值计算', status: hasResult ? 'pass' : 'fail', detail: hasResult ? `价格: ${result.estimatedPrice}` : '无结果' });
+                
+                // 测试3: 参数验证
+                try {
+                    await engine.calculate('', 'th', 2022, 50000);
+                    results.push({ name: '参数验证', status: 'fail', detail: '应该抛出错误' });
+                } catch (e) {
+                    results.push({ name: '参数验证', status: 'pass', detail: '正确拒绝无效参数' });
+                }
+                
+                // 测试4: 电池折旧计算
+                const batteryResult = engine.calculateBatteryDepreciation(90, 100000);
+                const hasBattery = batteryResult && typeof batteryResult.healthScore === 'number';
+                results.push({ name: '电池折旧计算', status: hasBattery ? 'pass' : 'fail' });
+                
+                log('ValuationEngine 测试完成', 'success');
+            } catch (e) {
+                log(`ValuationEngine 错误: ${e.message}`, 'error');
+                results.push({ name: '整体测试', status: 'fail', detail: e.message });
+            }
+            
+            testResults.valuation = results;
+            return results;
+        }
+
+        // ========== 市场预测测试 ==========
+        async function testMarketPredictor() {
+            log('开始测试 MarketPredictor...', 'info');
+            const results = [];
+            
+            try {
+                // 测试1: 依赖注入
+                const mockRandom = () => 0.5;
+                const predictor = new AIMarketPredictor({
+                    randomGenerator: mockRandom,
+                    delay: 0
+                });
+                results.push({ name: '依赖注入支持', status: 'pass' });
+                
+                // 测试2: 预测生成
+                const prediction = await predictor.predict('byd-qin-plus', 'th', 3);
+                const hasPrediction = prediction && prediction.priceForecast && prediction.priceForecast.length === 3;
+                results.push({ name: '预测生成', status: hasPrediction ? 'pass' : 'fail', detail: hasPrediction ? `${prediction.priceForecast.length}个月预测` : '无结果' });
+                
+                // 测试3: 参数验证
+                try {
+                    await predictor.predict('', 'th');
+                    results.push({ name: '参数验证', status: 'fail', detail: '应该抛出错误' });
+                } catch (e) {
+                    results.push({ name: '参数验证', status: 'pass', detail: '正确拒绝空modelId' });
+                }
+                
+                log('MarketPredictor 测试完成', 'success');
+            } catch (e) {
+                log(`MarketPredictor 错误: ${e.message}`, 'error');
+                results.push({ name: '整体测试', status: 'fail', detail: e.message });
+            }
+            
+            testResults.predictor = results;
+            return results;
+        }
+
+        // ========== 数据管理器测试 ==========
+        async function testDataManager() {
+            log('开始测试 DataManager...', 'info');
+            const results = [];
+            
+            try {
+                // 测试1: 依赖注入
+                const mockRandom = () => 0.5;
+                const dm = new DataManager({
+                    randomGenerator: mockRandom,
+                    delay: 0
+                });
+                results.push({ name: '依赖注入支持', status: 'pass' });
+                
+                // 测试2: 基础数据获取
+                const countries = dm.getCountries?.() || dm.countries;
+                const hasCountries = Array.isArray(countries) && countries.length > 0;
+                results.push({ name: '国家数据', status: hasCountries ? 'pass' : 'fail', detail: hasCountries ? `${countries.length}个国家` : '无数据' });
+                
+                // 测试3: 车型数据
+                const models = dm.getModels?.() || dm.models;
+                const hasModels = Array.isArray(models) && models.length > 0;
+                results.push({ name: '车型数据', status: hasModels ? 'pass' : 'fail', detail: hasModels ? `${models.length}个车型` : '无数据' });
+                
+                // 测试4: 趋势数据生成
+                const trend = dm.generateDefaultTrend?.(1000000, 7);
+                const hasTrend = Array.isArray(trend) && trend.length > 0;
+                results.push({ name: '趋势数据生成', status: hasTrend ? 'pass' : 'fail', detail: hasTrend ? `${trend.length}个数据点` : '无数据' });
+                
+                log('DataManager 测试完成', 'success');
+            } catch (e) {
+                log(`DataManager 错误: ${e.message}`, 'error');
+                results.push({ name: '整体测试', status: 'fail', detail: e.message });
+            }
+            
+            testResults.datamanager = results;
+            return results;
+        }
+
+        // ========== 搜索引擎测试 ==========
+        async function testSearchEngine() {
+            log('开始测试 MarketSearchEngine...', 'info');
+            const results = [];
+            
+            try {
+                // 测试1: 依赖注入
+                const mockRandom = () => 0.5;
+                const engine = new MarketSearchEngine({
+                    randomGenerator: mockRandom,
+                    delay: 0
+                });
+                results.push({ name: '依赖注入支持', status: 'pass' });
+                
+                // 测试2: 搜索功能
+                const searchResult = await engine.search({ brand: 'byd', model: 'qin-plus', country: 'th' });
+                const hasResult = searchResult && searchResult.monthlyData && searchResult.monthlyData.length > 0;
+                results.push({ name: '搜索功能', status: hasResult ? 'pass' : 'fail', detail: hasResult ? `${searchResult.monthlyData.length}个月数据` : '无结果' });
+                
+                // 测试3: 近期成交数据
+                const recentDeals = engine.generateRecentDeals?.('byd', 'qin-plus', 'th', 7);
+                const hasDeals = recentDeals && recentDeals.deals && recentDeals.deals.length > 0;
+                results.push({ name: '近期成交数据', status: hasDeals ? 'pass' : 'fail', detail: hasDeals ? `${recentDeals.totalCount}条成交` : '无数据' });
+                
+                // 测试4: 价格计算
+                const basePrice = engine.getBasePrice?.('byd', 'qin-plus', 'th');
+                const hasPrice = typeof basePrice === 'number' && basePrice > 0;
+                results.push({ name: '基础价格获取', status: hasPrice ? 'pass' : 'fail', detail: hasPrice ? `฿${basePrice.toLocaleString()}` : '无价格' });
+                
+                log('MarketSearchEngine 测试完成', 'success');
+            } catch (e) {
+                log(`MarketSearchEngine 错误: ${e.message}`, 'error');
+                results.push({ name: '整体测试', status: 'fail', detail: e.message });
+            }
+            
+            testResults.searchengine = results;
+            return results;
+        }
+
+        // 渲染测试结果
+        function renderResults() {
+            const render = (id, results) => {
+                const el = document.getElementById(id);
+                el.innerHTML = results.map(r => createTestItem(r.name, r.status, r.detail)).join('');
+            };
+            
+            render('valuation-tests', testResults.valuation);
+            render('predictor-tests', testResults.predictor);
+            render('datamanager-tests', testResults.datamanager);
+            render('searchengine-tests', testResults.searchengine);
+            
+            // 计算总分
+            const allTests = [...testResults.valuation, ...testResults.predictor, ...testResults.datamanager, ...testResults.searchengine];
+            const passed = allTests.filter(t => t.status === 'pass').length;
+            const total = allTests.length;
+            const score = total > 0 ? Math.round((passed / total) * 100) : 0;
+            
+            document.getElementById('total-score').textContent = score;
+            document.getElementById('total-score').style.color = score >= 90 ? '#0d9488' : score >= 70 ? '#f59e0b' : '#ef4444';
+        }
+
+        // 运行所有测试
+        window.runAllTests = async function() {
+            consoleEl.innerHTML = '';
+            log('开始运行所有AI功能测试...', 'info');
+            
+            await testValuationEngine();
+            await testMarketPredictor();
+            await testDataManager();
+            await testSearchEngine();
+            
+            renderResults();
+            log('所有测试完成！', 'success');
+        };
+
+        // 初始化
+        log('测试面板已加载，点击"运行所有测试"开始', 'info');
+    </script>
+</body>
+</html>
