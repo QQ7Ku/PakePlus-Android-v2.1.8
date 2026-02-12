@@ -1,0 +1,290 @@
+/**
+ * ASEAN NEV Insight - Loading Screen Styles
+ * 参考 Shadow Bling 风格的炫酷加载动画
+ */
+
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.loading-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(20, 184, 166, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(20, 184, 166, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(20, 184, 166, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.loading-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 40px;
+}
+
+/* 品牌 Logo 动画 */
+.loading-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 32px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: 4px;
+  animation: brandPulse 2s ease-in-out infinite;
+}
+
+.loading-brand i {
+  font-size: 36px;
+  color: #14b8a6;
+  animation: iconSpin 3s linear infinite;
+}
+
+@keyframes brandPulse {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1);
+    text-shadow: 0 0 30px rgba(20, 184, 166, 0.3);
+  }
+  50% { 
+    opacity: 0.8; 
+    transform: scale(1.02);
+    text-shadow: 0 0 60px rgba(20, 184, 166, 0.5);
+  }
+}
+
+@keyframes iconSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* LOADING 文字 */
+.loading-text {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  animation: textGlow 2s ease-in-out infinite;
+}
+
+@keyframes textGlow {
+  0%, 100% { 
+    opacity: 0.4;
+    letter-spacing: 12px;
+  }
+  50% { 
+    opacity: 0.8;
+    letter-spacing: 16px;
+    color: rgba(20, 184, 166, 0.6);
+  }
+}
+
+/* 百分比数字 */
+.loading-percentage {
+  font-size: 80px;
+  font-weight: 200;
+  color: white;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 4px;
+  line-height: 1;
+}
+
+.loading-percentage span {
+  display: inline-block;
+  min-width: 140px;
+  text-align: center;
+  background: linear-gradient(180deg, #ffffff 0%, #14b8a6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 进度条容器 */
+.loading-bar-container {
+  width: 300px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.loading-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #14b8a6 0%, #5eead4 50%, #14b8a6 100%);
+  background-size: 200% 100%;
+  border-radius: 2px;
+  transition: width 0.1s linear;
+  animation: barShimmer 1.5s linear infinite;
+  box-shadow: 0 0 20px rgba(20, 184, 166, 0.5);
+}
+
+@keyframes barShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 状态文字 */
+.loading-status {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  min-height: 20px;
+  text-align: center;
+  animation: statusFade 0.5s ease;
+}
+
+@keyframes statusFade {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 粒子装饰 */
+.loading-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.loading-particles span {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(20, 184, 166, 0.6);
+  border-radius: 50%;
+  animation: particleFloat 4s ease-in-out infinite;
+}
+
+.loading-particles span:nth-child(1) {
+  top: 20%;
+  left: 10%;
+  animation-delay: 0s;
+  animation-duration: 3s;
+}
+
+.loading-particles span:nth-child(2) {
+  top: 60%;
+  left: 20%;
+  animation-delay: 0.5s;
+  animation-duration: 4s;
+}
+
+.loading-particles span:nth-child(3) {
+  top: 30%;
+  right: 15%;
+  animation-delay: 1s;
+  animation-duration: 3.5s;
+}
+
+.loading-particles span:nth-child(4) {
+  top: 70%;
+  right: 25%;
+  animation-delay: 1.5s;
+  animation-duration: 4.5s;
+}
+
+.loading-particles span:nth-child(5) {
+  top: 40%;
+  left: 30%;
+  animation-delay: 2s;
+  animation-duration: 3s;
+}
+
+.loading-particles span:nth-child(6) {
+  top: 80%;
+  right: 10%;
+  animation-delay: 2.5s;
+  animation-duration: 4s;
+}
+
+@keyframes particleFloat {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-100px) scale(1);
+  }
+}
+
+/* 网格背景效果 */
+.loading-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(20, 184, 166, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 184, 166, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+}
+
+/* 加载完成退出动画 */
+.loading-screen.fade-out {
+  animation: fadeOut 0.6s ease forwards;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.05);
+    visibility: hidden;
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+  .loading-content {
+    padding: 24px;
+    gap: 20px;
+  }
+  
+  .loading-brand {
+    font-size: 24px;
+    gap: 12px;
+  }
+  
+  .loading-brand i {
+    font-size: 28px;
+  }
+  
+  .loading-percentage {
+    font-size: 56px;
+  }
+  
+  .loading-percentage span {
+    min-width: 100px;
+  }
+  
+  .loading-bar-container {
+    width: 240px;
+  }
+  
+  .loading-text {
+    font-size: 12px;
+    letter-spacing: 8px;
+  }
+}
