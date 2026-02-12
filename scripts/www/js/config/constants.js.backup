@@ -1,0 +1,594 @@
+/**
+ * ASEAN NEV Insight - Constants
+ * 甯搁噺閰嶇疆
+ */
+
+// 涓滅洘10鍥介厤缃?
+export const COUNTRIES = {
+  th: {
+    code: 'th',
+    name: '娉板浗',
+    nameEn: 'Thailand',
+    flag: '馃嚬馃嚟',
+    currency: { code: 'THB', symbol: '喔?, name: '娉伴摙', rate: 0.2 },
+    evPolicy: {
+      importTax: 0,
+      subsidy: { max: 150000, unit: 'THB', desc: '鏈€楂?5涓囨嘲閾? },
+      incentive: '娑堣垂绋庡噺鍏?,
+      charging: { stations: 2500, growth: '+35%' }
+    },
+    hotModels: ['BYD Atto 3', 'BYD 绉?Plus DM-i', 'Tesla Model 3', 'MG ZS EV', 'BYD 姹?EV'],
+    marketData: { avgPrice: 1200000, volume: 3500, evRatio: 12.5 }
+  },
+  vn: {
+    code: 'vn',
+    name: '瓒婂崡',
+    nameEn: 'Vietnam',
+    flag: '馃嚮馃嚦',
+    currency: { code: 'VND', symbol: '鈧?, name: '瓒婂崡鐩?, rate: 0.0003 },
+    evPolicy: {
+      importTax: 0,
+      specialConsumptionTax: '2-10%',
+      registrationFee: '鍏嶉櫎',
+      subsidy: { desc: '鐗瑰埆娑堣垂绋庝紭鎯? }
+    },
+    hotModels: ['VinFast VF8', 'BYD 绉?2019娆?, 'Tesla Model Y', 'BYD Atto 3'],
+    marketData: { avgPrice: 850000000, volume: 1800, evRatio: 8.2 }
+  },
+  id: {
+    code: 'id',
+    name: '鍗板凹',
+    nameEn: 'Indonesia',
+    flag: '馃嚠馃嚛',
+    currency: { code: 'IDR', symbol: 'Rp', name: '鍗板凹鐩?, rate: 0.00045 },
+    evPolicy: {
+      importTax: '0% (CKD)',
+      luxuryTax: '鍑忓厤',
+      subsidy: { max: 80000000, unit: 'IDR', desc: '鏈€楂?000涓囩浘' },
+      localization: '鏈湴鍖栫敓浜т紭鎯?
+    },
+    hotModels: ['Wuling Air EV', 'BYD M6', 'BYD 瀹?Plus DM-i', 'Hyundai Ioniq 5'],
+    marketData: { avgPrice: 450000000, volume: 2200, evRatio: 5.8 }
+  },
+  my: {
+    code: 'my',
+    name: '椹潵瑗夸簹',
+    nameEn: 'Malaysia',
+    flag: '馃嚥馃嚲',
+    currency: { code: 'MYR', symbol: 'RM', name: '椹竵', rate: 1.55 },
+    evPolicy: {
+      importTax: '0% (CBU until 2025)',
+      exciseDuty: '鍏嶉櫎',
+      roadTax: '鍑忓厤',
+      subsidy: { desc: '绋庢敹浼樻儬' }
+    },
+    hotModels: ['Tesla Model 3', 'BYD Seal', 'BYD 鍏?Plus', 'MG ZS EV'],
+    marketData: { avgPrice: 180000, volume: 1500, evRatio: 3.5 }
+  },
+  sg: {
+    code: 'sg',
+    name: '鏂板姞鍧?,
+    nameEn: 'Singapore',
+    flag: '馃嚫馃嚞',
+    currency: { code: 'SGD', symbol: 'S$', name: '鏂板竵', rate: 5.2 },
+    evPolicy: {
+      vesRebate: '鏈€楂?.5涓囨柊甯?,
+      arfRebate: '45%鍥炴墸',
+      charging: { stations: 6000, growth: '+50%' },
+      coe: 'Category B'
+    },
+    hotModels: ['Tesla Model 3', 'BYD 姹?EV', 'BMW iX', 'Mercedes EQS'],
+    marketData: { avgPrice: 280000, volume: 800, evRatio: 18.5 }
+  },
+  ph: {
+    code: 'ph',
+    name: '鑿插緥瀹?,
+    nameEn: 'Philippines',
+    flag: '馃嚨馃嚟',
+    currency: { code: 'PHP', symbol: '鈧?, name: '姣旂储', rate: 0.13 },
+    evPolicy: {
+      importTax: '0% (until 2028)',
+      exciseTax: '鍏嶉櫎',
+      tariff: '闆跺叧绋?,
+      subsidy: { desc: '绋庢敹鍑忓厤' }
+    },
+    hotModels: ['BYD Atto 3', 'BYD 绉?Plus DM-i', 'Tesla Model Y', 'Nissan Leaf'],
+    marketData: { avgPrice: 1800000, volume: 600, evRatio: 2.8 }
+  },
+  mm: {
+    code: 'mm',
+    name: '缂呯敻',
+    nameEn: 'Myanmar',
+    flag: '馃嚥馃嚥',
+    currency: { code: 'MMK', symbol: 'K', name: '缂呭厓', rate: 0.003 },
+    evPolicy: {
+      importTax: '5% (浼樻儬)',
+      evIncentive: '榧撳姳杩涘彛',
+      status: '甯傚満璧锋鏈?
+    },
+    hotModels: ['BYD E6', 'BYD e6', 'Tesla Model 3', 'Nissan Leaf'],
+    marketData: { avgPrice: 45000000, volume: 120, evRatio: 1.2 }
+  },
+  kh: {
+    code: 'kh',
+    name: '鏌煍瀵?,
+    nameEn: 'Cambodia',
+    flag: '馃嚢馃嚟',
+    currency: { code: 'KHR', symbol: '釤?, name: '鐟炲皵', rate: 0.0017 },
+    evPolicy: {
+      importTax: '0% (EV)',
+      specialTax: '鍏嶉櫎',
+      publicTransport: '鐢靛姩鍖栬鍒?,
+      status: '鏀跨瓥鍙嬪ソ'
+    },
+    hotModels: ['BYD Atto 3', 'BYD 绉?2019娆?, 'Tesla Model 3', 'MG EP'],
+    marketData: { avgPrice: 85000000, volume: 200, evRatio: 2.1 }
+  },
+  la: {
+    code: 'la',
+    name: '鑰佹対',
+    nameEn: 'Laos',
+    flag: '馃嚤馃嚘',
+    currency: { code: 'LAK', symbol: '鈧?, name: '鍩烘櫘', rate: 0.0003 },
+    evPolicy: {
+      importTax: '浼樻儬',
+      evTarget: '2050纰充腑鍜?,
+      charging: '寤鸿涓?,
+      status: '鍒濇湡闃舵'
+    },
+    hotModels: ['BYD Atto 3', 'BYD 鍞?DM', 'VinFast VF8', 'MG ZS EV'],
+    marketData: { avgPrice: 450000000, volume: 80, evRatio: 0.8 }
+  },
+  bn: {
+    code: 'bn',
+    name: '鏂囪幈',
+    nameEn: 'Brunei',
+    flag: '馃嚙馃嚦',
+    currency: { code: 'BND', symbol: 'B$', name: '鏂囪幈鍏?, rate: 5.2 },
+    evPolicy: {
+      importTax: '浼樻儬',
+      evGoal: '2035鐩爣',
+      status: '灏忓瀷甯傚満',
+      incentive: '鍏嶇◣'
+    },
+    hotModels: ['Tesla Model 3', 'BYD Atto 3', 'BYD e2', 'MG ZS EV'],
+    marketData: { avgPrice: 45000, volume: 50, evRatio: 4.2 }
+  }
+};
+
+// 鏂拌兘婧愯溅鍨嬫暟鎹簱
+export const EV_MODELS = {
+  'BYD': {
+    brand: 'BYD',
+    logo: '馃殫',
+    country: 'cn',
+    models: {
+      'atto3': {
+        id: 'atto3',
+        name: 'Atto 3',
+        category: 'SUV',
+        battery: 60,
+        range: 420,
+        basePrices: { th: 1200000, vn: 850000000, id: 450000000, my: 168000, sg: 185000, ph: 1800000, mm: 45000000, kh: 85000000, la: 450000000, bn: 45000 },
+        retention: { y1: 0.88, y2: 0.78, y3: 0.68 }
+      },
+      'seal': {
+        id: 'seal',
+        name: 'Seal',
+        category: 'Sedan',
+        battery: 82,
+        range: 570,
+        basePrices: { th: 1600000, vn: 1150000000, id: 650000000, my: 198000, sg: 280000, ph: 2400000, mm: 65000000, kh: 120000000, la: 650000000, bn: 65000 },
+        retention: { y1: 0.85, y2: 0.75, y3: 0.65 }
+      },
+      'dolphin': {
+        id: 'dolphin',
+        name: 'Dolphin',
+        category: 'Hatchback',
+        battery: 45,
+        range: 340,
+        basePrices: { th: 799000, vn: 550000000, id: 299000000, my: 98000, sg: 145000, ph: 1200000, mm: 32000000, kh: 60000000, la: 320000000, bn: 32000 },
+        retention: { y1: 0.86, y2: 0.76, y3: 0.66 }
+      },
+      'm6': {
+        id: 'm6',
+        name: 'M6',
+        category: 'MPV',
+        battery: 71,
+        range: 420,
+        basePrices: { th: 1450000, id: 429000000, my: 158000, ph: 2100000 },
+        retention: { y1: 0.83, y2: 0.73, y3: 0.63 }
+      },
+      'qin-2019': {
+        id: 'qin-2019',
+        name: '绉?2019娆?,
+        category: 'Sedan',
+        battery: 53,
+        range: 420,
+        powertrain: 'PHEV',
+        basePrices: { th: 950000, vn: 680000000, id: 380000000, my: 125000, sg: 155000, ph: 1450000, mm: 35000000, kh: 65000000, la: 350000000, bn: 35000 },
+        retention: { y1: 0.82, y2: 0.70, y3: 0.58 }
+      },
+      'qin-plus': {
+        id: 'qin-plus',
+        name: '绉?Plus DM-i',
+        category: 'Sedan',
+        battery: 18,
+        range: 120,
+        powertrain: 'PHEV',
+        basePrices: { th: 1150000, vn: 820000000, id: 450000000, my: 148000, sg: 175000, ph: 1680000, mm: 42000000, kh: 78000000, la: 420000000, bn: 42000 },
+        retention: { y1: 0.85, y2: 0.75, y3: 0.65 }
+      },
+      'han': {
+        id: 'han',
+        name: '姹?EV',
+        category: 'Sedan',
+        battery: 77,
+        range: 605,
+        powertrain: 'BEV',
+        basePrices: { th: 1850000, vn: 1350000000, id: 750000000, my: 228000, sg: 285000, ph: 2800000, mm: 72000000, kh: 135000000, la: 720000000, bn: 72000 },
+        retention: { y1: 0.84, y2: 0.74, y3: 0.64 }
+      },
+      'tang': {
+        id: 'tang',
+        name: '鍞?DM',
+        category: 'SUV',
+        battery: 20,
+        range: 100,
+        powertrain: 'PHEV',
+        basePrices: { th: 1750000, vn: 1250000000, id: 680000000, my: 218000, sg: 265000, ph: 2600000, mm: 65000000, kh: 125000000, la: 650000000, bn: 65000 },
+        retention: { y1: 0.83, y2: 0.72, y3: 0.62 }
+      },
+      'song-plus': {
+        id: 'song-plus',
+        name: '瀹?Plus DM-i',
+        category: 'SUV',
+        battery: 18,
+        range: 110,
+        powertrain: 'PHEV',
+        basePrices: { th: 1350000, vn: 950000000, id: 520000000, my: 175000, sg: 205000, ph: 1950000, mm: 48000000, kh: 90000000, la: 480000000, bn: 48000 },
+        retention: { y1: 0.84, y2: 0.74, y3: 0.64 }
+      },
+      'yuan-plus': {
+        id: 'yuan-plus',
+        name: '鍏?Plus',
+        category: 'SUV',
+        battery: 50,
+        range: 430,
+        powertrain: 'BEV',
+        basePrices: { th: 1050000, vn: 750000000, id: 410000000, my: 138000, sg: 165000, ph: 1550000, mm: 38000000, kh: 70000000, la: 380000000, bn: 38000 },
+        retention: { y1: 0.86, y2: 0.76, y3: 0.66 }
+      },
+      'e2': {
+        id: 'e2',
+        name: 'e2',
+        category: 'Hatchback',
+        battery: 43,
+        range: 405,
+        powertrain: 'BEV',
+        basePrices: { th: 850000, vn: 600000000, id: 320000000, my: 108000, sg: 135000, ph: 1250000, mm: 28000000, kh: 55000000, la: 280000000, bn: 28000 },
+        retention: { y1: 0.83, y2: 0.72, y3: 0.60 }
+      },
+      'e6': {
+        id: 'e6',
+        name: 'e6',
+        category: 'MPV',
+        battery: 82,
+        range: 522,
+        powertrain: 'BEV',
+        basePrices: { th: 1350000, vn: 950000000, id: 480000000, my: 165000, sg: 195000, ph: 1850000, mm: 42000000, kh: 78000000, la: 420000000, bn: 42000 },
+        retention: { y1: 0.80, y2: 0.68, y3: 0.56 }
+      }
+    }
+  },
+  'Tesla': {
+    brand: 'Tesla',
+    logo: '鈿?,
+    country: 'us',
+    models: {
+      'model3': {
+        id: 'model3',
+        name: 'Model 3',
+        category: 'Sedan',
+        battery: 60,
+        range: 438,
+        basePrices: { th: 1750000, vn: 1250000000, id: 1550000000, my: 218000, sg: 185000, ph: 2600000, mm: 85000000, kh: 160000000, la: 850000000, bn: 85000 },
+        retention: { y1: 0.87, y2: 0.77, y3: 0.67 }
+      },
+      'modely': {
+        id: 'modely',
+        name: 'Model Y',
+        category: 'SUV',
+        battery: 75,
+        range: 525,
+        basePrices: { th: 1950000, vn: 1450000000, id: 1750000000, my: 248000, sg: 115000, ph: 2900000, mm: 95000000, kh: 180000000, la: 950000000, bn: 95000 },
+        retention: { y1: 0.88, y2: 0.78, y3: 0.68 }
+      }
+    }
+  },
+  'MG': {
+    brand: 'MG',
+    logo: '馃殭',
+    country: 'uk',
+    models: {
+      'zsev': {
+        id: 'zsev',
+        name: 'ZS EV',
+        category: 'SUV',
+        battery: 50,
+        range: 320,
+        basePrices: { th: 950000, vn: 680000000, id: 398000000, my: 118000, sg: 158000, ph: 1450000, mm: 38000000, kh: 72000000, la: 380000000, bn: 38000 },
+        retention: { y1: 0.84, y2: 0.74, y3: 0.64 }
+      },
+      'mg4': {
+        id: 'mg4',
+        name: 'MG4',
+        category: 'Hatchback',
+        battery: 51,
+        range: 350,
+        basePrices: { th: 1050000, my: 128000, sg: 168000 },
+        retention: { y1: 0.85, y2: 0.75, y3: 0.65 }
+      },
+      'ep': {
+        id: 'ep',
+        name: 'EP',
+        category: 'Wagon',
+        battery: 44,
+        range: 316,
+        basePrices: { th: 890000, my: 108000 },
+        retention: { y1: 0.82, y2: 0.72, y3: 0.62 }
+      }
+    }
+  },
+  'VinFast': {
+    brand: 'VinFast',
+    logo: '馃攱',
+    country: 'vn',
+    models: {
+      'vf8': {
+        id: 'vf8',
+        name: 'VF8',
+        category: 'SUV',
+        battery: 87,
+        range: 471,
+        basePrices: { vn: 1200000000, id: 780000000, la: 520000000 },
+        retention: { y1: 0.80, y2: 0.70, y3: 0.60 }
+      },
+      'vf9': {
+        id: 'vf9',
+        name: 'VF9',
+        category: 'SUV',
+        battery: 123,
+        range: 594,
+        basePrices: { vn: 1550000000, id: 980000000 },
+        retention: { y1: 0.78, y2: 0.68, y3: 0.58 }
+      }
+    }
+  },
+  'Wuling': {
+    brand: 'Wuling',
+    logo: '馃殣',
+    country: 'cn',
+    models: {
+      'airev': {
+        id: 'airev',
+        name: 'Air EV',
+        category: 'Micro',
+        battery: 27,
+        range: 200,
+        basePrices: { id: 238000000, th: 395000 },
+        retention: { y1: 0.82, y2: 0.70, y3: 0.58 }
+      }
+    }
+  },
+  'ORA': {
+    brand: 'ORA',
+    logo: '馃惐',
+    country: 'cn',
+    models: {
+      'goodcat': {
+        id: 'goodcat',
+        name: 'Good Cat',
+        category: 'Hatchback',
+        battery: 63,
+        range: 400,
+        basePrices: { th: 985000, my: 138000 },
+        retention: { y1: 0.83, y2: 0.73, y3: 0.63 }
+      }
+    }
+  }
+};
+
+// 杞﹀喌绯绘暟
+export const CONDITION_FACTORS = {
+  excellent: { factor: 1.0, label: '浼樼', labelEn: 'Excellent' },
+  good: { factor: 0.95, label: '鑹ソ', labelEn: 'Good' },
+  average: { factor: 0.88, label: '涓€鑸?, labelEn: 'Average' },
+  poor: { factor: 0.75, label: '杈冨樊', labelEn: 'Poor' }
+};
+
+// 鐢垫睜鍋ュ悍搴︾郴鏁?
+export const BATTERY_FACTORS = {
+  90: { factor: 1.0, label: '浼樼 (90%+)' },
+  80: { factor: 0.95, label: '鑹ソ (80-90%)' },
+  70: { factor: 0.85, label: '涓€鑸?(70-80%)' },
+  60: { factor: 0.70, label: '杈冨樊 (60-70%)' }
+};
+
+// 璇█閰嶇疆
+export const LANGUAGES = {
+  zh: { code: 'zh', name: '涓枃', flag: '馃嚚馃嚦' },
+  en: { code: 'en', name: 'English', flag: '馃嚞馃嚙' },
+  th: { code: 'th', name: '喙勦笚喔?, flag: '馃嚬馃嚟' },
+  vi: { code: 'vi', name: 'Ti岷縩g Vi峄噒', flag: '馃嚮馃嚦' },
+  id: { code: 'id', name: 'Bahasa', flag: '馃嚠馃嚛' }
+};
+
+// 缈昏瘧鏂囨湰
+export const TRANSLATIONS = {
+  zh: {
+    'nav.dashboard': '鏁版嵁鐪嬫澘',
+    'nav.valuation': 'AI浼颁环',
+    'nav.prediction': '甯傚満棰勬祴',
+    'nav.policy': '鏀跨瓥鍒嗘瀽',
+    'kpi.avgPrice': '骞冲潎杞︿环',
+    'kpi.volume': '鏈堟垚浜ら噺',
+    'kpi.evRatio': '鏂拌兘婧愬崰姣?,
+    'kpi.hotModel': '鐑棬杞﹀瀷',
+    'kpi.thisMonth': '鏈湀',
+    'chart.priceTrend': '浠锋牸瓒嬪娍',
+    'chart.brandShare': '鍝佺墝浠介',
+    'chart.aseanMap': '涓滅洘浠锋牸瀵规瘮',
+    'chart.aiInsight': 'AI甯傚満娲炲療',
+    'table.hotModels': '鐑棬杞﹀瀷鎺掕',
+    'table.rank': '鎺掑悕',
+    'table.model': '杞﹀瀷',
+    'table.brand': '鍝佺墝',
+    'table.avgPrice': '骞冲潎浠锋牸',
+    'table.change': '娑ㄨ穼',
+    'table.volume': '鎴愪氦閲?,
+    'btn.viewAll': '鏌ョ湅鍏ㄩ儴',
+    'btn.aiPredict': 'AI棰勬祴涓嬫湀璧板娍',
+    'btn.next': '涓嬩竴姝?,
+    'btn.prev': '涓婁竴姝?,
+    'btn.calculate': '绔嬪嵆浼颁环',
+    'btn.newValuation': '閲嶆柊浼颁环',
+    'btn.save': '淇濆瓨缁撴灉',
+    'form.brand': '鍝佺墝',
+    'form.model': '杞﹀瀷',
+    'form.year': '骞翠唤',
+    'form.mileage': '閲岀▼ (涓囧叕閲?',
+    'form.batteryHealth': '鐢垫睜鍋ュ悍搴?,
+    'form.country': '鎵€鍦ㄥ浗瀹?,
+    'form.condition': '杞﹀喌',
+    'condition.excellent': '浼樼',
+    'condition.excellentDesc': '鏃犱簨鏁咃紝淇濆吇鏋佷匠',
+    'condition.good': '鑹ソ',
+    'condition.goodDesc': '杞诲井纾ㄦ崯锛屾甯镐繚鍏?,
+    'condition.average': '涓€鑸?,
+    'condition.averageDesc': '姝ｅ父浣跨敤鐥曡抗',
+    'condition.poor': '杈冨樊',
+    'condition.poorDesc': '闇€瑕佺淮淇?,
+    'valuation.title': 'AI鏅鸿兘浼颁环',
+    'valuation.subtitle': '杈撳叆杞﹁締淇℃伅锛岃幏鍙朅I绮惧噯浼颁环',
+    'result.title': '浼颁环缁撴灉',
+    'result.estimatedPrice': 'AI寤鸿鍞环',
+    'result.aiAnalysis': 'AI鍒嗘瀽',
+    'prediction.title': 'AI甯傚満棰勬祴',
+    'prediction.selectModel': '閫夋嫨杞﹀瀷',
+    'prediction.period': '棰勬祴鍛ㄦ湡',
+    'prediction.run': '杩愯AI棰勬祴',
+    'policy.title': '鏂拌兘婧愭斂绛栧垎鏋?,
+    'footer.text': '鏁版嵁浠呬緵鍙傝€冿紝瀹為檯浜ゆ槗浠锋牸浠ュ競鍦轰负鍑?,
+    'offline.message': '宸插垏鎹㈠埌绂荤嚎妯″紡',
+    'nav.search': '杞﹀瀷鎼滅储',
+    'search.title': '杞﹀瀷甯傚満鎼滅储',
+    'search.subtitle': '鎼滅储鐗瑰畾杞﹀瀷鐨勫競鍦洪攢閲忓拰浠锋牸鏁版嵁',
+    'search.brand': '鍝佺墝',
+    'search.model': '杞﹀瀷',
+    'search.period': '鏃堕棿鍛ㄦ湡',
+    'search.country': '鍦板尯',
+    'search.searchBtn': '鎼滅储甯傚満鏁版嵁',
+    'search.totalVolume': '鎬婚攢閲?,
+    'search.avgPrice': '骞冲潎浠锋牸',
+    'search.priceRange': '浠锋牸鍖洪棿',
+    'search.avgMonthly': '鏈堝潎閿€閲?,
+    'search.currentPeriod': '褰撳墠鍛ㄦ湡',
+    'search.volumeTrend': '閿€閲忚秼鍔?,
+    'search.priceTrend': '浠锋牸瓒嬪娍',
+    'search.priceDistribution': '浠锋牸鍒嗗竷',
+    'search.detailData': '璇︾粏鏁版嵁',
+    'search.export': '瀵煎嚭鏁版嵁',
+    'table.month': '鏈堜唤'
+  },
+  en: {
+    'nav.dashboard': 'Dashboard',
+    'nav.valuation': 'AI Valuation',
+    'nav.prediction': 'Prediction',
+    'nav.policy': 'Policy',
+    'kpi.avgPrice': 'Avg Price',
+    'kpi.volume': 'Monthly Volume',
+    'kpi.evRatio': 'EV Share',
+    'kpi.hotModel': 'Hot Model',
+    'kpi.thisMonth': 'This Month',
+    'chart.priceTrend': 'Price Trend',
+    'chart.brandShare': 'Brand Share',
+    'chart.aseanMap': 'ASEAN Comparison',
+    'chart.aiInsight': 'AI Insights',
+    'table.hotModels': 'Top Models',
+    'table.rank': 'Rank',
+    'table.model': 'Model',
+    'table.brand': 'Brand',
+    'table.avgPrice': 'Avg Price',
+    'table.change': 'Change',
+    'table.volume': 'Volume',
+    'btn.viewAll': 'View All',
+    'btn.aiPredict': 'AI Prediction',
+    'btn.next': 'Next',
+    'btn.prev': 'Back',
+    'btn.calculate': 'Calculate',
+    'btn.newValuation': 'New',
+    'btn.save': 'Save',
+    'form.brand': 'Brand',
+    'form.model': 'Model',
+    'form.year': 'Year',
+    'form.mileage': 'Mileage (10k km)',
+    'form.batteryHealth': 'Battery Health',
+    'form.country': 'Country',
+    'form.condition': 'Condition',
+    'condition.excellent': 'Excellent',
+    'condition.excellentDesc': 'No accidents, perfect',
+    'condition.good': 'Good',
+    'condition.goodDesc': 'Minor wear, maintained',
+    'condition.average': 'Average',
+    'condition.averageDesc': 'Normal usage',
+    'condition.poor': 'Poor',
+    'condition.poorDesc': 'Needs repair',
+    'valuation.title': 'AI Valuation',
+    'valuation.subtitle': 'Get AI-powered price estimate',
+    'result.title': 'Result',
+    'result.estimatedPrice': 'AI Recommended Price',
+    'result.aiAnalysis': 'AI Analysis',
+    'prediction.title': 'AI Market Prediction',
+    'prediction.selectModel': 'Select Model',
+    'prediction.period': 'Period',
+    'prediction.run': 'Run AI Prediction',
+    'policy.title': 'EV Policy Analysis',
+    'footer.text': 'Data for reference only',
+    'offline.message': 'Switched to offline mode'
+  }
+};
+
+// 搴旂敤閰嶇疆甯搁噺
+export const APP_CONFIG = {
+  MAX_VALUATION_HISTORY: 20,
+  DEFAULT_DEBOUNCE_DELAY: 300,
+  DEFAULT_TOAST_DURATION: 3000,
+  CHART_ANIMATION_DURATION: 300,
+  DEFAULT_AI_DELAY: 1500,
+  DEFAULT_PREDICTION_DELAY: 2000,
+  HOT_MODELS_LIMIT: 10,
+  
+  // 寤惰繜鏃堕棿甯搁噺锛堢敤浜嶵DD娴嬭瘯锛?
+  DELAY: {
+    CHART_RENDER: 100,      // 鍥捐〃娓叉煋寤惰繜
+    CHART_RESIZE: 300,      // 鍥捐〃灏哄璋冩暣寤惰繜
+    UI_UPDATE: 100,         // UI鏇存柊寤惰繜
+    TAB_SWITCH: 100,        // 鏍囩鍒囨崲寤惰繜
+    INITIALIZATION: 500,    // 鍒濆鍖栧欢杩?
+    DROPDOWN_FILL: 100,     // 涓嬫媺鑿滃崟濉厖寤惰繜
+    SEARCH_AUTO: 100        // 鎼滅储鑷姩瑙﹀彂寤惰繜
+  }
+};
+
+// 鍥捐〃榛樿閰嶇疆
+export const CHART_COLORS = {
+  primary: '#14b8a6',
+  secondary: '#64748b',
+  accent: '#f59e0b',
+  success: '#22c55e',
+  danger: '#ef4444',
+  warning: '#f59e0b',
+  info: '#3b82f6',
+  colors: ['#14b8a6', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#22c55e', '#f97316', '#06b6d4']
+};
