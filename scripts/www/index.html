@@ -1,11 +1,936 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="东盟新能源二手车AI分析平台 - 覆盖10国，智能估价，政策分析，市场预测">
+    <meta name="theme-color" content="#0d9488">
+    
+    <title>ASEAN NEV Insight | 东盟新能源二手车分析平台</title>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/loading.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/search.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#14b8a6',
+                        'primary-dark': '#0d9488',
+                        secondary: '#64748b',
+                        accent: '#f59e0b',
+                        dark: '#0f172a',
+                        'dark-light': '#1e293b'
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+    
+    <!-- ============================================
+         LOADING SCREEN - Shadow Bling Style
+         ============================================ -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-brand">
+                <i class="fas fa-bolt"></i>
+                <span>ASEAN NEV</span>
+            </div>
+            <div class="loading-text">LOADING</div>
+            <div class="loading-percentage">
+                <span id="loadingPercent">000</span>%
+            </div>
+            <div class="loading-bar-container">
+                <div class="loading-bar" id="loadingBar"></div>
+            </div>
+            <div class="loading-status" id="loadingStatus">初始化系统...</div>
+            <div class="loading-particles">
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         MAIN APPLICATION
+         ============================================ -->
+    <div id="app" class="app-container hidden">
+        
+        <!-- Navigation -->
+        <nav class="nav-bar">
+            <div class="nav-container">
+                <div class="nav-logo" id="navLogo" style="cursor: pointer;" title="返回主页">
+                    <i class="fas fa-bolt"></i>
+                    <div class="nav-logo-text">
+                        <span class="nav-logo-title">ASEAN NEV</span>
+                        <span class="nav-logo-subtitle">东盟新能源二手车分析平台</span>
+                    </div>
+                </div>
+                
+                <div class="nav-menu hidden md:flex">
+                    <button class="nav-item active" data-tab="dashboard">
+                        <i class="fas fa-chart-line"></i>
+                        <span data-i18n="nav.dashboard">数据看板</span>
+                    </button>
+                    <button class="nav-item" data-tab="search">
+                        <i class="fas fa-search"></i>
+                        <span data-i18n="nav.search">车型搜索</span>
+                    </button>
+                    <button class="nav-item" data-tab="valuation">
+                        <i class="fas fa-calculator"></i>
+                        <span data-i18n="nav.valuation">AI估价</span>
+                    </button>
+                    <button class="nav-item" data-tab="prediction">
+                        <i class="fas fa-magic"></i>
+                        <span data-i18n="nav.prediction">市场预测</span>
+                    </button>
+                    <button class="nav-item" data-tab="policy">
+                        <i class="fas fa-file-contract"></i>
+                        <span data-i18n="nav.policy">政策分析</span>
+                    </button>
+                </div>
+                
+                <div class="nav-controls">
+                    <div class="control-dropdown" id="countryDropdown">
+                        <button class="control-btn">
+                            <span id="currentCountryFlag">🇹🇭</span>
+                            <span id="currentCountryName" class="hidden sm:inline">泰国</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <div class="dropdown-menu" id="countryMenu"></div>
+                    </div>
+                    
+                    <div class="control-dropdown" id="currencyDropdown">
+                        <button class="control-btn">
+                            <span id="currentCurrency">฿</span>
+                            <span id="currentCurrencyCode" class="hidden sm:inline">THB</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <div class="dropdown-menu" id="currencyMenu"></div>
+                    </div>
+                    
+                    <div class="control-dropdown" id="languageDropdown">
+                        <button class="control-btn">
+                            <i class="fas fa-globe"></i>
+                            <span id="currentLanguage" class="hidden sm:inline">中文</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <div class="dropdown-menu" id="languageMenu"></div>
+                    </div>
+                </div>
+                
+                <button class="md:hidden nav-mobile-toggle" id="mobileMenuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-menu hidden" id="mobileMenu">
+            <button class="mobile-nav-item active" data-tab="dashboard">
+                <i class="fas fa-chart-line"></i>
+                <span data-i18n="nav.dashboard">数据看板</span>
+            </button>
+            <button class="mobile-nav-item" data-tab="search">
+                <i class="fas fa-search"></i>
+                <span data-i18n="nav.search">车型搜索</span>
+            </button>
+            <button class="mobile-nav-item" data-tab="valuation">
+                <i class="fas fa-calculator"></i>
+                <span data-i18n="nav.valuation">AI估价</span>
+            </button>
+            <button class="mobile-nav-item" data-tab="prediction">
+                <i class="fas fa-magic"></i>
+                <span data-i18n="nav.prediction">市场预测</span>
+            </button>
+            <button class="mobile-nav-item" data-tab="policy">
+                <i class="fas fa-file-contract"></i>
+                <span data-i18n="nav.policy">政策分析</span>
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- DASHBOARD TAB -->
+            <div id="dashboardTab" class="tab-content active">
+                <!-- 快速搜索栏 -->
+                <div class="dashboard-quick-search">
+                    <div class="quick-search-card">
+                        <div class="quick-search-content">
+                            <i class="fas fa-search text-primary"></i>
+                            <input type="text" id="quickSearchInput" data-i18n-placeholder="search.quickSearch" placeholder="快速搜索车型（如：BYD Atto 3）...">
+                            <button class="btn-primary" id="quickSearchBtn">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                        <div class="quick-search-hints">
+                            <span>热门搜索：</span>
+                            <a href="#" data-brand="byd" data-model="atto3">BYD Atto 3</a>
+                            <a href="#" data-brand="byd" data-model="qin-plus">BYD 秦 Plus</a>
+                            <a href="#" data-brand="byd" data-model="qin-2019">BYD 秦 2019</a>
+                            <a href="#" data-brand="byd" data-model="han">BYD 汉</a>
+                            <a href="#" data-brand="tesla" data-model="model3">Tesla Model 3</a>
+                            <a href="#" data-brand="mg" data-model="zsev">MG ZS EV</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon bg-primary/10 text-primary">
+                            <i class="fas fa-car"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label" data-i18n="kpi.avgPrice">平均车价</span>
+                            <span class="kpi-value" id="kpiAvgPrice">-</span>
+                            <span class="kpi-change positive" id="kpiPriceChange">
+                                <i class="fas fa-arrow-up"></i> 5.2%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon bg-blue-500/10 text-blue-500">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label" data-i18n="kpi.volume">月成交量</span>
+                            <span class="kpi-value" id="kpiVolume">-</span>
+                            <span class="kpi-change positive" id="kpiVolumeChange">
+                                <i class="fas fa-arrow-up"></i> 12.8%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon bg-purple-500/10 text-purple-500">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label" data-i18n="kpi.evRatio">新能源占比</span>
+                            <span class="kpi-value" id="kpiEvRatio">-</span>
+                            <span class="kpi-change positive" id="kpiEvChange">
+                                <i class="fas fa-arrow-up"></i> 3.5%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon bg-orange-500/10 text-orange-500">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label" data-i18n="kpi.hotModel">热门车型</span>
+                            <span class="kpi-value text-lg" id="kpiHotModel">-</span>
+                            <span class="kpi-change" data-i18n="kpi.thisMonth">本月</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                <i class="fas fa-chart-line text-primary"></i>
+                                <span data-i18n="chart.priceTrend">价格趋势</span>
+                            </h3>
+                            <div class="chart-controls">
+                                <button class="chart-period active" data-period="30d">30天</button>
+                                <button class="chart-period" data-period="90d">90天</button>
+                                <button class="chart-period" data-period="1y">1年</button>
+                            </div>
+                        </div>
+                        <div class="chart-body">
+                            <div id="priceTrendChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                <i class="fas fa-chart-pie text-primary"></i>
+                                <span data-i18n="chart.brandShare">品牌份额</span>
+                            </h3>
+                        </div>
+                        <div class="chart-body">
+                            <div id="brandShareChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-card">
+                    <div class="data-header">
+                        <h3 class="data-title">
+                            <i class="fas fa-fire text-orange-500"></i>
+                            <span data-i18n="table.hotModels">热门车型排行</span>
+                        </h3>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="hotModelsTable">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="table.rank">排名</th>
+                                    <th data-i18n="table.model">车型</th>
+                                    <th data-i18n="table.brand">品牌</th>
+                                    <th data-i18n="table.avgPrice">平均价格</th>
+                                    <th data-i18n="table.change">涨跌</th>
+                                    <th data-i18n="table.volume">成交量</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hotModelsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                <i class="fas fa-map-marked-alt text-primary"></i>
+                                <span data-i18n="chart.aseanMap">东盟价格对比</span>
+                            </h3>
+                        </div>
+                        <div class="chart-body">
+                            <div id="aseanMapChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                <i class="fas fa-robot text-primary"></i>
+                                <span data-i18n="chart.aiInsight">AI市场洞察</span>
+                            </h3>
+                        </div>
+                        <div class="chart-body ai-insight-body">
+                            <div id="aiInsightContent" class="ai-insight-content"></div>
+                            <button class="btn-primary w-full mt-4" id="predictBtn">
+                                <i class="fas fa-magic"></i>
+                                <span data-i18n="btn.aiPredict">AI预测下月走势</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEARCH TAB - 车型搜索 -->
+            <div id="searchTab" class="tab-content hidden">
+                <!-- 搜索区域 -->
+                <div class="search-container">
+                    <div class="search-card">
+                        <div class="search-header">
+                            <h2 class="search-title">
+                                <i class="fas fa-search text-primary"></i>
+                                <span data-i18n="search.title">车型市场搜索</span>
+                            </h2>
+                            <p class="search-subtitle" data-i18n="search.subtitle">搜索特定车型的市场销量和价格数据</p>
+                        </div>
+                        
+                        <form id="marketSearchForm" class="search-form">
+                            <div class="search-filters">
+                                <div class="search-filter-group">
+                                    <label data-i18n="search.brand">品牌</label>
+                                    <select id="searchBrand" class="form-select" required>
+                                        <option value="" data-i18n="search.selectBrand">选择品牌</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="search-filter-group">
+                                    <label data-i18n="search.model">车型</label>
+                                    <select id="searchModel" class="form-select" disabled required>
+                                        <option value="" data-i18n="search.selectModel">先选择品牌</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="search-filter-group">
+                                    <label data-i18n="search.period">时间周期</label>
+                                    <select id="searchPeriod" class="form-select">
+                                        <option value="12m" selected data-i18n="search.period.12m">近12个月</option>
+                                        <option value="6m" data-i18n="search.period.6m">近6个月</option>
+                                        <option value="3m" data-i18n="search.period.3m">近3个月</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="search-filter-group">
+                                    <label data-i18n="search.country">地区</label>
+                                    <select id="searchCountry" class="form-select">
+                                        <option value="all" data-i18n="search.allCountries">全部国家</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn-primary btn-gradient search-btn" id="marketSearchBtn">
+                                <i class="fas fa-search"></i>
+                                <span data-i18n="search.searchBtn">搜索市场数据</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 搜索结果 - Power BI 风格展示 -->
+                <div id="searchResults" class="search-results hidden">
+                    <!-- 汇总统计卡片 -->
+                    <div class="bi-stats-grid">
+                        <div class="bi-stat-card">
+                            <div class="bi-stat-icon bg-blue-500/10 text-blue-500">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="bi-stat-info">
+                                <span class="bi-stat-label" data-i18n="search.totalVolume">总销量</span>
+                                <span class="bi-stat-value" id="biTotalVolume">-</span>
+                                <span class="bi-stat-change" id="biVolumeTrend">-</span>
+                            </div>
+                        </div>
+                        <div class="bi-stat-card">
+                            <div class="bi-stat-icon bg-green-500/10 text-green-500">
+                                <i class="fas fa-tag"></i>
+                            </div>
+                            <div class="bi-stat-info">
+                                <span class="bi-stat-label" data-i18n="search.avgPrice">平均价格</span>
+                                <span class="bi-stat-value" id="biAvgPrice">-</span>
+                                <span class="bi-stat-change" id="biPriceTrend">-</span>
+                            </div>
+                        </div>
+                        <div class="bi-stat-card">
+                            <div class="bi-stat-icon bg-purple-500/10 text-purple-500">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="bi-stat-info">
+                                <span class="bi-stat-label" data-i18n="search.priceRange">价格区间</span>
+                                <span class="bi-stat-value" id="biPriceRange">-</span>
+                                <span class="bi-stat-change" data-i18n="search.currentPeriod">当前周期</span>
+                            </div>
+                        </div>
+                        <div class="bi-stat-card">
+                            <div class="bi-stat-icon bg-orange-500/10 text-orange-500">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="bi-stat-info">
+                                <span class="bi-stat-label" data-i18n="search.avgMonthly">月均销量</span>
+                                <span class="bi-stat-value" id="biAvgMonthly">-</span>
+                                <span class="bi-stat-change" id="biMonthlyTrend">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 图表区域 -->
+                    <div class="bi-charts-row">
+                        <div class="bi-chart-card">
+                            <div class="bi-chart-header">
+                                <h3 class="bi-chart-title">
+                                    <i class="fas fa-chart-line text-primary"></i>
+                                    <span data-i18n="search.volumeTrend">销量趋势</span>
+                                </h3>
+                            </div>
+                            <div class="bi-chart-body">
+                                <div id="searchVolumeChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                        <div class="bi-chart-card">
+                            <div class="bi-chart-header">
+                                <h3 class="bi-chart-title">
+                                    <i class="fas fa-chart-area text-primary"></i>
+                                    <span data-i18n="search.priceTrend">价格趋势</span>
+                                </h3>
+                            </div>
+                            <div class="bi-chart-body">
+                                <div id="searchPriceChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 近期单车价格展示 -->
+                    <div class="bi-recent-price-card">
+                        <div class="bi-recent-header">
+                            <div class="bi-recent-title">
+                                <i class="fas fa-car text-primary"></i>
+                                <span data-i18n="search.recentDeals">近期单车成交价</span>
+                            </div>
+                            <div class="bi-recent-tabs">
+                                <button class="period-tab active" data-days="7" data-i18n="search.last7days">近7天</button>
+                                <button class="period-tab" data-days="30" data-i18n="search.last30days">近30天</button>
+                            </div>
+                        </div>
+                        <div class="bi-recent-content">
+                            <div class="bi-recent-stats">
+                                <div class="recent-stat-item">
+                                    <span class="recent-stat-label" data-i18n="search.avgDealPrice">平均成交价</span>
+                                    <span class="recent-stat-value" id="recentAvgPrice">-</span>
+                                    <span class="recent-stat-change" id="recentPriceChange">-</span>
+                                </div>
+                                <div class="recent-stat-item">
+                                    <span class="recent-stat-label" data-i18n="search.dealCount">成交数量</span>
+                                    <span class="recent-stat-value" id="recentVolume">-</span>
+                                    <span class="recent-stat-unit">辆</span>
+                                </div>
+                                <div class="recent-stat-item">
+                                    <span class="recent-stat-label" data-i18n="search.maxDealPrice">最高成交价</span>
+                                    <span class="recent-stat-value" id="recentMaxPrice">-</span>
+                                </div>
+                                <div class="recent-stat-item">
+                                    <span class="recent-stat-label" data-i18n="search.minDealPrice">最低成交价</span>
+                                    <span class="recent-stat-value" id="recentMinPrice">-</span>
+                                </div>
+                            </div>
+                            <div class="bi-recent-chart">
+                                <div id="recentPriceChart" class="chart-container"></div>
+                            </div>
+                            <div class="bi-recent-list" id="recentDealsList">
+                                <!-- 最近成交记录 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI 智能建议 -->
+                    <div class="bi-ai-suggestion-card">
+                        <div class="bi-ai-header">
+                            <div class="bi-ai-title">
+                                <i class="fas fa-robot text-primary"></i>
+                                <span>AI 智能建议</span>
+                            </div>
+                            <div class="bi-ai-actions">
+                                <button class="btn-primary btn-sm" id="searchToValuationBtn">
+                                    <i class="fas fa-calculator"></i>
+                                    <span data-i18n="btn.calculateNow">立即估价</span>
+                                </button>
+                                <button class="btn-secondary btn-sm" id="searchToPredictionBtn">
+                                    <i class="fas fa-magic"></i>
+                                    <span data-i18n="btn.viewPrediction">查看预测</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="bi-ai-content" id="searchAiContent">
+                            <div class="bi-ai-item">
+                                <i class="fas fa-lightbulb text-yellow-500"></i>
+                                <div class="bi-ai-text">
+                                    <strong>市场建议</strong>
+                                    <p>当前市场对该车型需求稳定，建议在价格区间中位数出售。</p>
+                                </div>
+                            </div>
+                            <div class="bi-ai-item">
+                                <i class="fas fa-chart-line text-green-500"></i>
+                                <div class="bi-ai-text">
+                                    <strong>价格趋势</strong>
+                                    <p>过去12个月价格呈上升趋势，预计未来3个月将继续上涨约3-5%。</p>
+                                </div>
+                            </div>
+                            <div class="bi-ai-item">
+                                <i class="fas fa-handshake text-blue-500"></i>
+                                <div class="bi-ai-text">
+                                    <strong>交易建议</strong>
+                                    <p>最佳出售时机：当前；预计成交周期：15-20天。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 价格分布 -->
+                    <div class="bi-distribution-card">
+                        <div class="bi-chart-header">
+                            <h3 class="bi-chart-title">
+                                <i class="fas fa-chart-pie text-primary"></i>
+                                <span data-i18n="search.priceDistribution">价格分布</span>
+                            </h3>
+                        </div>
+                        <div class="bi-chart-body">
+                            <div id="searchPriceDistChart" class="chart-container"></div>
+                        </div>
+                    </div>
+
+                    <!-- 详细数据表格 -->
+                    <div class="bi-table-card">
+                        <div class="bi-table-header">
+                            <h3 class="bi-table-title">
+                                <i class="fas fa-table text-primary"></i>
+                                <span data-i18n="search.detailData">详细数据</span>
+                            </h3>
+                            <button class="btn-text" id="exportSearchBtn">
+                                <i class="fas fa-download"></i>
+                                <span data-i18n="search.export">导出数据</span>
+                            </button>
+                        </div>
+                        <div class="bi-table-container">
+                            <table class="bi-data-table" id="searchDataTable">
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="table.month">月份</th>
+                                        <th data-i18n="table.volume">销量</th>
+                                        <th data-i18n="table.avgPrice">平均价格</th>
+                                        <th data-i18n="table.maxPrice">最高价</th>
+                                        <th data-i18n="table.minPrice">最低价</th>
+                                        <th data-i18n="table.change">环比变化</th>
+                                        <th data-i18n="table.totalValue">总交易额</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="searchTableBody">
+                                    <!-- 动态生成 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VALUATION TAB -->
+            <div id="valuationTab" class="tab-content hidden">
+                <div class="valuation-container">
+                    <div class="valuation-form-card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-calculator text-primary"></i>
+                                <span data-i18n="valuation.title">AI智能估价</span>
+                            </h2>
+                        </div>
+                        
+                        <form id="valuationForm" class="valuation-form">
+                            <div class="form-step active" data-step="1">
+                                <div class="step-indicator">
+                                    <div class="step-dot active">1</div>
+                                    <div class="step-line"></div>
+                                    <div class="step-dot">2</div>
+                                    <div class="step-line"></div>
+                                    <div class="step-dot">3</div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label data-i18n="form.brand">品牌</label>
+                                        <select id="valBrand" class="form-select" required>
+                                            <option value="" data-i18n="form.selectBrand">选择品牌</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label data-i18n="form.model">车型</label>
+                                        <select id="valModel" class="form-select" disabled required>
+                                            <option value="" data-i18n="form.selectModel">先选择品牌</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <button type="button" class="btn-primary w-full" id="step1Next">
+                                    <span data-i18n="btn.next">下一步</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="form-step" data-step="2">
+                                <div class="step-indicator">
+                                    <div class="step-dot completed"><i class="fas fa-check"></i></div>
+                                    <div class="step-line completed"></div>
+                                    <div class="step-dot active">2</div>
+                                    <div class="step-line"></div>
+                                    <div class="step-dot">3</div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label data-i18n="form.year">年份</label>
+                                        <select id="valYear" class="form-select" required>
+                                            <option value="" data-i18n="form.selectYear">选择年份</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label data-i18n="form.mileage">里程 (万公里)</label>
+                                        <input type="number" id="valMileage" class="form-input" 
+                                               min="0" max="50" step="0.1" data-i18n-placeholder="form.placeholder.mileage" placeholder="例如: 3.5" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label data-i18n="form.batteryHealth">电池健康度</label>
+                                        <select id="valBattery" class="form-select" required>
+                                            <option value="90" data-i18n="form.battery.excellent">优秀 (90%+)</option>
+                                            <option value="80" selected data-i18n="form.battery.good">良好 (80-90%)</option>
+                                            <option value="70" data-i18n="form.battery.average">一般 (70-80%)</option>
+                                            <option value="60" data-i18n="form.battery.poor">较差 (60-70%)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label data-i18n="form.country">所在国家</label>
+                                        <select id="valCountry" class="form-select" required></select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="button" class="btn-secondary" id="step2Prev">
+                                        <i class="fas fa-arrow-left"></i>
+                                        <span data-i18n="btn.prev">上一步</span>
+                                    </button>
+                                    <button type="button" class="btn-primary" id="step2Next">
+                                        <span data-i18n="btn.next">下一步</span>
+                                        <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-step" data-step="3">
+                                <div class="step-indicator">
+                                    <div class="step-dot completed"><i class="fas fa-check"></i></div>
+                                    <div class="step-line completed"></div>
+                                    <div class="step-dot completed"><i class="fas fa-check"></i></div>
+                                    <div class="step-line completed"></div>
+                                    <div class="step-dot active">3</div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label data-i18n="form.condition">车况</label>
+                                    <div class="condition-options">
+                                        <label class="condition-option">
+                                            <input type="radio" name="condition" value="excellent">
+                                            <span class="condition-card">
+                                                <i class="fas fa-star"></i>
+                                                <span class="condition-title" data-i18n="condition.excellent">优秀</span>
+                                                <span class="condition-desc" data-i18n="condition.excellentDesc">无事故，保养极佳</span>
+                                            </span>
+                                        </label>
+                                        <label class="condition-option">
+                                            <input type="radio" name="condition" value="good" checked>
+                                            <span class="condition-card">
+                                                <i class="fas fa-thumbs-up"></i>
+                                                <span class="condition-title" data-i18n="condition.good">良好</span>
+                                                <span class="condition-desc" data-i18n="condition.goodDesc">轻微磨损，正常保养</span>
+                                            </span>
+                                        </label>
+                                        <label class="condition-option">
+                                            <input type="radio" name="condition" value="average">
+                                            <span class="condition-card">
+                                                <i class="fas fa-minus-circle"></i>
+                                                <span class="condition-title" data-i18n="condition.average">一般</span>
+                                                <span class="condition-desc" data-i18n="condition.averageDesc">正常使用痕迹</span>
+                                            </span>
+                                        </label>
+                                        <label class="condition-option">
+                                            <input type="radio" name="condition" value="poor">
+                                            <span class="condition-card">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                <span class="condition-title" data-i18n="condition.poor">较差</span>
+                                                <span class="condition-desc" data-i18n="condition.poorDesc">需要维修</span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="button" class="btn-secondary" id="step3Prev">
+                                        <i class="fas fa-arrow-left"></i>
+                                        <span data-i18n="btn.prev">上一步</span>
+                                    </button>
+                                    <button type="submit" class="btn-primary btn-gradient" id="calculateBtn">
+                                        <i class="fas fa-calculator"></i>
+                                        <span data-i18n="btn.calculate">立即估价</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="valuationResult" class="valuation-result-card hidden">
+                        <div class="result-header">
+                            <h2 class="result-title">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                                <span data-i18n="result.title">估价结果</span>
+                            </h2>
+                            <span class="result-confidence" id="resultConfidence" data-i18n-confidence="88">可信度 88%</span>
+                        </div>
+                        
+                        <div class="result-main">
+                            <div class="result-price-section">
+                                <span class="result-label" data-i18n="result.estimatedPrice">AI建议售价</span>
+                                <span class="result-price" id="resultPrice">-</span>
+                                <span class="result-range" id="resultRange">-</span>
+                            </div>
+                            <div class="result-factors" id="resultFactors"></div>
+                        </div>
+                        
+                        <div class="result-analysis">
+                            <h4 data-i18n="result.aiAnalysis">AI分析</h4>
+                            <p id="resultAnalysisText">-</p>
+                        </div>
+                        
+                        <div class="result-actions">
+                            <button class="btn-secondary" id="newValuationBtn">
+                                <i class="fas fa-redo"></i>
+                                <span data-i18n="btn.newValuation">重新估价</span>
+                            </button>
+                            <button class="btn-primary" id="saveResultBtn">
+                                <i class="fas fa-save"></i>
+                                <span data-i18n="btn.save">保存结果</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PREDICTION TAB -->
+            <div id="predictionTab" class="tab-content hidden">
+                <div class="prediction-container">
+                    <div class="prediction-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-magic text-primary"></i>
+                            <span data-i18n="prediction.title">AI市场预测</span>
+                        </h2>
+                    </div>
+                    
+                    <div class="prediction-grid">
+                        <div class="prediction-card">
+                            <div class="prediction-model-select">
+                                <label data-i18n="prediction.selectModel">选择车型</label>
+                                <select id="predictModelSelect" class="form-select">
+                                    <option value="" data-i18n="prediction.selectModelDesc">选择要预测的车型</option>
+                                </select>
+                            </div>
+                            
+                            <div class="prediction-period">
+                                <label data-i18n="prediction.period">预测周期</label>
+                                <div class="period-options">
+                                    <button class="period-btn active" data-months="1" data-i18n="prediction.1month">1个月</button>
+                                    <button class="period-btn" data-months="3" data-i18n="prediction.3months">3个月</button>
+                                    <button class="period-btn" data-months="6" data-i18n="prediction.6months">6个月</button>
+                                    <button class="period-btn" data-months="12" data-i18n="prediction.1year">1年</button>
+                                </div>
+                            </div>
+                            
+                            <button class="btn-primary btn-gradient w-full" id="runPredictionBtn">
+                                <i class="fas fa-microchip"></i>
+                                <span data-i18n="prediction.run">运行AI预测</span>
+                            </button>
+                        </div>
+                        
+                        <div id="predictionResult" class="prediction-result hidden">
+                            <div class="prediction-chart-container">
+                                <div id="predictionChart" class="chart-container"></div>
+                            </div>
+                            <div class="prediction-summary" id="predictionSummary"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- POLICY TAB -->
+            <div id="policyTab" class="tab-content hidden">
+                <div class="policy-container">
+                    <div class="policy-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-file-contract text-primary"></i>
+                            <span data-i18n="policy.title">新能源政策分析</span>
+                        </h2>
+                    </div>
+                    
+                    <div class="policy-grid" id="policyGrid"></div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <i class="fas fa-bolt"></i>
+                    <span>ASEAN NEV Insight</span>
+                </div>
+                <p class="footer-text" data-i18n="footer.text">数据仅供参考，实际交易价格以市场为准</p>
+                <p class="footer-copyright">© 2024 ASEAN NEV Insight. All rights reserved.</p>
+            </div>
+        </footer>
+
+        <!-- Toast Container -->
+        <div id="toastContainer" class="toast-container"></div>
+        
+        <!-- Offline Indicator -->
+        <div id="offlineIndicator" class="offline-indicator hidden">
+            <i class="fas fa-wifi-slash"></i>
+            <span data-i18n="offline.message">已切换到离线模式</span>
+        </div>
+    </div>
+
+    <!-- AI预测弹窗 -->
+    <div id="aiPredictModal" class="ai-modal hidden">
+        <div class="ai-modal-overlay"></div>
+        <div class="ai-modal-content">
+            <div class="ai-modal-header">
+                <h3 class="ai-modal-title">
+                    <i class="fas fa-magic text-primary"></i>
+                    <span>AI市场走势预测</span>
+                </h3>
+                <button class="ai-modal-close" id="aiModalClose" title="关闭">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="ai-modal-body">
+                <div id="aiPredictLoading" class="ai-predict-loading">
+                    <div class="ai-loading-spinner"></div>
+                    <p>AI正在分析市场数据...</p>
+                </div>
+                <div id="aiPredictResult" class="ai-predict-result hidden">
+                    <!-- 预测结果将在这里显示 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 估价弹窗 -->
+    <div id="valuationModal" class="ai-modal hidden">
+        <div class="ai-modal-overlay"></div>
+        <div class="ai-modal-content">
+            <div class="ai-modal-header">
+                <h3 class="ai-modal-title">
+                    <i class="fas fa-calculator text-primary"></i>
+                    <span>AI智能估价</span>
+                </h3>
+                <button class="ai-modal-close" id="valuationModalClose" title="关闭">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="ai-modal-body">
+                <div id="valuationModalLoading" class="ai-predict-loading">
+                    <div class="ai-loading-spinner"></div>
+                    <p>AI正在分析车型数据...</p>
+                </div>
+                <div id="valuationModalResult" class="ai-predict-result hidden">
+                    <!-- 估价结果将在这里显示 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/main.js"></script>
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => {
+                        // Service Worker 注册成功
+                        if (location.hostname === 'localhost') {
+                            // Service Worker 注册成功
+                        }
+                    })
+                    .catch(err => {
+                        // Service Worker 注册失败，静默处理
+                    });
+            });
+        }
+    </script>
+</body>
 </html>
