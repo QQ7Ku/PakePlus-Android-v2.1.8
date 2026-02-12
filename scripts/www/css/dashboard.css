@@ -1,0 +1,1406 @@
+/**
+ * ASEAN NEV Insight - Dashboard & Components Styles
+ * 数据看板和组件样式
+ */
+
+/* ===== 快速搜索栏 ===== */
+.dashboard-quick-search {
+  margin-bottom: 24px;
+}
+
+.quick-search-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.quick-search-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quick-search-content > i {
+  font-size: 20px;
+}
+
+.quick-search-content input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  color: #1e293b;
+  padding: 8px 0;
+}
+
+.quick-search-content input::placeholder {
+  color: #94a3b8;
+}
+
+.quick-search-content .btn-primary {
+  padding: 10px 16px;
+  border-radius: 8px;
+}
+
+.quick-search-hints {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.quick-search-hints a {
+  color: #14b8a6;
+  text-decoration: none;
+  padding: 2px 8px;
+  background: #f0fdfa;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.quick-search-hints a:hover {
+  background: #ccfbf1;
+}
+
+/* ===== KPI 卡片 ===== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow);
+  transition: all 0.2s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.kpi-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.kpi-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kpi-label {
+  font-size: 13px;
+  color: var(--secondary);
+  font-weight: 500;
+}
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.kpi-change {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.kpi-change.positive {
+  color: var(--success);
+}
+
+.kpi-change.negative {
+  color: var(--danger);
+}
+
+.kpi-change i {
+  font-size: 10px;
+}
+
+/* ===== 图表行 ===== */
+.charts-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.chart-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.chart-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.chart-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.chart-period {
+  padding: 6px 12px;
+  background: #f1f5f9;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chart-period:hover {
+  background: #e2e8f0;
+}
+
+.chart-period.active {
+  background: var(--primary);
+  color: white;
+}
+
+.chart-body {
+  padding: 20px 24px;
+}
+
+.chart-container {
+  height: 300px;
+}
+
+/* AI 洞察 */
+.ai-insight-body {
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-insight-content {
+  flex: 1;
+}
+
+.ai-insight-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.ai-insight-item:last-child {
+  border-bottom: none;
+}
+
+.ai-insight-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f0fdfa;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.ai-insight-text {
+  flex: 1;
+}
+
+.ai-insight-text h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.ai-insight-text p {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* ===== 估价页面 ===== */
+.valuation-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.valuation-form-card,
+.valuation-result-card {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 32px 32px 24px;
+  text-align: center;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.card-title i {
+  font-size: 28px;
+}
+
+.card-subtitle {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.valuation-form {
+  padding: 32px;
+}
+
+/* 步骤指示器 */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.step-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #64748b;
+  transition: all 0.3s ease;
+}
+
+.step-dot.active {
+  background: var(--primary);
+  color: white;
+}
+
+.step-dot.completed {
+  background: var(--success);
+  color: white;
+}
+
+.step-line {
+  width: 60px;
+  height: 3px;
+  background: #e2e8f0;
+  margin: 0 8px;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.step-line.completed {
+  background: var(--success);
+}
+
+/* 表单步骤 */
+.form-step {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.form-step.active {
+  display: block;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.form-actions .btn-secondary,
+.form-actions .btn-primary {
+  flex: 1;
+}
+
+/* 车况选项 */
+.condition-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.condition-option {
+  cursor: pointer;
+}
+
+.condition-option input {
+  display: none;
+}
+
+.condition-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: var(--radius);
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.condition-card i {
+  font-size: 24px;
+  color: #94a3b8;
+}
+
+.condition-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.condition-desc {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.condition-option input:checked + .condition-card {
+  border-color: var(--primary);
+  background: #f0fdfa;
+}
+
+.condition-option input:checked + .condition-card i {
+  color: var(--primary);
+}
+
+.condition-option input:checked + .condition-card .condition-title {
+  color: var(--primary-dark);
+}
+
+/* 估价结果 */
+.valuation-result-card {
+  padding: 32px;
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.result-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.result-confidence {
+  padding: 6px 14px;
+  background: #f0fdfa;
+  color: var(--primary-dark);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.result-main {
+  margin-bottom: 24px;
+}
+
+.result-price-section {
+  text-align: center;
+  padding: 32px;
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+  border-radius: var(--radius-lg);
+  margin-bottom: 24px;
+}
+
+.result-label {
+  display: block;
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.result-price {
+  display: block;
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--primary-dark);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.result-range {
+  font-size: 16px;
+  color: #64748b;
+}
+
+.result-factors {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.result-factor {
+  text-align: center;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: var(--radius);
+}
+
+.result-factor-label {
+  display: block;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.result-factor-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.result-analysis {
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+}
+
+.result-analysis h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.result-analysis p {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.result-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.result-actions button {
+  flex: 1;
+}
+
+/* ===== 预测页面 ===== */
+.prediction-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.prediction-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.section-title i {
+  font-size: 32px;
+}
+
+.section-subtitle {
+  font-size: 15px;
+  color: #64748b;
+}
+
+.prediction-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+}
+
+.prediction-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  height: fit-content;
+}
+
+.prediction-model-select,
+.prediction-period {
+  margin-bottom: 20px;
+}
+
+.prediction-model-select label,
+.prediction-period label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.period-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.period-btn {
+  padding: 8px 16px;
+  background: #f1f5f9;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.period-btn:hover {
+  background: #e2e8f0;
+}
+
+.period-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+.prediction-result {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.prediction-chart-container {
+  margin-bottom: 24px;
+}
+
+.prediction-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* ===== 政策页面 ===== */
+.policy-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.policy-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.policy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 20px;
+}
+
+.policy-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.policy-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.policy-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+}
+
+.policy-flag {
+  font-size: 32px;
+}
+
+.policy-country-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.policy-country-name span {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.policy-card-body {
+  padding: 20px 24px;
+}
+
+.policy-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.policy-item:last-child {
+  border-bottom: none;
+}
+
+.policy-item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.policy-item-icon.positive {
+  background: #dcfce7;
+  color: var(--success);
+}
+
+.policy-item-icon.warning {
+  background: #fef3c7;
+  color: var(--warning);
+}
+
+.policy-item-icon.info {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+.policy-item-content {
+  flex: 1;
+}
+
+.policy-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 2px;
+}
+
+.policy-item-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.policy-item-desc {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 1024px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .prediction-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .result-factors {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .kpi-card {
+    padding: 16px;
+  }
+  
+  .kpi-value {
+    font-size: 24px;
+  }
+  
+  .condition-options {
+    grid-template-columns: 1fr;
+  }
+  
+  .result-price {
+    font-size: 36px;
+  }
+  
+  .policy-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .valuation-form {
+    padding: 20px;
+  }
+  
+  .card-header {
+    padding: 24px 20px 16px;
+  }
+  
+  .card-title {
+    font-size: 20px;
+  }
+}
+
+/* ===== AI预测弹窗 ===== */
+.ai-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.ai-modal.hidden {
+  display: none !important;
+}
+
+.ai-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.ai-modal-content {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ai-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #f0fdfa 0%, #ffffff 100%);
+}
+
+.ai-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.ai-modal-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: #f1f5f9;
+  border-radius: 10px;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.ai-modal-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+  transform: rotate(90deg);
+}
+
+.ai-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  max-height: calc(80vh - 80px);
+}
+
+/* 加载状态 */
+.ai-predict-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.ai-predict-loading.hidden {
+  display: none !important;
+}
+
+.ai-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #14b8a6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ai-predict-loading p {
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* 预测结果 */
+.ai-predict-result {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ai-predict-result.hidden {
+  display: none !important;
+}
+
+/* 预测概览卡片 */
+.ai-predict-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+  border-radius: 12px;
+}
+
+.ai-summary-item {
+  text-align: center;
+}
+
+.ai-summary-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.ai-summary-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ai-summary-value.up {
+  color: #10b981;
+}
+
+.ai-summary-value.down {
+  color: #ef4444;
+}
+
+/* 趋势指示 */
+.ai-trend-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.ai-trend-indicator.up {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.ai-trend-indicator.down {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.ai-trend-indicator.stable {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+/* 价格图表区域 */
+.ai-predict-chart {
+  height: 200px;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+/* 影响因素 */
+.ai-factors-section {
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.ai-factors-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-factors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-factor-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: white;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.ai-factor-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.ai-factor-icon.positive {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.ai-factor-icon.negative {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.ai-factor-icon.neutral {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+/* 建议卡片 */
+.ai-recommendation {
+  padding: 16px;
+  border-radius: 12px;
+  border-left: 4px solid #14b8a6;
+  background: #f0fdfa;
+}
+
+.ai-recommendation-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-recommendation-text {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+/* 置信度 */
+.ai-confidence {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.ai-confidence-bar {
+  width: 100px;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ai-confidence-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #14b8a6, #0d9488);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* 响应式 */
+@media (max-width: 640px) {
+  .ai-modal {
+    padding: 10px;
+  }
+  
+  .ai-modal-content {
+    max-height: 90vh;
+  }
+  
+  .ai-modal-body {
+    padding: 16px;
+    max-height: calc(90vh - 80px);
+  }
+  
+  .ai-predict-summary {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .ai-summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 8px;
+  }
+}
+
+
+/* ===== 估价弹窗样式 ===== */
+.ai-valuation-header {
+  margin-bottom: 20px;
+}
+
+.ai-valuation-model {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-valuation-logo {
+  font-size: 40px;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+  border-radius: 12px;
+}
+
+.ai-valuation-name h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.ai-valuation-subtitle {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* 价格卡片 */
+.ai-valuation-price-card {
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  color: white;
+  margin-bottom: 20px;
+}
+
+.ai-valuation-price-label {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.ai-valuation-price-value {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.ai-valuation-price-range {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 12px;
+}
+
+.ai-valuation-confidence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+}
+
+.ai-valuation-confidence i {
+  color: #fbbf24 !important;
+}
+
+/* 走势图区域 */
+.ai-valuation-trend-section {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.ai-valuation-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 12px;
+}
+
+.ai-valuation-change {
+  margin-left: auto;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ai-valuation-change.up {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.ai-valuation-change.down {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.ai-valuation-chart {
+  height: 200px;
+  margin-bottom: 12px;
+}
+
+/* 统计数据 */
+.ai-valuation-trend-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.ai-valuation-stat {
+  text-align: center;
+}
+
+.ai-valuation-stat-label {
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.ai-valuation-stat-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* 建议区域 */
+.ai-valuation-suggestion {
+  background: #fefce8;
+  border-left: 4px solid #eab308;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.ai-valuation-suggestion-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.ai-valuation-suggestion-text {
+  font-size: 13px;
+  color: #57534e;
+  line-height: 1.6;
+}
+
+/* 操作按钮 */
+.ai-valuation-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.ai-valuation-actions button {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.ai-valuation-actions .btn-secondary {
+  background: #f1f5f9;
+  border: none;
+  color: #475569;
+}
+
+.ai-valuation-actions .btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+.ai-valuation-actions .btn-primary {
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  border: none;
+  color: white;
+}
+
+.ai-valuation-actions .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+}
+
+/* 响应式 */
+@media (max-width: 640px) {
+  .ai-valuation-price-value {
+    font-size: 28px;
+  }
+  
+  .ai-valuation-trend-stats {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .ai-valuation-stat {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 8px;
+  }
+  
+  .ai-valuation-actions {
+    flex-direction: column;
+  }
+}
