@@ -1,0 +1,1864 @@
+/**
+ * ASEAN NEV Insight - UI Manager
+ * UI绠＄悊妯″潡
+ */
+
+import { formatNumber, formatPercent, isMobile, escapeHtml } from '../utils/helpers.js';
+
+export class UIManager {
+  constructor(app) {
+    this.app = app;
+    this.currentTab = 'dashboard';
+    this.elements = {};
+    this._predictChart = null;
+    this._valuationChart = null;
+  }
+
+  /**
+   * 鍒濆鍖朥I
+   */
+  init() {
+    this.cacheElements();
+    this.bindEvents();
+    this.initDropdowns();
+    this.bindPredictButton(); // 缁戝畾AI棰勬祴鎸夐挳
+    this.bindSearchValuationButton(); // 缁戝畾浼颁环寮圭獥鎸夐挳
+    return this;
+  }
+
+  /**
+   * 缂撳瓨DOM鍏冪礌
+   */
+  cacheElements() {
+    this.elements = {
+      loadingScreen: document.getElementById('loadingScreen'),
+      loadingPercent: document.getElementById('loadingPercent'),
+      loadingBar: document.getElementById('loadingBar'),
+      loadingStatus: document.getElementById('loadingStatus'),
+      app: document.getElementById('app'),
+      mobileMenu: document.getElementById('mobileMenu'),
+      mobileMenuToggle: document.getElementById('mobileMenuToggle'),
+      toastContainer: document.getElementById('toastContainer'),
+      offlineIndicator: document.getElementById('offlineIndicator'),
+      
+      // 瀵艰埅
+      navItems: document.querySelectorAll('.nav-item, .mobile-nav-item'),
+      tabContents: document.querySelectorAll('.tab-content'),
+      navLogo: document.getElementById('navLogo'),
+      
+      // 鎺у埗涓嬫媺
+      countryMenu: document.getElementById('countryMenu'),
+      currencyMenu: document.getElementById('currencyMenu'),
+      languageMenu: document.getElementById('languageMenu'),
+      
+      // 褰撳墠閫夋嫨鏄剧ず
+      currentCountryFlag: document.getElementById('currentCountryFlag'),
+      currentCountryName: document.getElementById('currentCountryName'),
+      currentCurrency: document.getElementById('currentCurrency'),
+      currentCurrencyCode: document.getElementById('currentCurrencyCode'),
+      currentLanguage: document.getElementById('currentLanguage'),
+      
+      // KPI
+      kpiAvgPrice: document.getElementById('kpiAvgPrice'),
+      kpiVolume: document.getElementById('kpiVolume'),
+      kpiEvRatio: document.getElementById('kpiEvRatio'),
+      kpiHotModel: document.getElementById('kpiHotModel'),
+      kpiPriceChange: document.getElementById('kpiPriceChange'),
+      kpiVolumeChange: document.getElementById('kpiVolumeChange'),
+      kpiEvChange: document.getElementById('kpiEvChange'),
+      
+      // 琛ㄦ牸
+      hotModelsBody: document.getElementById('hotModelsBody'),
+      
+      // 浼颁环琛ㄥ崟
+      valuationForm: document.getElementById('valuationForm'),
+      valBrand: document.getElementById('valBrand'),
+      valModel: document.getElementById('valModel'),
+      valYear: document.getElementById('valYear'),
+      valCountry: document.getElementById('valCountry'),
+      valuationResult: document.getElementById('valuationResult'),
+      
+      // 棰勬祴
+      predictModelSelect: document.getElementById('predictModelSelect'),
+      
+      // 鎼滅储
+      searchBrand: document.getElementById('searchBrand'),
+      searchModel: document.getElementById('searchModel'),
+      searchPeriod: document.getElementById('searchPeriod'),
+      searchCountry: document.getElementById('searchCountry'),
+      marketSearchForm: document.getElementById('marketSearchForm'),
+      searchResults: document.getElementById('searchResults'),
+      biTotalVolume: document.getElementById('biTotalVolume'),
+      biAvgPrice: document.getElementById('biAvgPrice'),
+      biPriceRange: document.getElementById('biPriceRange'),
+      biAvgMonthly: document.getElementById('biAvgMonthly'),
+      biVolumeTrend: document.getElementById('biVolumeTrend'),
+      biPriceTrend: document.getElementById('biPriceTrend'),
+      biMonthlyTrend: document.getElementById('biMonthlyTrend'),
+      searchTableBody: document.getElementById('searchTableBody')
+    };
+  }
+
+  /**
+   * 缁戝畾浜嬩欢
+   */
+  bindEvents() {
+    // 瀵艰埅鍒囨崲
+    this.elements.navItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        const tab = e.currentTarget.dataset.tab;
+        this.switchTab(tab);
+      });
+    });
+    
+    // 蹇€熸悳绱?
+    this.bindQuickSearch();
+    
+    // Logo鐐瑰嚮杩斿洖涓婚〉
+    this.bindNavLogo();
+
+    // 绉诲姩绔彍鍗?
+    this.elements.mobileMenuToggle?.addEventListener('click', () => {
+      this.elements.mobileMenu.classList.toggle('hidden');
+    });
+
+    // 鍥捐〃鍛ㄦ湡鍒囨崲
+    document.querySelectorAll('.chart-period').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const period = e.target.dataset.period;
+        document.querySelectorAll('.chart-period').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        this.app.onPeriodChange?.(period);
+      });
+    });
+
+    // 浼颁环琛ㄥ崟姝ラ
+    this.initValuationSteps();
+    
+    // 棰勬祴鍛ㄦ湡
+    document.querySelectorAll('.period-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+      });
+    });
+  }
+
+  /**
+   * 鍒濆鍖栦笅鎷夎彍鍗?
+   */
+  initDropdowns() {
+    const { dataManager, currencyManager, languageManager } = this.app;
+    
+    // 鍥藉閫夋嫨
+    const countries = dataManager.getCountryList();
+    this.elements.countryMenu.innerHTML = countries.map(c => `
+      <div class="dropdown-item ${c.code === dataManager.getCurrentCountry() ? 'active' : ''}" 
+           data-country="${escapeHtml(c.code)}">
+        <span>${escapeHtml(c.flag)}</span>
+        <span>${escapeHtml(c.name)}</span>
+      </div>
+    `).join('');
+    
+    this.elements.countryMenu.querySelectorAll('.dropdown-item').forEach(item => {
+      item.addEventListener('click', () => {
+        this.app.switchCountry(item.dataset.country);
+      });
+    });
+
+    // 璐у竵閫夋嫨
+    const currencies = currencyManager.getCurrencyList();
+    this.elements.currencyMenu.innerHTML = [
+      `<div class="dropdown-item ${!currencyManager.getCurrentCurrency() ? 'active' : ''}" data-currency="">
+        <span>馃挶</span>
+        <span>鏈湴璐у竵</span>
+      </div>`,
+      ...currencies.map(c => `
+        <div class="dropdown-item ${c.code === currencyManager.getCurrentCurrency() ? 'active' : ''}" 
+             data-currency="${escapeHtml(c.code)}">
+          <span>${escapeHtml(c.symbol)}</span>
+          <span>${escapeHtml(c.code)} - ${escapeHtml(c.name)}</span>
+        </div>
+      `)
+    ].join('');
+    
+    this.elements.currencyMenu.querySelectorAll('.dropdown-item').forEach(item => {
+      item.addEventListener('click', () => {
+        this.app.switchCurrency(item.dataset.currency || null);
+      });
+    });
+
+    // 璇█閫夋嫨
+    const languages = languageManager.getLanguageList();
+    this.elements.languageMenu.innerHTML = languages.map(l => `
+      <div class="dropdown-item ${l.code === languageManager.getCurrentLanguage() ? 'active' : ''}" 
+           data-language="${escapeHtml(l.code)}">
+        <span>${escapeHtml(l.flag)}</span>
+        <span>${escapeHtml(l.name)}</span>
+      </div>
+    `).join('');
+    
+    this.elements.languageMenu.querySelectorAll('.dropdown-item').forEach(item => {
+      item.addEventListener('click', () => {
+        this.app.switchLanguage(item.dataset.language);
+      });
+    });
+  }
+
+  /**
+   * 鍒濆鍖栦及浠锋楠?
+   */
+  initValuationSteps() {
+    const form = this.elements.valuationForm;
+    if (!form) return;
+
+    // 姝ラ鍒囨崲
+    const showStep = (step) => {
+      form.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+      form.querySelector(`[data-step="${step}"]`)?.classList.add('active');
+    };
+
+    document.getElementById('step1Next')?.addEventListener('click', () => showStep(2));
+    document.getElementById('step2Prev')?.addEventListener('click', () => showStep(1));
+    document.getElementById('step2Next')?.addEventListener('click', () => showStep(3));
+    document.getElementById('step3Prev')?.addEventListener('click', () => showStep(2));
+
+    // 鍝佺墝閫夋嫨鑱斿姩
+    this.elements.valBrand?.addEventListener('change', (e) => {
+      const models = this.app.dataManager.getModelsByBrand(e.target.value);
+      this.elements.valModel.innerHTML = `
+        <option value="">閫夋嫨杞﹀瀷</option>
+        ${models.map(m => `<option value="${m.id}">${m.name}</option>`).join('')}
+      `;
+      this.elements.valModel.disabled = false;
+    });
+
+    // 琛ㄥ崟鎻愪氦
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const params = {
+        brand: this.elements.valBrand.value,
+        model: this.elements.valModel.value,
+        year: formData.get('year') || document.getElementById('valYear')?.value,
+        mileage: parseFloat(document.getElementById('valMileage')?.value || 0),
+        batteryHealth: parseInt(document.getElementById('valBattery')?.value || 80),
+        condition: formData.get('condition') || 'good',
+        country: document.getElementById('valCountry')?.value || this.app.dataManager.getCurrentCountry()
+      };
+      this.app.performValuation(params);
+    });
+
+    // 閲嶆柊浼颁环
+    document.getElementById('newValuationBtn')?.addEventListener('click', () => {
+      this.elements.valuationResult.classList.add('hidden');
+      form.classList.remove('hidden');
+      showStep(1);
+    });
+  }
+
+  /**
+   * 鍒囨崲鏍囩椤?
+   */
+  switchTab(tab) {
+    this.currentTab = tab;
+    
+    // 鏇存柊瀵艰埅鐘舵€?
+    this.elements.navItems.forEach(item => {
+      item.classList.toggle('active', item.dataset.tab === tab);
+    });
+    
+    // 鏇存柊鍐呭鏄剧ず
+    this.elements.tabContents.forEach(content => {
+      content.classList.toggle('active', content.id === `${tab}Tab`);
+      content.classList.toggle('hidden', content.id !== `${tab}Tab`);
+    });
+    
+    // 瑙﹀彂鏍囩鍒囨崲浜嬩欢
+    this.app.onTabChange?.(tab);
+    
+    // 鍏抽棴绉诲姩绔彍鍗?
+    this.elements.mobileMenu?.classList.add('hidden');
+  }
+
+  /**
+   * 鏇存柊鍔犺浇杩涘害
+   */
+  updateLoading(progress, status) {
+    this.elements.loadingPercent.textContent = progress.toString().padStart(3, '0');
+    this.elements.loadingBar.style.width = `${progress}%`;
+    if (status) {
+      this.elements.loadingStatus.textContent = status;
+    }
+  }
+
+  /**
+   * 闅愯棌鍔犺浇灞忓箷
+   */
+  hideLoading() {
+    this.elements.loadingScreen.classList.add('fade-out');
+    setTimeout(() => {
+      this.elements.loadingScreen.classList.add('hidden');
+      this.elements.app.classList.remove('hidden');
+    }, 600);
+  }
+
+  /**
+   * 鏇存柊鍥藉鏄剧ず
+   */
+  updateCountryDisplay(country) {
+    this.elements.currentCountryFlag.textContent = country.flag;
+    this.elements.currentCountryName.textContent = country.name;
+    
+    // 鏇存柊涓嬫媺閫変腑鐘舵€?
+    this.elements.countryMenu?.querySelectorAll('.dropdown-item').forEach(item => {
+      item.classList.toggle('active', item.dataset.country === country.code);
+    });
+  }
+
+  /**
+   * 鏇存柊璐у竵鏄剧ず
+   */
+  updateCurrencyDisplay(currencyCode, symbol, code) {
+    this.elements.currentCurrency.textContent = symbol;
+    this.elements.currentCurrencyCode.textContent = code;
+  }
+
+  /**
+   * 鏇存柊璇█鏄剧ず
+   */
+  updateLanguageDisplay(language) {
+    this.elements.currentLanguage.textContent = language.name;
+  }
+
+  /**
+   * 鏇存柊KPI鍗＄墖
+   */
+  updateKPI(stats, countryCode) {
+    const { currencyManager } = this.app;
+    
+    this.elements.kpiAvgPrice.textContent = currencyManager.format(stats.avgPrice, countryCode, { short: true });
+    this.elements.kpiVolume.textContent = formatNumber(stats.volume);
+    this.elements.kpiEvRatio.textContent = stats.evRatio + '%';
+    this.elements.kpiHotModel.textContent = stats.hotModel;
+    
+    // 鏇存柊鍙樺寲绠ご
+    this.updateChangeIndicator(this.elements.kpiPriceChange, stats.priceChange);
+    this.updateChangeIndicator(this.elements.kpiVolumeChange, stats.volumeChange);
+    this.updateChangeIndicator(this.elements.kpiEvChange, stats.evChange);
+  }
+
+  /**
+   * 鏇存柊鍙樺寲鎸囩ず鍣?
+   */
+  updateChangeIndicator(element, value) {
+    if (!element) return;
+    const num = parseFloat(value);
+    element.className = `kpi-change ${num >= 0 ? 'positive' : 'negative'}`;
+    element.innerHTML = `<i class="fas fa-arrow-${num >= 0 ? 'up' : 'down'}"></i> ${Math.abs(num)}%`;
+  }
+
+  /**
+   * 娓叉煋鐑棬杞﹀瀷琛ㄦ牸
+   */
+  renderHotModels(models, countryCode) {
+    const { currencyManager } = this.app;
+    
+    this.elements.hotModelsBody.innerHTML = models.map(m => `
+      <tr>
+        <td><span class="font-bold ${m.rank <= 3 ? 'text-primary' : ''}">${m.rank}</span></td>
+        <td>
+          <div class="flex items-center gap-2">
+            <span class="font-medium">${m.model}</span>
+            <span class="text-xs px-2 py-0.5 bg-slate-100 rounded">${m.category}</span>
+          </div>
+        </td>
+        <td>${m.brand}</td>
+        <td class="font-medium">${currencyManager.format(m.avgPrice, countryCode)}</td>
+        <td>
+          <span class="${parseFloat(m.change) >= 0 ? 'text-green-500' : 'text-red-500'}">
+            ${parseFloat(m.change) >= 0 ? '+' : ''}${m.change}%
+          </span>
+        </td>
+        <td>${formatNumber(m.volume)}</td>
+      </tr>
+    `).join('');
+  }
+
+  /**
+   * 鏄剧ず浼颁环缁撴灉
+   */
+  showValuationResult(result, countryCode) {
+    const { currencyManager } = this.app;
+    
+    document.getElementById('resultPrice').textContent = 
+      currencyManager.format(result.price, countryCode);
+    
+    const rangeText = `${currencyManager.format(result.range[0], countryCode)} - ${currencyManager.format(result.range[1], countryCode)}`;
+    document.getElementById('resultRange').innerHTML = `寤鸿浠锋牸鍖洪棿: ${rangeText}`;
+    
+    document.getElementById('resultConfidence').textContent = `鍙俊搴? ${result.confidence}%`;
+    
+    // 褰卞搷鍥犵礌
+    const factorsHtml = `
+      <div class="result-factor">
+        <span class="result-factor-label">鎶樻棫鐜?/span>
+        <span class="result-factor-value">${result.factors.depreciation}%</span>
+      </div>
+      <div class="result-factor">
+        <span class="result-factor-label">鐢垫睜鍋ュ悍</span>
+        <span class="result-factor-value">${result.factors.battery}%</span>
+      </div>
+      <div class="result-factor">
+        <span class="result-factor-label">杞﹀喌</span>
+        <span class="result-factor-value">${result.factors.condition}</span>
+      </div>
+    `;
+    document.getElementById('resultFactors').innerHTML = factorsHtml;
+    
+    // AI鍒嗘瀽
+    document.getElementById('resultAnalysisText').textContent = result.analysis;
+    
+    // 鏄剧ず缁撴灉鍗＄墖
+    this.elements.valuationForm.classList.add('hidden');
+    this.elements.valuationResult.classList.remove('hidden');
+  }
+
+  /**
+   * 娓叉煋鏀跨瓥鍗＄墖
+   */
+  renderPolicyCards(policies) {
+    const container = document.getElementById('policyGrid');
+    if (!container) return;
+    
+    container.innerHTML = policies.map(p => this.createPolicyCard(p)).join('');
+  }
+
+  /**
+   * 鍒涘缓鏀跨瓥鍗＄墖
+   */
+  createPolicyCard(country) {
+    const policy = country.evPolicy;
+    
+    return `
+      <div class="policy-card">
+        <div class="policy-card-header">
+          <span class="policy-flag">${country.flag}</span>
+          <div class="policy-country-name">
+            ${country.name}
+            <span>${country.nameEn}</span>
+          </div>
+        </div>
+        <div class="policy-card-body">
+          ${policy.importTax !== undefined ? `
+            <div class="policy-item">
+              <div class="policy-item-icon positive"><i class="fas fa-file-invoice-dollar"></i></div>
+              <div class="policy-item-content">
+                <div class="policy-item-title">杩涘彛绋?/div>
+                <div class="policy-item-value">${policy.importTax}</div>
+              </div>
+            </div>
+          ` : ''}
+          ${policy.subsidy ? `
+            <div class="policy-item">
+              <div class="policy-item-icon info"><i class="fas fa-gift"></i></div>
+              <div class="policy-item-content">
+                <div class="policy-item-title">琛ヨ创</div>
+                <div class="policy-item-value">${policy.subsidy.desc || policy.subsidy.max + ' ' + policy.subsidy.unit}</div>
+              </div>
+            </div>
+          ` : ''}
+          ${policy.charging ? `
+            <div class="policy-item">
+              <div class="policy-item-icon warning"><i class="fas fa-charging-station"></i></div>
+              <div class="policy-item-content">
+                <div class="policy-item-title">鍏呯數绔?/div>
+                <div class="policy-item-value">${policy.charging.stations?.toLocaleString() || '寤鸿涓?} ${policy.charging.growth || ''}</div>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * 娓叉煋AI娲炲療
+   */
+  renderAIInsights(insights) {
+    const container = document.getElementById('aiInsightContent');
+    if (!container) {
+      console.warn('[UIManager] aiInsightContent container not found');
+      return;
+    }
+    
+    console.log('[UIManager] Rendering AI insights:', insights?.length, 'items');
+    
+    container.innerHTML = insights.map(item => `
+      <div class="ai-insight-item">
+        <div class="ai-insight-icon"><i class="fas ${escapeHtml(item.icon)}"></i></div>
+        <div class="ai-insight-text">
+          <h4>${escapeHtml(item.title)}</h4>
+          <p>${escapeHtml(item.text)}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  /**
+   * 鏄剧ずToast
+   */
+  showToast(message, type = 'info', duration = 3000) {
+    // 闃叉娑堟伅涓寘鍚獺TML
+    const safeMessage = escapeHtml(message);
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${escapeHtml(type)}`;
+    toast.innerHTML = `
+      <span class="toast-message">${safeMessage}</span>
+      <button class="toast-close"><i class="fas fa-times"></i></button>
+    `;
+    
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+      toast.remove();
+    });
+    
+    this.elements.toastContainer.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.animation = 'slideIn 0.3s ease reverse';
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  }
+
+  /**
+   * 鏄剧ず/闅愯棌绂荤嚎鎸囩ず鍣?
+   */
+  showOfflineIndicator(show) {
+    this.elements.offlineIndicator.classList.toggle('hidden', !show);
+  }
+
+  /**
+   * 濉厖鍝佺墝閫夋嫨
+   */
+  populateBrandSelect() {
+    const brands = this.app.dataManager.getBrands();
+    this.elements.valBrand.innerHTML = `
+      <option value="">閫夋嫨鍝佺墝</option>
+      ${brands.map(b => `<option value="${escapeHtml(b.id)}">${escapeHtml(b.logo)} ${escapeHtml(b.name)}</option>`).join('')}
+    `;
+    
+    // 棰勬祴椤甸潰鐨勮溅鍨嬮€夋嫨
+    if (this.elements.predictModelSelect) {
+      const options = brands.flatMap(b => {
+        const models = this.app.dataManager.getModelsByBrand(b.id);
+        return models.map(m => 
+          `<option value="${escapeHtml(m.id)}">${escapeHtml(b.logo)} ${escapeHtml(b.name)} ${escapeHtml(m.name)}</option>`
+        );
+      }).join('');
+      this.elements.predictModelSelect.innerHTML = `
+        <option value="">閫夋嫨瑕侀娴嬬殑杞﹀瀷</option>
+        ${options}
+      `;
+    }
+  }
+
+  /**
+   * 濉厖骞翠唤閫夋嫨
+   */
+  populateYearSelect() {
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 15 }, (_, i) => currentYear - i);
+    
+    const yearSelect = document.getElementById('valYear');
+    if (yearSelect) {
+      yearSelect.innerHTML = `
+        <option value="">閫夋嫨骞翠唤</option>
+        ${years.map(y => `<option value="${escapeHtml(y)}">${escapeHtml(y)}骞?/option>`).join('')}
+      `;
+    }
+  }
+
+  /**
+   * 濉厖鍥藉閫夋嫨
+   */
+  populateCountrySelect() {
+    const countries = this.app.dataManager.getCountryList();
+    const select = document.getElementById('valCountry');
+    if (select) {
+      select.innerHTML = countries.map(c => 
+        `<option value="${escapeHtml(c.code)}" ${c.code === this.app.dataManager.getCurrentCountry() ? 'selected' : ''}>
+          ${escapeHtml(c.flag)} ${escapeHtml(c.name)}
+        </option>`
+      ).join('');
+    }
+  }
+
+  /**
+   * 濉厖鎼滅储琛ㄥ崟
+   */
+  populateSearchForm() {
+    const brands = this.app.dataManager.getBrands();
+    const countries = this.app.dataManager.getCountryList();
+    
+    // 鍝佺墝閫夋嫨
+    if (this.elements.searchBrand) {
+      this.elements.searchBrand.innerHTML = `
+        <option value="">閫夋嫨鍝佺墝</option>
+        ${brands.map(b => `<option value="${b.id}">${b.logo} ${b.name}</option>`).join('')}
+      `;
+      
+      // 鍝佺墝鍙樺寲鏃舵洿鏂拌溅鍨?
+      this.elements.searchBrand.addEventListener('change', (e) => {
+        const models = this.app.dataManager.getModelsByBrand(e.target.value);
+        if (this.elements.searchModel) {
+          this.elements.searchModel.innerHTML = `
+            <option value="">閫夋嫨杞﹀瀷</option>
+            ${models.map(m => `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)}</option>`).join('')}
+          `;
+          this.elements.searchModel.disabled = false;
+        }
+      });
+    }
+    
+    // 鍥藉閫夋嫨锛堝寘鍚?鍏ㄩ儴"锛?
+    if (this.elements.searchCountry) {
+      this.elements.searchCountry.innerHTML = `
+        <option value="all">鍏ㄩ儴鍥藉</option>
+        ${countries.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.flag)} ${escapeHtml(c.name)}</option>`).join('')}
+      `;
+    }
+    
+    // 缁戝畾鎼滅储琛ㄥ崟鎻愪氦
+    if (this.elements.marketSearchForm) {
+      this.elements.marketSearchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const params = {
+          brand: this.elements.searchBrand?.value,
+          model: this.elements.searchModel?.value,
+          period: this.elements.searchPeriod?.value || '12m',
+          country: this.elements.searchCountry?.value || 'all'
+        };
+        
+        if (!params.brand || !params.model) {
+          this.showToast('璇烽€夋嫨鍝佺墝鍜岃溅鍨?, 'warning');
+          return;
+        }
+        
+        this.app.searchMarketData(params);
+      });
+    }
+  }
+
+  /**
+   * 鏄剧ず鎼滅储鍔犺浇鍔ㄧ敾
+   */
+  showSearchLoading() {
+    // 鍒涘缓鍔犺浇瑕嗙洊灞?
+    const overlay = document.createElement('div');
+    overlay.className = 'search-loading-overlay';
+    overlay.id = 'searchLoadingOverlay';
+    // 浣跨敤妯℃澘瀛楃涓诧紝浣嗗唴瀹规槸闈欐€丠TML锛屼笉闇€瑕佽浆涔?
+    overlay.innerHTML = `
+      <div class="search-loading-content">
+        <div class="search-loading-icon">
+          <i class="fas fa-search"></i>
+        </div>
+        <div class="search-loading-text">姝ｅ湪鎼滅储甯傚満鏁版嵁...</div>
+        <div class="search-loading-status" id="searchLoadingStatus">杩炴帴鏁版嵁婧?..</div>
+        <div class="search-loading-bar">
+          <div class="search-loading-progress" id="searchLoadingProgress" style="width: 0%"></div>
+        </div>
+        <div class="search-loading-percentage" id="searchLoadingPercent">0%</div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    // 妯℃嫙杩涘害鏇存柊
+    const steps = [
+      { progress: 25, status: '姝ｅ湪鑾峰彇鏁版嵁...', delay: 500 },
+      { progress: 50, status: '姝ｅ湪鍒嗘瀽浠锋牸...', delay: 800 },
+      { progress: 75, status: '姝ｅ湪鐢熸垚鎶ヨ〃...', delay: 600 },
+      { progress: 100, status: '鍗冲皢瀹屾垚...', delay: 400 }
+    ];
+    
+    let currentStep = 0;
+    const updateProgress = () => {
+      if (currentStep >= steps.length) return;
+      const step = steps[currentStep];
+      const progressEl = document.getElementById('searchLoadingProgress');
+      const statusEl = document.getElementById('searchLoadingStatus');
+      const percentEl = document.getElementById('searchLoadingPercent');
+      
+      if (progressEl) progressEl.style.width = step.progress + '%';
+      if (statusEl) statusEl.textContent = step.status;
+      if (percentEl) percentEl.textContent = step.progress + '%';
+      
+      currentStep++;
+      if (currentStep < steps.length) {
+        setTimeout(updateProgress, step.delay);
+      }
+    };
+    
+    setTimeout(updateProgress, 300);
+  }
+
+  /**
+   * 闅愯棌鎼滅储鍔犺浇鍔ㄧ敾
+   */
+  hideSearchLoading() {
+    const overlay = document.getElementById('searchLoadingOverlay');
+    if (overlay) {
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 300);
+    }
+  }
+
+  /**
+   * 鏇存柊瓒嬪娍鎸囩ず鍣?
+   */
+  updateTrendIndicator(element, value) {
+    if (!element) return;
+    const num = parseFloat(value);
+    const isPositive = num >= 0;
+    element.className = `bi-stat-change ${isPositive ? 'positive' : 'negative'}`;
+    element.innerHTML = `
+      <i class="fas fa-arrow-${isPositive ? 'up' : 'down'}"></i>
+      ${isPositive ? '+' : ''}${Math.abs(num).toFixed(1)}%
+    `;
+  }
+
+  /**
+   * 娓叉煋鎼滅储鏁版嵁琛ㄦ牸
+   */
+  renderSearchTable(monthlyData, currencyManager, countryCode) {
+    if (!this.elements.searchTableBody) return;
+    
+    this.elements.searchTableBody.innerHTML = monthlyData.map((row, index) => {
+      const changeClass = row.changePercent > 0 ? 'trend-up' : row.changePercent < 0 ? 'trend-down' : 'trend-stable';
+      const changeIcon = row.changePercent > 0 ? '鈫? : row.changePercent < 0 ? '鈫? : '鈭?;
+      
+      return `
+        <tr>
+          <td><strong>${escapeHtml(row.month)}</strong></td>
+          <td>${formatNumber(row.volume)} 杈?/td>
+          <td class="font-medium">${currencyManager.format(row.avgPrice, countryCode, { short: true })}</td>
+          <td class="text-gray-500">${currencyManager.format(row.maxPrice, countryCode, { short: true })}</td>
+          <td class="text-gray-500">${currencyManager.format(row.minPrice, countryCode, { short: true })}</td>
+          <td class="${changeClass}">
+            ${changeIcon} ${Math.abs(row.changePercent)}%
+          </td>
+          <td>${currencyManager.format(row.totalValue, countryCode, { short: true })}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  /**
+   * 缁戝畾鎼滅储鍒颁及浠?棰勬祴鐨勮烦杞寜閽?
+   */
+  bindSearchActionButtons(searchParams) {
+    // 淇濆瓨鎼滅储鍙傛暟渚涗及浠峰脊绐椾娇鐢?
+    this.lastSearchParams = searchParams;
+    
+    // 浼颁环鎸夐挳 - 鎵撳紑浼颁环寮圭獥锛堝湪bindSearchValuationButton涓凡缁戝畾锛?
+    // 杩欓噷鍙繚瀛樺弬鏁帮紝瀹為檯浜嬩欢缁戝畾鍦╞indSearchValuationButton涓?
+    
+    // 璺宠浆鍒伴娴嬮〉闈?
+    const predictionBtn = document.getElementById('searchToPredictionBtn');
+    if (predictionBtn) {
+      predictionBtn.onclick = () => {
+        this.app.switchTab('prediction');
+        // 鑷姩濉厖棰勬祴琛ㄥ崟
+        setTimeout(() => {
+          this.autoFillPredictionForm(searchParams);
+        }, 100);
+      };
+    }
+  }
+
+  /**
+   * 鑷姩濉厖浼颁环琛ㄥ崟
+   */
+  autoFillValuationForm(params) {
+    const { brand, model, country } = params;
+    
+    // 濉厖鍝佺墝
+    if (this.elements.valBrand) {
+      this.elements.valBrand.value = brand;
+      // 瑙﹀彂 change 浜嬩欢鍔犺浇杞﹀瀷
+      this.elements.valBrand.dispatchEvent(new Event('change'));
+      
+      // 寤惰繜濉厖杞﹀瀷鍜屽浗瀹?
+      setTimeout(() => {
+        if (this.elements.valModel) {
+          this.elements.valModel.value = model;
+        }
+        const valCountry = document.getElementById('valCountry');
+        if (valCountry && country !== 'all') {
+          valCountry.value = country;
+        }
+      }, 100);
+    }
+  }
+
+  /**
+   * 鑷姩濉厖棰勬祴琛ㄥ崟
+   */
+  autoFillPredictionForm(params) {
+    const { brand, model } = params;
+    const predictSelect = document.getElementById('predictModelSelect');
+    
+    if (predictSelect) {
+      // 鏋勯€爋ption value锛堥€氬父鏄痬odel id锛?
+      predictSelect.value = model;
+    }
+  }
+
+  /**
+   * 鏄剧ず鎼滅储缁撴灉锛堟墿灞曠増锛屽寘鍚繎鏈熸垚浜ゆ暟鎹級
+   */
+  showSearchResults(results, currencyManager) {
+    if (!results) return;
+    
+    const { monthlyData } = results;
+    const countryCode = results.country === 'all' ? 'th' : results.country;
+    
+    // 鏄剧ず缁撴灉鍖哄煙
+    if (this.elements.searchResults) {
+      this.elements.searchResults.classList.remove('hidden');
+    }
+    
+    // 淇濆瓨鎼滅储鍙傛暟鐢ㄤ簬鐢熸垚杩戞湡鎴愪氦鏁版嵁
+    this.lastSearchParams = {
+      brand: results.brand,
+      model: results.model,
+      country: countryCode
+    };
+    
+    // 娓叉煋杩戞湡鎴愪氦鏁版嵁锛堥粯璁?澶╋級
+    this.renderRecentDeals(7, currencyManager);
+    
+    // 缁戝畾杩戞湡鎴愪氦鏍囩鍒囨崲
+    this.bindRecentDealTabs(currencyManager);
+    
+    // 鏇存柊缁熻鍗＄墖
+    this.updateSearchSummary(results, currencyManager, countryCode);
+    
+    // 娓叉煋琛ㄦ牸
+    this.renderSearchTable(monthlyData, currencyManager, countryCode);
+    
+    // 鐢熸垚AI寤鸿
+    this.generateSearchAiSuggestions(results, currencyManager, countryCode);
+    
+    // 缁戝畾鎼滅储鎿嶄綔鎸夐挳
+    this.bindSearchActionButtons(this.lastSearchParams);
+    
+    // 婊氬姩鍒扮粨鏋滃尯鍩?
+    this.elements.searchResults?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /**
+   * 鏇存柊鎼滅储姹囨€荤粺璁?
+   */
+  updateSearchSummary(results, currencyManager, countryCode) {
+    const { summary, monthlyData, trends } = results;
+    const lastMonth = monthlyData[monthlyData.length - 1];
+    
+    // 鏇存柊缁熻鍗＄墖
+    if (this.elements.biTotalVolume) {
+      this.elements.biTotalVolume.textContent = formatNumber(summary.totalVolume) + '杈?;
+    }
+    if (this.elements.biAvgPrice) {
+      this.elements.biAvgPrice.textContent = currencyManager.format(summary.avgPrice, countryCode, { short: true });
+    }
+    if (this.elements.biPriceRange) {
+      this.elements.biPriceRange.textContent = summary.priceRange;
+    }
+    if (this.elements.biAvgMonthly) {
+      this.elements.biAvgMonthly.textContent = formatNumber(summary.avgMonthlyVolume) + '杈?;
+    }
+    
+    // 鏇存柊瓒嬪娍
+    if (this.elements.biVolumeTrend) {
+      this.updateTrendIndicator(this.elements.biVolumeTrend, summary.volumeTrend);
+    }
+    if (this.elements.biPriceTrend) {
+      this.updateTrendIndicator(this.elements.biPriceTrend, summary.priceTrend);
+    }
+    if (this.elements.biMonthlyTrend) {
+      const prevMonth = monthlyData[monthlyData.length - 2];
+      const change = prevMonth ? ((lastMonth.volume - prevMonth.volume) / prevMonth.volume * 100) : 0;
+      this.updateTrendIndicator(this.elements.biMonthlyTrend, change);
+    }
+  }
+
+  /**
+   * 娓叉煋杩戞湡鎴愪氦鏁版嵁
+   */
+  renderRecentDeals(days, currencyManager) {
+    if (!this.lastSearchParams) return;
+    
+    const { brand, model, country } = this.lastSearchParams;
+    const recentData = this.app.marketSearchEngine.generateRecentDeals(brand, model, country, days);
+    
+    // 鏇存柊缁熻
+    const avgPriceEl = document.getElementById('recentAvgPrice');
+    const priceChangeEl = document.getElementById('recentPriceChange');
+    const volumeEl = document.getElementById('recentVolume');
+    const maxPriceEl = document.getElementById('recentMaxPrice');
+    const minPriceEl = document.getElementById('recentMinPrice');
+    
+    if (avgPriceEl) {
+      avgPriceEl.textContent = currencyManager.format(recentData.avgPrice, country, { short: true });
+    }
+    if (priceChangeEl) {
+      const isPositive = recentData.priceChange >= 0;
+      priceChangeEl.className = `recent-stat-change ${isPositive ? 'positive' : 'negative'}`;
+      priceChangeEl.textContent = `${isPositive ? '+' : ''}${recentData.priceChange}%`;
+    }
+    if (volumeEl) {
+      volumeEl.textContent = recentData.totalCount;
+    }
+    if (maxPriceEl) {
+      maxPriceEl.textContent = currencyManager.format(recentData.maxPrice, country, { short: true });
+    }
+    if (minPriceEl) {
+      minPriceEl.textContent = currencyManager.format(recentData.minPrice, country, { short: true });
+    }
+    
+    // 娓叉煋鍥捐〃
+    this.app.chartManager.renderRecentPriceChart?.('recentPriceChart', recentData.dailyStats);
+    
+    // 娓叉煋鎴愪氦鍒楄〃
+    this.renderRecentDealsList(recentData.deals, currencyManager, country);
+  }
+
+  /**
+   * 娓叉煋杩戞湡鎴愪氦鍒楄〃
+   */
+  renderRecentDealsList(deals, currencyManager, country) {
+    const listEl = document.getElementById('recentDealsList');
+    if (!listEl) return;
+    
+    listEl.innerHTML = deals.map(deal => `
+      <div class="recent-deal-item">
+        <span class="deal-date">${escapeHtml(deal.date)}</span>
+        <div class="deal-info">
+          <span class="deal-spec">${escapeHtml(deal.year)}骞?路 ${escapeHtml(deal.condition)}</span>
+          <span class="deal-mileage">${deal.mileage}涓囧叕閲?/span>
+        </div>
+        <span class="deal-price">${currencyManager.format(deal.price, country, { short: true })}</span>
+      </div>
+    `).join('');
+  }
+
+  /**
+   * 缁戝畾杩戞湡鎴愪氦鏍囩鍒囨崲
+   */
+  bindRecentDealTabs(currencyManager) {
+    const tabs = document.querySelectorAll('.period-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        // 鏇存柊婵€娲荤姸鎬?
+        tabs.forEach(t => t.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        // 鑾峰彇澶╂暟骞堕噸鏂版覆鏌?
+        const days = parseInt(e.target.dataset.days);
+        this.renderRecentDeals(days, currencyManager);
+      });
+    });
+  }
+
+  /**
+   * 鐢熸垚鎼滅储椤甸潰鐨凙I寤鸿
+   */
+  generateSearchAiSuggestions(results, currencyManager, countryCode) {
+    const aiContent = document.getElementById('searchAiContent');
+    if (!aiContent || !results) return;
+    
+    const { summary, trends, monthlyData } = results;
+    const lastMonth = monthlyData[monthlyData.length - 1];
+    
+    // 甯傚満寤鸿
+    let marketAdvice = '褰撳墠甯傚満瀵硅杞﹀瀷闇€姹?;
+    if (summary.volumeTrend > 10) {
+      marketAdvice += '鏃虹洓锛屼緵涓嶅簲姹傦紝寤鸿閫傚綋鎻愰珮鍞环銆?;
+    } else if (summary.volumeTrend < -10) {
+      marketAdvice += '鐤茶蒋锛屽缓璁檷浠蜂績閿€鎴栫瓑寰呭競鍦哄洖鏆栥€?;
+    } else {
+      marketAdvice += '绋冲畾锛屽缓璁湪浠锋牸鍖洪棿涓綅鏁板嚭鍞€?;
+    }
+    
+    // 浠锋牸瓒嬪娍
+    let priceTrendText = '';
+    if (trends.price === 'up') {
+      priceTrendText = `杩囧幓${monthlyData.length}涓湀浠锋牸鍛堜笂鍗囪秼鍔匡紝棰勮鏈潵3涓湀灏嗙户缁笂娑ㄧ害${Math.abs(summary.priceTrend).toFixed(1)}%銆俙;
+    } else if (trends.price === 'down') {
+      priceTrendText = `杩囧幓${monthlyData.length}涓湀浠锋牸鍛堜笅闄嶈秼鍔匡紝寤鸿灏藉揩鍑哄敭浠ラ伩鍏嶆洿澶ф崯澶便€俙;
+    } else {
+      priceTrendText = '浠锋牸璧板娍鐩稿骞崇ǔ锛屽彲鏍规嵁涓汉璧勯噾闇€姹傚喅瀹氬嚭鍞椂鏈恒€?;
+    }
+    
+    // 浜ゆ槗寤鸿
+    const avgDays = 15 + Math.floor((this.app?.randomGenerator ? this.app.randomGenerator() : Math.random()) * 10);
+    const bestPrice = currencyManager.format(lastMonth.avgPrice, countryCode, { short: true });
+    
+    aiContent.innerHTML = `
+      <div class="bi-ai-item">
+        <i class="fas fa-lightbulb text-yellow-500"></i>
+        <div class="bi-ai-text">
+          <strong>甯傚満寤鸿</strong>
+          <p>${escapeHtml(marketAdvice)}</p>
+        </div>
+      </div>
+      <div class="bi-ai-item">
+        <i class="fas fa-chart-line text-green-500"></i>
+        <div class="bi-ai-text">
+          <strong>浠锋牸瓒嬪娍</strong>
+          <p>${escapeHtml(priceTrendText)}</p>
+        </div>
+      </div>
+      <div class="bi-ai-item">
+        <i class="fas fa-handshake text-blue-500"></i>
+        <div class="bi-ai-text">
+          <strong>浜ゆ槗寤鸿</strong>
+          <p>寤鸿鍞环锛?{bestPrice}锛涢璁℃垚浜ゅ懆鏈燂細${avgDays}-${avgDays + 5}澶┿€傜偣鍑讳笂鏂规寜閽繘琛岃缁嗕及浠锋垨鏌ョ湅鏈潵浠锋牸棰勬祴銆?/p>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * 缁戝畾瀵艰埅Logo鐐瑰嚮锛堣繑鍥炰富椤碉級
+   */
+  bindNavLogo() {
+    if (this.elements.navLogo) {
+      this.elements.navLogo.addEventListener('click', () => {
+        this.switchTab('dashboard');
+        // 婊氬姩鍒伴〉闈㈤《閮?
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+  }
+
+  /**
+   * 缁戝畾蹇€熸悳绱?
+   */
+  bindQuickSearch() {
+    const quickInput = document.getElementById('quickSearchInput');
+    const quickBtn = document.getElementById('quickSearchBtn');
+    const hints = document.querySelectorAll('.quick-search-hints a');
+    
+    // 鎼滅储鎸夐挳鐐瑰嚮
+    if (quickBtn && quickInput) {
+      quickBtn.addEventListener('click', () => {
+        this.performQuickSearch(quickInput.value);
+      });
+      
+      // 鍥炶溅閿悳绱?
+      quickInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          this.performQuickSearch(quickInput.value);
+        }
+      });
+    }
+    
+    // 鐑棬鎼滅储鐐瑰嚮
+    hints.forEach(hint => {
+      hint.addEventListener('click', (e) => {
+        e.preventDefault();
+        const brand = hint.dataset.brand;
+        const model = hint.dataset.model;
+        if (brand && model) {
+          this.performQuickSearch(null, { brand, model });
+        }
+      });
+    });
+  }
+
+  /**
+   * 鎵ц蹇€熸悳绱?
+   */
+  performQuickSearch(keyword, params = null) {
+    if (params) {
+      // 鐩存帴璺宠浆鍒版悳绱㈤〉闈㈠苟鎼滅储
+      this.switchTab('search');
+      setTimeout(() => {
+        if (this.elements.searchBrand) {
+          this.elements.searchBrand.value = params.brand;
+          this.elements.searchBrand.dispatchEvent(new Event('change'));
+          setTimeout(() => {
+            if (this.elements.searchModel) {
+              this.elements.searchModel.value = params.model;
+            }
+            // 鑷姩瑙﹀彂鎼滅储
+            this.elements.marketSearchForm?.dispatchEvent(new Event('submit'));
+          }, 100);
+        }
+      }, 100);
+    } else if (keyword) {
+      // 瑙ｆ瀽鍏抽敭璇?
+      const parsed = this.parseSearchKeyword(keyword);
+      this.performQuickSearch(null, parsed);
+    }
+  }
+
+  /**
+   * 瑙ｆ瀽鎼滅储鍏抽敭璇?
+   */
+  parseSearchKeyword(keyword) {
+    const lower = keyword.toLowerCase().trim();
+    
+    // 甯歌杞﹀瀷鏄犲皠锛堟坊鍔犳墍鏈夋柊杞﹀瀷锛?
+    const mappings = {
+      'byd': { 
+        brand: 'byd', 
+        models: { 
+          'atto': 'atto3', 'atto3': 'atto3', 
+          'seal': 'seal', 
+          'dolphin': 'dolphin',
+          '绉?: 'qin-plus', 'qin': 'qin-plus', '绉lus': 'qin-plus', '绉?019': 'qin-2019', 'qin2019': 'qin-2019',
+          '姹?: 'han', 'han': 'han',
+          '鍞?: 'tang', 'tang': 'tang',
+          '瀹?: 'song-plus', 'song': 'song-plus', '瀹媝lus': 'song-plus',
+          '鍏?: 'yuan-plus', 'yuan': 'yuan-plus', '鍏僷lus': 'yuan-plus',
+          'm6': 'm6',
+          'e2': 'e2',
+          'e6': 'e6'
+        } 
+      },
+      'tesla': { 
+        brand: 'tesla', 
+        models: { 
+          'model3': 'model3', 'model 3': 'model3', 
+          'modely': 'modely', 'model y': 'modely' 
+        } 
+      },
+      'mg': { 
+        brand: 'mg', 
+        models: { 
+          'zs': 'zsev', 'zsev': 'zsev', 
+          'mg4': 'mg4', 
+          'ep': 'ep' 
+        } 
+      }
+    };
+    
+    for (const [brandKey, data] of Object.entries(mappings)) {
+      if (lower.includes(brandKey)) {
+        for (const [modelKey, modelId] of Object.entries(data.models)) {
+          if (lower.includes(modelKey)) {
+            return { brand: data.brand, model: modelId };
+          }
+        }
+        // 濡傛灉鍙尮閰嶅搧鐗岋紝杩斿洖鏈€鐑棬杞﹀瀷
+        return { brand: data.brand, model: 'atto3' };
+      }
+    }
+    
+    // 灏濊瘯鐩存帴鍖归厤杞﹀瀷
+    const directMappings = {
+      '绉?: { brand: 'byd', model: 'qin-plus' },
+      'qin': { brand: 'byd', model: 'qin-plus' },
+      '姹?: { brand: 'byd', model: 'han' },
+      '鍞?: { brand: 'byd', model: 'tang' },
+      '瀹?: { brand: 'byd', model: 'song-plus' },
+      '鍏?: { brand: 'byd', model: 'yuan-plus' }
+    };
+    
+    for (const [key, value] of Object.entries(directMappings)) {
+      if (lower.includes(key)) {
+        return value;
+      }
+    }
+    
+    return { brand: 'byd', model: 'atto3' }; // 榛樿
+  }
+
+  // ==================== AI棰勬祴寮圭獥 ====================
+
+  /**
+   * 缁戝畾AI棰勬祴鎸夐挳浜嬩欢
+   */
+  bindPredictButton() {
+    const predictBtn = document.getElementById('predictBtn');
+    const modalClose = document.getElementById('aiModalClose');
+    const modal = document.getElementById('aiPredictModal');
+    const overlay = modal?.querySelector('.ai-modal-overlay');
+    
+    if (predictBtn) {
+      predictBtn.addEventListener('click', () => {
+        this.openAIPredictModal();
+      });
+    }
+    
+    // 鍏抽棴鎸夐挳
+    if (modalClose) {
+      modalClose.addEventListener('click', () => {
+        this.closeAIPredictModal();
+      });
+    }
+    
+    // 鐐瑰嚮閬僵鍏抽棴
+    if (overlay) {
+      overlay.addEventListener('click', () => {
+        this.closeAIPredictModal();
+      });
+    }
+    
+    // ESC閿叧闂?
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal?.classList.contains('hidden')) {
+        this.closeAIPredictModal();
+      }
+    });
+  }
+
+  /**
+   * 鎵撳紑AI棰勬祴寮圭獥
+   */
+  async openAIPredictModal() {
+    const modal = document.getElementById('aiPredictModal');
+    const loading = document.getElementById('aiPredictLoading');
+    const result = document.getElementById('aiPredictResult');
+    
+    if (!modal) return;
+    
+    // 鏄剧ず寮圭獥
+    modal.classList.remove('hidden');
+    
+    // 閲嶇疆鐘舵€?
+    loading.classList.remove('hidden');
+    result.classList.add('hidden');
+    
+    try {
+      // 鑾峰彇褰撳墠鍥藉鍜岄粯璁よ溅鍨?
+      const countryCode = this.app.dataManager.getCurrentCountry() || 'th';
+      const modelId = 'atto3'; // 榛樿浣跨敤Atto 3浣滀负甯傚満浠ｈ〃
+      
+      // 璋冪敤AI棰勬祴
+      const prediction = await this.app.aiMarketPredictor.predict(modelId, countryCode, 3);
+      
+      // 娓叉煋缁撴灉
+      this.renderAIPredictResult(prediction, countryCode);
+      
+      // 闅愯棌鍔犺浇锛屾樉绀虹粨鏋?
+      loading.classList.add('hidden');
+      result.classList.remove('hidden');
+      
+    } catch (error) {
+      console.error('AI棰勬祴澶辫触:', error);
+      loading.innerHTML = `
+        <div style="text-align: center; color: #ef4444;">
+          <i class="fas fa-exclamation-circle" style="font-size: 32px; margin-bottom: 12px;"></i>
+          <p>棰勬祴澶辫触锛岃绋嶅悗閲嶈瘯</p>
+        </div>
+      `;
+    }
+  }
+
+  /**
+   * 鍏抽棴AI棰勬祴寮圭獥
+   */
+  closeAIPredictModal() {
+    const modal = document.getElementById('aiPredictModal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+    // 閿€姣佸浘琛?
+    this.destroyPredictChart();
+  }
+
+  /**
+   * 娓叉煋AI棰勬祴缁撴灉
+   */
+  renderAIPredictResult(prediction, countryCode) {
+    const container = document.getElementById('aiPredictResult');
+    if (!container) return;
+    
+    const country = this.app.dataManager.getCountry(countryCode);
+    const currencySymbol = country?.currency?.symbol || '喔?;
+    
+    // 瓒嬪娍鏂瑰悜
+    const trendUp = prediction.changePercent >= 0;
+    const trendClass = prediction.changePercent > 0 ? 'up' : prediction.changePercent < 0 ? 'down' : 'stable';
+    const trendIcon = prediction.changePercent > 0 ? 'fa-arrow-trend-up' : prediction.changePercent < 0 ? 'fa-arrow-trend-down' : 'fa-minus';
+    const trendText = prediction.changePercent > 0 ? '涓婃定' : prediction.changePercent < 0 ? '涓嬭穼' : '骞崇ǔ';
+    
+    // 鏍煎紡鍖栦环鏍?
+    const formatPrice = (price) => {
+      if (price >= 1000000) {
+        return (price / 1000000).toFixed(2) + 'M';
+      } else if (price >= 1000) {
+        return (price / 1000).toFixed(1) + 'K';
+      }
+      return price.toString();
+    };
+    
+    container.innerHTML = `
+      <!-- 瓒嬪娍姒傝 -->
+      <div class="ai-trend-indicator ${trendClass}">
+        <i class="fas ${trendIcon}"></i>
+        <span>棰勮${trendText} ${Math.abs(prediction.changePercent)}%</span>
+      </div>
+      
+      <!-- 鍏抽敭鏁版嵁 -->
+      <div class="ai-predict-summary">
+        <div class="ai-summary-item">
+          <div class="ai-summary-label">褰撳墠浠锋牸</div>
+          <div class="ai-summary-value">${currencySymbol}${formatPrice(prediction.currentPrice)}</div>
+        </div>
+        <div class="ai-summary-item">
+          <div class="ai-summary-label">棰勬祴浠锋牸</div>
+          <div class="ai-summary-value ${trendClass}">${currencySymbol}${formatPrice(prediction.predictedPrice)}</div>
+        </div>
+        <div class="ai-summary-item">
+          <div class="ai-summary-label">棰勬祴鍛ㄦ湡</div>
+          <div class="ai-summary-value">3涓湀</div>
+        </div>
+      </div>
+      
+      <!-- 缃俊搴?-->
+      <div class="ai-confidence">
+        <span>AI缃俊搴?/span>
+        <div class="ai-confidence-bar">
+          <div class="ai-confidence-fill" style="width: ${prediction.confidence}%"></div>
+        </div>
+        <span>${prediction.confidence}%</span>
+      </div>
+      
+      <!-- 褰卞搷鍥犵礌 -->
+      <div class="ai-factors-section">
+        <div class="ai-factors-title">
+          <i class="fas fa-chart-pie text-primary"></i>
+          <span>鍏抽敭褰卞搷鍥犵礌</span>
+        </div>
+        <div class="ai-factors-list">
+          ${prediction.factors.map(f => `
+            <div class="ai-factor-item">
+              <div class="ai-factor-icon ${f.impact}">
+                <i class="fas ${f.icon}"></i>
+              </div>
+              <span>${escapeHtml(f.name)}: ${escapeHtml(f.description)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      
+      <!-- 鎶曡祫寤鸿 -->
+      <div class="ai-recommendation">
+        <div class="ai-recommendation-title">
+          <i class="fas fa-lightbulb text-yellow-500"></i>
+          <span>AI鎶曡祫寤鸿</span>
+        </div>
+        <div class="ai-recommendation-text">
+          ${escapeHtml(prediction.recommendation)}
+        </div>
+      </div>
+    `;
+    
+    // 娓叉煋杩蜂綘鍥捐〃
+    setTimeout(() => {
+      this.renderPredictChart(prediction.combined);
+    }, 100);
+  }
+
+  /**
+   * 娓叉煋棰勬祴瓒嬪娍杩蜂綘鍥捐〃
+   */
+  renderPredictChart(data) {
+    // 鍒涘缓鍥捐〃瀹瑰櫒
+    const container = document.getElementById('aiPredictResult');
+    if (!container || typeof echarts === 'undefined') return;
+    
+    // 濡傛灉宸插瓨鍦ㄥ浘琛紝鍏堥攢姣?
+    this.destroyPredictChart();
+    
+    // 鍒涘缓鍥捐〃div
+    const chartDiv = document.createElement('div');
+    chartDiv.id = 'aiPredictChart';
+    chartDiv.className = 'ai-predict-chart';
+    chartDiv.style.height = '200px';
+    chartDiv.style.marginTop = '16px';
+    container.appendChild(chartDiv);
+    
+    const chart = echarts.init(chartDiv);
+    
+    const option = {
+      grid: {
+        left: 10,
+        right: 10,
+        top: 10,
+        bottom: 20
+      },
+      xAxis: {
+        type: 'category',
+        data: data.map((d, i) => i < 12 ? `M${i+1}` : `P${i-11}`),
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { 
+          color: '#94a3b8',
+          fontSize: 10,
+          interval: 2
+        }
+      },
+      yAxis: {
+        type: 'value',
+        show: false,
+        min: Math.min(...data.map(d => d.value)) * 0.98,
+        max: Math.max(...data.map(d => d.value)) * 1.02
+      },
+      series: [{
+        type: 'line',
+        data: data.map(d => d.value),
+        smooth: true,
+        symbol: 'none',
+        lineStyle: {
+          color: '#14b8a6',
+          width: 2
+        },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(20, 184, 166, 0.3)' },
+            { offset: 1, color: 'rgba(20, 184, 166, 0.05)' }
+          ])
+        },
+        markLine: {
+          symbol: 'none',
+          lineStyle: {
+            color: '#94a3b8',
+            type: 'dashed',
+            width: 1
+          },
+          data: [{
+            xAxis: 11,
+            label: { 
+              show: true,
+              formatter: '棰勬祴',
+              color: '#64748b',
+              fontSize: 10
+            }
+          }]
+        }
+      }]
+    };
+    
+    chart.setOption(option);
+    
+    // 淇濆瓨鍥捐〃瀹炰緥浠ヤ究鍚庣画閿€姣?
+    this._predictChart = chart;
+  }
+
+  /**
+   * 閿€姣侀娴嬪浘琛?
+   */
+  destroyPredictChart() {
+    // 绉婚櫎涔嬪墠鐨勫浘琛―OM
+    const oldChart = document.getElementById('aiPredictChart');
+    if (oldChart) {
+      oldChart.remove();
+    }
+    
+    // 閿€姣乪charts瀹炰緥
+    if (this._predictChart) {
+      try {
+        this._predictChart.dispose();
+      } catch (e) {
+        console.warn('Chart dispose failed:', e);
+      }
+      this._predictChart = null;
+    }
+  }
+}
+
+
+  // ==================== 浼颁环寮圭獥 ====================
+
+  /**
+   * 缁戝畾鎼滅储椤甸潰鐨勭珛鍗充及浠锋寜閽?
+   */
+  bindSearchValuationButton() {
+    const valuationBtn = document.getElementById('searchToValuationBtn');
+    const modalClose = document.getElementById('valuationModalClose');
+    const modal = document.getElementById('valuationModal');
+    const overlay = modal?.querySelector('.ai-modal-overlay');
+    
+    if (valuationBtn) {
+      valuationBtn.addEventListener('click', () => {
+        this.openValuationModal();
+      });
+    }
+    
+    // 鍏抽棴鎸夐挳
+    if (modalClose) {
+      modalClose.addEventListener('click', () => {
+        this.closeValuationModal();
+      });
+    }
+    
+    // 鐐瑰嚮閬僵鍏抽棴
+    if (overlay) {
+      overlay.addEventListener('click', () => {
+        this.closeValuationModal();
+      });
+    }
+    
+    // ESC閿叧闂?
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal?.classList.contains('hidden')) {
+        this.closeValuationModal();
+      }
+    });
+  }
+
+  /**
+   * 鎵撳紑浼颁环寮圭獥
+   */
+  async openValuationModal() {
+    const modal = document.getElementById('valuationModal');
+    const loading = document.getElementById('valuationModalLoading');
+    const result = document.getElementById('valuationModalResult');
+    
+    if (!modal) return;
+    
+    // 鑾峰彇褰撳墠鎼滅储鐨勮溅鍨嬩俊鎭?
+    if (!this.lastSearchParams) {
+      this.showToast('璇峰厛鎼滅储杞﹀瀷', 'warning');
+      return;
+    }
+    
+    // 鏄剧ず寮圭獥
+    modal.classList.remove('hidden');
+    
+    // 閲嶇疆鐘舵€?
+    loading.classList.remove('hidden');
+    result.classList.add('hidden');
+    
+    try {
+      const { brand, model, country } = this.lastSearchParams;
+      const countryCode = country || 'th';
+      
+      // 鑾峰彇杞﹀瀷淇℃伅
+      const modelInfo = this.getModelInfo(brand, model);
+      
+      // 鐢熸垚7澶╀环鏍艰蛋鍔挎暟鎹?
+      const priceTrend = this.generate7DayTrend(brand, model, countryCode);
+      
+      // 鑾峰彇鍩虹浠锋牸
+      const basePrice = this.app.dataManager.getBasePrice?.(brand, model, countryCode) || 1200000;
+      
+      // 璁＄畻AI鎺ㄨ崘浠锋牸锛堝熀浜庡熀纭€浠锋牸鍔犲噺5%锛?
+      const randomFactor = (this.app?.randomGenerator ? this.app.randomGenerator() : Math.random());
+      const recommendedPrice = Math.round(basePrice * (0.95 + randomFactor * 0.1));
+      
+      // 璁＄畻浠锋牸鍖洪棿
+      const minPrice = Math.round(recommendedPrice * 0.92);
+      const maxPrice = Math.round(recommendedPrice * 1.08);
+      
+      // 娓叉煋缁撴灉
+      this.renderValuationModalResult({
+        modelInfo,
+        priceTrend,
+        recommendedPrice,
+        priceRange: { min: minPrice, max: maxPrice },
+        basePrice,
+        countryCode
+      });
+      
+      // 闅愯棌鍔犺浇锛屾樉绀虹粨鏋?
+      loading.classList.add('hidden');
+      result.classList.remove('hidden');
+      
+    } catch (error) {
+      console.error('浼颁环澶辫触:', error);
+      loading.innerHTML = `
+        <div style="text-align: center; color: #ef4444;">
+          <i class="fas fa-exclamation-circle" style="font-size: 32px; margin-bottom: 12px;"></i>
+          <p>浼颁环澶辫触锛岃绋嶅悗閲嶈瘯</p>
+        </div>
+      `;
+    }
+  }
+
+  /**
+   * 鍏抽棴浼颁环寮圭獥
+   */
+  closeValuationModal() {
+    const modal = document.getElementById('valuationModal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+    // 閿€姣佸浘琛?
+    this.destroyValuationChart();
+  }
+
+  /**
+   * 鑾峰彇杞﹀瀷淇℃伅
+   */
+  getModelInfo(brand, model) {
+    const brands = this.app.dataManager.getBrands();
+    const brandInfo = brands.find(b => b.id === brand);
+    const models = this.app.dataManager.getModelsByBrand(brand);
+    const modelDetail = models.find(m => m.id === model);
+    
+    return {
+      brand: brandInfo?.name || brand,
+      model: modelDetail?.name || model,
+      logo: brandInfo?.logo || '馃殫',
+      fullName: `${brandInfo?.name || brand} ${modelDetail?.name || model}`
+    };
+  }
+
+  /**
+   * 鐢熸垚7澶╀环鏍艰蛋鍔挎暟鎹?
+   */
+  generate7DayTrend(brandId, modelId, countryCode) {
+    const basePrice = this.app.dataManager.getBasePrice?.(brandId, modelId, countryCode) || 1200000;
+    const data = [];
+    const now = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      
+      // 鐢熸垚甯︽湁灏忓箙娉㈠姩鐨勪环鏍兼暟鎹?
+      const randomVariation = (this.app?.randomGenerator ? this.app.randomGenerator() : Math.random()) * 0.04 - 0.02; // 卤2%
+      const price = Math.round(basePrice * (1 + randomVariation));
+      
+      data.push({
+        date: date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
+        price: price
+      });
+    }
+    
+    return data;
+  }
+
+  /**
+   * 娓叉煋浼颁环寮圭獥缁撴灉
+   */
+  renderValuationModalResult(data) {
+    const container = document.getElementById('valuationModalResult');
+    if (!container) return;
+    
+    const { currencyManager } = this.app;
+    const countryCode = data.countryCode;
+    
+    // 鏍煎紡鍖栦环鏍?
+    const formatPrice = (price) => currencyManager.format(price, countryCode, { short: true });
+    
+    // 璁＄畻7澶╀环鏍煎彉鍖?
+    const firstPrice = data.priceTrend[0].price;
+    const lastPrice = data.priceTrend[data.priceTrend.length - 1].price;
+    const priceChange = ((lastPrice - firstPrice) / firstPrice * 100).toFixed(1);
+    const changeClass = priceChange >= 0 ? 'up' : 'down';
+    const changeIcon = priceChange >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+    
+    container.innerHTML = `
+      <!-- 杞﹀瀷淇℃伅 -->
+      <div class="ai-valuation-header">
+        <div class="ai-valuation-model">
+          <span class="ai-valuation-logo">${data.modelInfo.logo}</span>
+          <div class="ai-valuation-name">
+            <h4>${escapeHtml(data.modelInfo.fullName)}</h4>
+            <span class="ai-valuation-subtitle">${countryCode.toUpperCase()} 甯傚満</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- AI鎺ㄨ崘浠锋牸 -->
+      <div class="ai-valuation-price-card">
+        <div class="ai-valuation-price-label">AI鎺ㄨ崘鍞环</div>
+        <div class="ai-valuation-price-value">${formatPrice(data.recommendedPrice)}</div>
+        <div class="ai-valuation-price-range">
+          寤鸿鍖洪棿: ${formatPrice(data.priceRange.min)} - ${formatPrice(data.priceRange.max)}
+        </div>
+        <div class="ai-valuation-confidence">
+          <i class="fas fa-shield-alt text-primary"></i>
+          <span>AI缃俊搴?92%</span>
+        </div>
+      </div>
+      
+      <!-- 7澶╀环鏍艰蛋鍔?-->
+      <div class="ai-valuation-trend-section">
+        <div class="ai-valuation-section-title">
+          <i class="fas fa-chart-line text-primary"></i>
+          <span>7澶╀环鏍艰蛋鍔?/span>
+          <span class="ai-valuation-change ${changeClass}">
+            <i class="fas ${changeIcon}"></i>
+            ${Math.abs(priceChange)}%
+          </span>
+        </div>
+        <div id="valuationTrendChart" class="ai-valuation-chart"></div>
+        <div class="ai-valuation-trend-stats">
+          <div class="ai-valuation-stat">
+            <span class="ai-valuation-stat-label">7澶╂渶楂?/span>
+            <span class="ai-valuation-stat-value">${formatPrice(Math.max(...data.priceTrend.map(d => d.price)))}</span>
+          </div>
+          <div class="ai-valuation-stat">
+            <span class="ai-valuation-stat-label">7澶╂渶浣?/span>
+            <span class="ai-valuation-stat-value">${formatPrice(Math.min(...data.priceTrend.map(d => d.price)))}</span>
+          </div>
+          <div class="ai-valuation-stat">
+            <span class="ai-valuation-stat-label">骞冲潎浠锋牸</span>
+            <span class="ai-valuation-stat-value">${formatPrice(Math.round(data.priceTrend.reduce((a, b) => a + b.price, 0) / data.priceTrend.length))}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 浼颁环寤鸿 -->
+      <div class="ai-valuation-suggestion">
+        <div class="ai-valuation-suggestion-title">
+          <i class="fas fa-lightbulb text-yellow-500"></i>
+          <span>AI浼颁环寤鸿</span>
+        </div>
+        <div class="ai-valuation-suggestion-text">
+          ${this.generateValuationSuggestion(data, priceChange)}
+        </div>
+      </div>
+      
+      <!-- 鎿嶄綔鎸夐挳 -->
+      <div class="ai-valuation-actions">
+        <button class="btn-secondary" onclick="document.getElementById('valuationModalClose').click()">
+          <i class="fas fa-times"></i>
+          <span>鍏抽棴</span>
+        </button>
+        <button class="btn-primary" onclick="this.closest('.ai-modal').querySelector('.ai-modal-close').click(); window.app.switchTab('valuation')">
+          <i class="fas fa-calculator"></i>
+          <span>璇︾粏浼颁环</span>
+        </button>
+      </div>
+    `;
+    
+    // 娓叉煋7澶╄蛋鍔垮浘
+    setTimeout(() => {
+      this.renderValuationTrendChart(data.priceTrend);
+    }, 100);
+  }
+
+  /**
+   * 鐢熸垚浼颁环寤鸿鏂囨湰
+   */
+  generateValuationSuggestion(data, priceChange) {
+    const changeNum = parseFloat(priceChange);
+    let suggestion = '';
+    
+    if (changeNum > 2) {
+      suggestion = `杩戞湡${data.modelInfo.fullName}浠锋牸鍛堜笂娑ㄨ秼鍔匡紝甯傚満闇€姹傛椇鐩涖€傚缓璁寜AI鎺ㄨ崘浠锋牸${this.app.currencyManager.format(data.recommendedPrice, data.countryCode, { short: true })}鍑哄敭锛岄璁″彲鍦?-10澶╁唴鎴愪氦銆俙;
+    } else if (changeNum < -2) {
+      suggestion = `杩戞湡${data.modelInfo.fullName}浠锋牸鐣ユ湁涓嬮檷锛屽缓璁€傚綋璋冩暣棰勬湡浠锋牸銆傚彲鑰冭檻浠ュ尯闂翠笅闄?{this.app.currencyManager.format(data.priceRange.min, data.countryCode, { short: true })}蹇€熷嚭鍞紝閬垮厤杩涗竴姝ヨ船鍊笺€俙;
+    } else {
+      suggestion = `${data.modelInfo.fullName}浠锋牸璧板娍鐩稿骞崇ǔ锛屽競鍦轰緵闇€骞宠　銆傚缓璁寜AI鎺ㄨ崘浠锋牸鍖洪棿鍑哄敭锛岄璁℃垚浜ゅ懆鏈熶负10-15澶┿€俙;
+    }
+    
+    return suggestion;
+  }
+
+  /**
+   * 娓叉煋7澶╀环鏍艰蛋鍔垮浘
+   */
+  renderValuationTrendChart(data) {
+    const chartDiv = document.getElementById('valuationTrendChart');
+    if (!chartDiv || typeof echarts === 'undefined') return;
+    
+    // 濡傛灉宸插瓨鍦ㄥ浘琛紝鍏堥攢姣?
+    this.destroyValuationChart();
+    
+    const chart = echarts.init(chartDiv);
+    
+    const prices = data.map(d => d.price);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    const padding = (maxPrice - minPrice) * 0.1;
+    
+    const option = {
+      grid: {
+        left: 10,
+        right: 10,
+        top: 10,
+        bottom: 25
+      },
+      xAxis: {
+        type: 'category',
+        data: data.map(d => d.date),
+        axisLine: { lineStyle: { color: '#e2e8f0' } },
+        axisTick: { show: false },
+        axisLabel: { 
+          color: '#64748b',
+          fontSize: 11
+        }
+      },
+      yAxis: {
+        type: 'value',
+        min: Math.round(minPrice - padding),
+        max: Math.round(maxPrice + padding),
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { 
+          color: '#94a3b8',
+          fontSize: 10,
+          formatter: (value) => {
+            if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+            if (value >= 1000) return (value / 1000).toFixed(0) + 'K';
+            return value;
+          }
+        },
+        splitLine: { lineStyle: { color: '#f1f5f9' } }
+      },
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderColor: '#e2e8f0',
+        borderWidth: 1,
+        textStyle: { color: '#1e293b', fontSize: 12 },
+        formatter: (params) => {
+          const p = params[0];
+          return `<div style="font-weight:600">${p.axisValue}</div>
+                  <div style="color:#14b8a6">${this.app.currencyManager.format(p.value, 'th', { short: true })}</div>`;
+        }
+      },
+      series: [{
+        type: 'line',
+        data: prices,
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 6,
+        lineStyle: {
+          color: '#14b8a6',
+          width: 3
+        },
+        itemStyle: {
+          color: '#14b8a6',
+          borderWidth: 2,
+          borderColor: '#fff'
+        },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(20, 184, 166, 0.3)' },
+            { offset: 1, color: 'rgba(20, 184, 166, 0.05)' }
+          ])
+        }
+      }]
+    };
+    
+    chart.setOption(option);
+    
+    // 淇濆瓨鍥捐〃瀹炰緥
+    this._valuationChart = chart;
+  }
+
+  /**
+   * 閿€姣佷及浠峰浘琛?
+   */
+  destroyValuationChart() {
+    if (this._valuationChart) {
+      try {
+        this._valuationChart.dispose();
+      } catch (e) {
+        console.warn('Valuation chart dispose failed:', e);
+      }
+      this._valuationChart = null;
+    }
+  }
