@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>批量导入Q/A - ASEAN Used Car Assistant</title>
+    <link rel="stylesheet" href="css/tailwind.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-6xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <h1 class="font-bold text-gray-800">批量导入Q/A工具</h1>
+                <a href="admin.html" class="text-blue-600 hover:underline">返回管理</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 py-6">
+        <div class="grid grid-cols-2 gap-6">
+            <!-- 输入区域 -->
+            <div class="space-y-4">
+                <div class="bg-white rounded-xl p-4 shadow-sm">
+                    <h2 class="font-bold mb-3">输入Q/A文本</h2>
+                    <textarea id="inputText" rows="20" class="w-full px-4 py-3 border rounded-lg font-mono text-sm" placeholder="粘贴Q/A内容，格式：
+Q1: 问题内容
+A1: 答案内容
+
+Q2: 问题内容
+A2: 答案内容"></textarea>
+                </div>
+
+                <div class="flex gap-3">
+                    <select id="categorySelect" class="px-4 py-2 border rounded-lg">
+                        <option value="auto">自动识别分类</option>
+                        <option value="price">价格</option>
+                        <option value="condition">车况</option>
+                        <option value="process">流程</option>
+                        <option value="recommendation">推荐</option>
+                        <option value="policy">政策</option>
+                        <option value="asean">东盟特色</option>
+                        <option value="general">通用</option>
+                    </select>
+                    <button onclick="startImport()" class="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-play mr-2"></i>开始导入
+                    </button>
+                    <button onclick="clearAll()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                        清空
+                    </button>
+                </div>
+            </div>
+
+            <!-- 结果区域 -->
+            <div class="space-y-4">
+                <div class="bg-white rounded-xl p-4 shadow-sm">
+                    <h2 class="font-bold mb-3">导入进度</h2>
+                    <div id="progressArea" class="hidden">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-gray-600">进度</span>
+                            <span id="progressText" class="text-sm font-bold">0/0</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div id="statsArea" class="grid grid-cols-3 gap-3 mt-4">
+                        <div class="bg-blue-50 p-3 rounded-lg text-center">
+                            <div id="statTotal" class="text-2xl font-bold text-blue-600">0</div>
+                            <div class="text-xs text-gray-500">总数</div>
+                        </div>
+                        <div class="bg-green-50 p-3 rounded-lg text-center">
+                            <div id="statSuccess" class="text-2xl font-bold text-green-600">0</div>
+                            <div class="text-xs text-gray-500">成功</div>
+                        </div>
+                        <div class="bg-red-50 p-3 rounded-lg text-center">
+                            <div id="statFailed" class="text-2xl font-bold text-red-600">0</div>
+                            <div class="text-xs text-gray-500">失败</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl p-4 shadow-sm flex-1">
+                    <h2 class="font-bold mb-3">导入日志</h2>
+                    <div id="logArea" class="h-80 overflow-y-auto text-sm space-y-1 font-mono">
+                        <div class="text-gray-400">等待导入...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { LocalDatabase } from './js/modules/localDatabase.js';
+        import { KnowledgeManager } from './js/modules/knowledgeManager.js';
+        import { KnowledgeExtractor } from './js/modules/knowledgeExtractor.js';
+
+        let localDB, manager, extractor;
+        
+        try {
+            localDB = new LocalDatabase();
+            manager = new KnowledgeManager(localDB);
+            extractor = new KnowledgeExtractor();
+        } catch (e) {
+            console.error('初始化失败:', e);
+        }
+
+        // 解析Q/A文本
+        // 支持格式：Q: / A: 或 Q1: / A1: 或 Q505: / A505:
+        function parseQA(text) {
+            const qaList = [];
+            
+            // 优先匹配带数字的格式 Q数字: 问题 A数字: 答案
+            const numberedPattern = /Q(\d+)[:：]\s*(.+?)(?:\r?\n|\r)A\1[:：]\s*([\s\S]+?)(?=(?:\r?\n|\r)Q\d+[:：]|$)/gi;
+            
+            let match;
+            while ((match = numberedPattern.exec(text)) !== null) {
+                qaList.push({
+                    question: match[2].trim(),
+                    answer: match[3].trim()
+                });
+            }
+            
+            // 如果没有匹配到带数字的格式，尝试无数字格式 Q: / A:
+            if (qaList.length === 0) {
+                const simplePattern = /Q[:：]\s*(.+?)(?:\r?\n|\r)A[:：]\s*([\s\S]+?)(?=(?:\r?\n|\r)Q[:：]|$)/gi;
+                while ((match = simplePattern.exec(text)) !== null) {
+                    qaList.push({
+                        question: match[1].trim(),
+                        answer: match[2].trim()
+                    });
+                }
+            }
+            
+            return qaList;
+        }
+
+        // 开始导入
+        window.startImport = async function() {
+            const text = document.getElementById('inputText').value.trim();
+            if (!text) {
+                alert('请输入Q/A内容');
+                return;
+            }
+
+            const qaList = parseQA(text);
+            if (qaList.length === 0) {
+                alert('未解析到有效的Q/A数据，请检查格式');
+                return;
+            }
+
+            const category = document.getElementById('categorySelect').value;
+            
+            // 显示进度
+            document.getElementById('progressArea').classList.remove('hidden');
+            document.getElementById('statTotal').textContent = qaList.length;
+            document.getElementById('logArea').innerHTML = '';
+
+            let success = 0;
+            let failed = 0;
+
+            for (let i = 0; i < qaList.length; i++) {
+                const { question, answer } = qaList[i];
+                
+                try {
+                    // 提取结构化数据
+                    const extracted = extractor.extract(question, answer);
+                    
+                    if (extracted.success) {
+                        const data = extractor.enhance(extracted.data);
+                        if (category !== 'auto') {
+                            data.category = category;
+                        }
+                        
+                        const result = manager.addKnowledge(data);
+                        
+                        if (result.success) {
+                            success++;
+                            log(`✓ [${result.id}] ${question.substring(0, 40)}...`, 'success');
+                        } else {
+                            failed++;
+                            log(`✗ ${question.substring(0, 40)}... - ${result.error}`, 'error');
+                        }
+                    } else {
+                        failed++;
+                        log(`✗ ${question.substring(0, 40)}... - 提取失败`, 'error');
+                    }
+                } catch (e) {
+                    failed++;
+                    log(`✗ ${question.substring(0, 40)}... - ${e.message}`, 'error');
+                }
+
+                // 更新进度
+                const progress = ((i + 1) / qaList.length) * 100;
+                document.getElementById('progressBar').style.width = progress + '%';
+                document.getElementById('progressText').textContent = `${i + 1}/${qaList.length}`;
+                document.getElementById('statSuccess').textContent = success;
+                document.getElementById('statFailed').textContent = failed;
+
+                // 每10条暂停一下，避免阻塞
+                if ((i + 1) % 10 === 0) {
+                    await new Promise(r => setTimeout(r, 10));
+                }
+            }
+
+            log(`\n导入完成！成功: ${success}, 失败: ${failed}`, 'info');
+        };
+
+        function log(message, type) {
+            const logArea = document.getElementById('logArea');
+            const div = document.createElement('div');
+            div.className = type === 'success' ? 'text-green-600' : 
+                           type === 'error' ? 'text-red-600' : 'text-blue-600';
+            div.textContent = message;
+            logArea.appendChild(div);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        window.clearAll = function() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('logArea').innerHTML = '<div class="text-gray-400">等待导入...</div>';
+            document.getElementById('progressArea').classList.add('hidden');
+            document.getElementById('statTotal').textContent = '0';
+            document.getElementById('statSuccess').textContent = '0';
+            document.getElementById('statFailed').textContent = '0';
+            document.getElementById('progressBar').style.width = '0%';
+        };
+    </script>
+</body>
+</html>
