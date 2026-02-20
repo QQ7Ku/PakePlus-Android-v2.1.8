@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识库管理 - ASEAN Used Car Assistant</title>
+    <link rel="stylesheet" href="css/tailwind.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 顶部导航 -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-6xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-teal-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-database text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-gray-800">知识库管理</h1>
+                        <p class="text-xs text-gray-500">Knowledge Base Manager</p>
+                    </div>
+                </div>
+                <a href="index.html" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>返回聊天
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="max-w-6xl mx-auto px-4 py-6">
+        <!-- 统计卡片 -->
+        <div class="grid grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+                <div class="text-2xl font-bold text-blue-600" id="statTotal">-</div>
+                <div class="text-xs text-gray-500">总条目数</div>
+                <div class="text-xs text-gray-400 mt-1" id="statTotalDetail">内嵌 + 自定义</div>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+                <div class="text-2xl font-bold text-green-600" id="statCustom">-</div>
+                <div class="text-xs text-gray-500">自定义条目</div>
+                <div class="text-xs text-gray-400 mt-1" id="statCustomDetail">本次添加</div>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+                <div class="text-2xl font-bold text-purple-600" id="statCategories">-</div>
+                <div class="text-xs text-gray-500">分类数</div>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+                <div class="text-2xl font-bold text-orange-600" id="statKeywords">-</div>
+                <div class="text-xs text-gray-500">总关键词</div>
+            </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="flex flex-wrap gap-3 mb-6">
+            <button onclick="showAddModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                <i class="fas fa-plus mr-2"></i>添加条目
+            </button>
+            <button onclick="showSmartExtract()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                <i class="fas fa-magic mr-2"></i>智能提取
+            </button>
+            <button onclick="document.getElementById('importFile').click()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                <i class="fas fa-file-import mr-2"></i>导入JSON
+            </button>
+            <input type="file" id="importFile" accept=".json,.csv" class="hidden" onchange="handleImport(event)">
+            <button onclick="exportKnowledge()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                <i class="fas fa-file-export mr-2"></i>导出JSON
+            </button>
+            <button onclick="saveToLocalFile()" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition" title="保存到 data/knowledgeBase.ext.json">
+                <i class="fas fa-save mr-2"></i>保存到本地文件
+            </button>
+            <button onclick="searchKnowledge()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                <i class="fas fa-search mr-2"></i>搜索
+            </button>
+            <button onclick="clearCustom()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition ml-auto">
+                <i class="fas fa-trash mr-2"></i>清空自定义
+            </button>
+        </div>
+
+        <!-- 搜索框 -->
+        <div id="searchBox" class="hidden mb-6">
+            <div class="flex gap-3">
+                <input type="text" id="searchInput" placeholder="搜索ID、关键词、问题或答案..." 
+                    class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button onclick="performSearch()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    搜索
+                </button>
+                <button onclick="hideSearch()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                    取消
+                </button>
+            </div>
+        </div>
+
+        <!-- 条目列表 -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="px-4 py-3 border-b bg-gray-50">
+                <h2 class="font-bold text-gray-800">知识条目列表</h2>
+            </div>
+            <div id="knowledgeList" class="divide-y">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加/编辑弹窗 -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold" id="modalTitle">添加知识条目</h3>
+                <button onclick="hideEditModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="knowledgeForm" class="space-y-4">
+                <input type="hidden" id="editId">
+                
+                <!-- 分类 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">分类 <span class="text-red-500">*</span></label>
+                    <select id="category" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="price">价格 (price)</option>
+                        <option value="condition">车况 (condition)</option>
+                        <option value="process">流程 (process)</option>
+                        <option value="recommendation">推荐 (recommendation)</option>
+                        <option value="policy">政策 (policy)</option>
+                        <option value="asean">东盟特色 (asean)</option>
+                        <option value="general">通用 (general)</option>
+                    </select>
+                </div>
+
+                <!-- 关键词 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        关键词 <span class="text-red-500">*</span>
+                        <span class="text-xs text-gray-400">(用逗号分隔)</span>
+                    </label>
+                    <input type="text" id="keywords" placeholder="例如: 丰田, Hilux, 价格, 多少钱"
+                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <!-- 问题 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        问题变体 <span class="text-red-500">*</span>
+                        <span class="text-xs text-gray-400">(每行一个)</span>
+                    </label>
+                    <textarea id="questions" rows="3" placeholder="丰田Hilux二手多少钱？&#10;Hilux二手车价格&#10;Toyota Hilux price"
+                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <!-- 答案 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        答案 <span class="text-red-500">*</span>
+                        <span class="text-xs text-gray-400">(支持换行和Markdown粗体 **text**)</span>
+                    </label>
+                    <textarea id="answer" rows="6" placeholder="输入详细答案..."
+                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <!-- 相关车型 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        相关车型
+                        <span class="text-xs text-gray-400">(用逗号分隔)</span>
+                    </label>
+                    <input type="text" id="relatedModels" placeholder="例如: 福特 Ranger, 三菱 Triton"
+                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <!-- 相关主题 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        相关主题
+                        <span class="text-xs text-gray-400">(用逗号分隔)</span>
+                    </label>
+                    <input type="text" id="relatedTopics" placeholder="例如: 预算, 保养"
+                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="flex-1 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition">
+                        <i class="fas fa-save mr-2"></i>保存
+                    </button>
+                    <button type="button" onclick="hideEditModal()" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition">
+                        取消
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 智能提取弹窗 -->
+    <div id="extractModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold">
+                    <i class="fas fa-magic text-indigo-600 mr-2"></i>智能提取知识
+                </h3>
+                <button onclick="hideExtractModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <!-- 输入区域 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        输入Q/A例句
+                        <span class="text-xs text-gray-400 ml-2">支持格式：Q: 问题 A: 答案</span>
+                    </label>
+                    <textarea id="extractInput" rows="6" placeholder="例如：&#10;Q: 客户加微信后怎么跟进？&#10;A: 首次发送：①车辆实拍视频（15秒）；②第三方检测报告截图；③价格构成表。然后询问：&quot;您最关注这辆车的哪方面？&quot;"
+                        class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm"></textarea>
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="performExtract()" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition">
+                        <i class="fas fa-bolt mr-2"></i>自动提取
+                    </button>
+                    <button onclick="performBatchExtract()" class="flex-1 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition">
+                        <i class="fas fa-database mr-2"></i>批量导入
+                    </button>
+                </div>
+
+                <!-- 单条提取结果预览 -->
+                <div id="extractResult" class="hidden bg-gray-50 rounded-xl p-4 space-y-3">
+                    <h4 class="font-bold text-gray-800">
+                        <i class="fas fa-check-circle text-green-600 mr-2"></i>提取结果预览
+                    </h4>
+                    
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-500">分类：</span>
+                            <span id="previewCategory" class="font-medium text-indigo-600"></span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">关键词：</span>
+                            <span id="previewKeywords" class="font-medium"></span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <span class="text-gray-500 text-sm">问题变体：</span>
+                        <div id="previewQuestions" class="mt-1 space-y-1"></div>
+                    </div>
+                    
+                    <div>
+                        <span class="text-gray-500 text-sm">答案预览：</span>
+                        <div id="previewAnswer" class="mt-1 text-sm text-gray-700 bg-white p-3 rounded border"></div>
+                    </div>
+                    
+                    <div>
+                        <span class="text-gray-500 text-sm">相关车型/主题：</span>
+                        <span id="previewRelated" class="text-sm"></span>
+                    </div>
+
+                    <div class="flex gap-3 pt-2">
+                        <button onclick="confirmExtract()" class="flex-1 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition">
+                            <i class="fas fa-check mr-2"></i>确认添加
+                        </button>
+                        <button onclick="hideExtractModal()" class="flex-1 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition">
+                            取消
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 批量导入进度 -->
+                <div id="batchProgress" class="hidden bg-gray-50 rounded-xl p-4 space-y-3">
+                    <h4 class="font-bold text-gray-800">
+                        <i class="fas fa-spinner fa-spin text-orange-600 mr-2"></i>批量导入中
+                    </h4>
+                    
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-600">进度</span>
+                        <span id="batchProgressText" class="font-bold">0/0</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="batchProgressBar" class="bg-orange-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-white p-2 rounded">
+                            <div id="batchTotal" class="text-lg font-bold text-gray-600">0</div>
+                            <div class="text-xs text-gray-500">总数</div>
+                        </div>
+                        <div class="bg-white p-2 rounded">
+                            <div id="batchSuccess" class="text-lg font-bold text-green-600">0</div>
+                            <div class="text-xs text-gray-500">成功</div>
+                        </div>
+                        <div class="bg-white p-2 rounded">
+                            <div id="batchFailed" class="text-lg font-bold text-red-600">0</div>
+                            <div class="text-xs text-gray-500">失败</div>
+                        </div>
+                    </div>
+                    
+                    <div id="batchLog" class="h-32 overflow-y-auto bg-white p-2 rounded text-xs font-mono space-y-1">
+                    </div>
+                    
+                    <button onclick="hideExtractModal()" id="batchCloseBtn" class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition hidden">
+                        完成关闭
+                    </button>
+                </div>
+
+                <!-- 使用说明 -->
+                <div class="bg-blue-50 rounded-lg p-4 text-sm text-blue-800">
+                    <h5 class="font-bold mb-2"><i class="fas fa-lightbulb mr-1"></i>使用说明</h5>
+                    <ul class="space-y-1 text-blue-700">
+                        <li>• 系统会自动识别 <strong>Q: / A:</strong> 或 <strong>Q1: / A1:</strong> 或 <strong>问题：/ 答案：</strong> 格式</li>
+                        <li>• <strong>自动提取</strong>：提取单条Q/A，预览确认后添加</li>
+                        <li>• <strong>批量导入</strong>：一次性导入多条Q/A（推荐100条以内）</li>
+                        <li>• 自动提取关键词、分类、相关车型等信息</li>
+                        <li>• 多条Q/A用空行分隔，如：<br>
+                            <code class="bg-blue-100 px-1 rounded">Q1: 问题 A1: 答案<br><br>Q2: 问题 A2: 答案</code>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div id="toast" class="fixed bottom-4 right-4 px-6 py-3 rounded-lg text-white transform translate-y-20 transition-transform duration-300 z-50"></div>
+
+    <script type="module">
+        import { LocalDatabase } from './js/modules/localDatabase.js';
+        import { KnowledgeManager } from './js/modules/knowledgeManager.js';
+        import { KnowledgeExtractor } from './js/modules/knowledgeExtractor.js';
+
+        // 初始化
+        let localDB, knowledgeManager, extractor;
+        
+        try {
+            localDB = new LocalDatabase();
+            knowledgeManager = new KnowledgeManager(localDB);
+            extractor = new KnowledgeExtractor();
+            console.log('知识库管理器初始化成功');
+        } catch (error) {
+            console.error('初始化失败:', error);
+            showToast('初始化失败: ' + error.message, 'error');
+        }
+
+        // 更新统计
+        function updateStats() {
+            const stats = localDB.getStats();
+            const customCount = knowledgeManager.getCustomKnowledge().length;
+            const totalCount = localDB.qaPairs.length; // 实际总条目数（内嵌+自定义）
+            const builtinCount = totalCount - customCount; // 内嵌条目数
+            
+            document.getElementById('statTotal').textContent = totalCount;
+            document.getElementById('statTotalDetail').textContent = `内嵌${builtinCount} + 自定义${customCount}`;
+            document.getElementById('statCustom').textContent = customCount;
+            document.getElementById('statCategories').textContent = stats.categoryCount;
+            document.getElementById('statKeywords').textContent = stats.totalKeywords;
+        }
+
+        // 渲染列表
+        function renderList(entries = null) {
+            const list = entries || localDB.qaPairs;
+            const container = document.getElementById('knowledgeList');
+            
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center text-gray-500">
+                        <i class="fas fa-inbox text-4xl mb-4"></i>
+                        <p>暂无知识条目</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = list.map(qa => `
+                <div class="p-4 hover:bg-gray-50 transition ${qa.source === 'custom' ? 'border-l-4 border-green-500' : ''}">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">${qa.category}</span>
+                                <span class="text-xs text-gray-400">${qa.id}</span>
+                                ${qa.source === 'custom' ? '<span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">自定义</span>' : ''}
+                            </div>
+                            <div class="font-medium text-gray-800 mb-1">${qa.questions[0]}</div>
+                            <div class="text-sm text-gray-600 line-clamp-2">${qa.answer.substring(0, 100)}...</div>
+                            <div class="flex flex-wrap gap-1 mt-2">
+                                ${qa.keywords.map(k => `<span class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">${k}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="flex gap-2 ml-4">
+                            ${qa.source === 'custom' ? `
+                                <button onclick="editEntry('${qa.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteEntry('${qa.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            ` : '<span class="text-xs text-gray-400 px-2">内置</span>'}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 显示添加弹窗
+        window.showAddModal = function() {
+            document.getElementById('modalTitle').textContent = '添加知识条目';
+            document.getElementById('knowledgeForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('editModal').classList.remove('hidden');
+            document.getElementById('editModal').classList.add('flex');
+        };
+
+        // 隐藏弹窗
+        window.hideEditModal = function() {
+            document.getElementById('editModal').classList.add('hidden');
+            document.getElementById('editModal').classList.remove('flex');
+        };
+
+        // 编辑条目
+        window.editEntry = function(id) {
+            const qa = localDB.qaPairs.find(q => q.id === id);
+            if (!qa) return;
+            
+            document.getElementById('modalTitle').textContent = '编辑知识条目';
+            document.getElementById('editId').value = qa.id;
+            document.getElementById('category').value = qa.category;
+            document.getElementById('keywords').value = qa.keywords.join(', ');
+            document.getElementById('questions').value = qa.questions.join('\n');
+            document.getElementById('answer').value = qa.answer;
+            document.getElementById('relatedModels').value = (qa.relatedModels || []).join(', ');
+            document.getElementById('relatedTopics').value = (qa.relatedTopics || []).join(', ');
+            
+            document.getElementById('editModal').classList.remove('hidden');
+            document.getElementById('editModal').classList.add('flex');
+        };
+
+        // 删除条目
+        window.deleteEntry = function(id) {
+            if (!confirm('确定要删除这个条目吗？')) return;
+            
+            const result = knowledgeManager.deleteKnowledge(id);
+            if (result.success) {
+                showToast('删除成功');
+                updateStats();
+                renderList();
+            } else {
+                showToast(result.error, 'error');
+            }
+        };
+
+        // 表单提交
+        document.getElementById('knowledgeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const editId = document.getElementById('editId').value;
+            const qaPair = {
+                category: document.getElementById('category').value,
+                keywords: document.getElementById('keywords').value.split(',').map(k => k.trim()).filter(k => k),
+                questions: document.getElementById('questions').value.split('\n').map(q => q.trim()).filter(q => q),
+                answer: document.getElementById('answer').value,
+                relatedModels: document.getElementById('relatedModels').value.split(',').map(m => m.trim()).filter(m => m),
+                relatedTopics: document.getElementById('relatedTopics').value.split(',').map(t => t.trim()).filter(t => t)
+            };
+            
+            if (editId) {
+                // 更新
+                const result = knowledgeManager.updateKnowledge(editId, qaPair);
+                if (result.success) {
+                    showToast('更新成功');
+                    hideEditModal();
+                    updateStats();
+                    renderList();
+                } else {
+                    showToast(result.error, 'error');
+                }
+            } else {
+                // 添加
+                const result = knowledgeManager.addKnowledge(qaPair);
+                if (result.success) {
+                    showToast(`添加成功，ID: ${result.id}`);
+                    hideEditModal();
+                    updateStats();
+                    renderList();
+                } else {
+                    showToast(result.error, 'error');
+                }
+            }
+        });
+
+        // 导入
+        window.handleImport = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                let result;
+                
+                if (file.name.endsWith('.csv')) {
+                    result = knowledgeManager.importFromCSV(content);
+                } else {
+                    result = knowledgeManager.importFromJSON(content);
+                }
+                
+                if (result.success.length > 0) {
+                    showToast(`成功导入 ${result.success.length} 条`);
+                    updateStats();
+                    renderList();
+                }
+                
+                if (result.failed.length > 0) {
+                    console.error('导入失败:', result.failed);
+                    showToast(`${result.failed.length} 条导入失败`, 'warning');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        };
+
+        // 导出
+        window.exportKnowledge = function() {
+            const json = knowledgeManager.exportToJSON(true);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `knowledge_export_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('导出成功');
+        };
+
+        // 保存到本地文件（供开发/部署使用）
+        window.saveToLocalFile = function() {
+            const customEntries = knowledgeManager.getCustomKnowledge();
+            if (customEntries.length === 0) {
+                showToast('没有自定义数据需要保存', 'warning');
+                return;
+            }
+            
+            const data = {
+                metadata: {
+                    version: "2.0",
+                    description: "扩展知识库 - 用户自定义数据",
+                    totalQAPairs: customEntries.length,
+                    source: "localStorage_export",
+                    lastUpdated: new Date().toISOString().slice(0, 10)
+                },
+                qa_pairs: customEntries
+            };
+            
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'knowledgeBase.ext.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast(`已导出 ${customEntries.length} 条数据，请移动到 data/ 目录`);
+            
+            console.log('[Admin] 自定义数据导出:', {
+                count: customEntries.length,
+                instruction: '请将下载的 knowledgeBase.ext.json 移动到 data/ 目录'
+            });
+        };
+
+        // 搜索
+        window.searchKnowledge = function() {
+            document.getElementById('searchBox').classList.remove('hidden');
+            document.getElementById('searchInput').focus();
+        };
+
+        window.hideSearch = function() {
+            document.getElementById('searchBox').classList.add('hidden');
+            document.getElementById('searchInput').value = '';
+            renderList();
+        };
+
+        window.performSearch = function() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                renderList();
+                return;
+            }
+            
+            const results = knowledgeManager.searchKnowledge(query);
+            renderList(results);
+            showToast(`找到 ${results.length} 条结果`);
+        };
+
+        // 清空自定义
+        window.clearCustom = function() {
+            if (!confirm('确定要清空所有自定义条目吗？此操作不可恢复！')) return;
+            
+            const result = knowledgeManager.clearCustomKnowledge();
+            if (result.success) {
+                showToast(`已清空 ${result.cleared} 条自定义条目`);
+                updateStats();
+                renderList();
+            }
+        };
+
+        // 智能提取
+        window.showSmartExtract = function() {
+            document.getElementById('extractModal').classList.remove('hidden');
+            document.getElementById('extractModal').classList.add('flex');
+        };
+
+        window.hideExtractModal = function() {
+            document.getElementById('extractModal').classList.add('hidden');
+            document.getElementById('extractModal').classList.remove('flex');
+            document.getElementById('extractResult').classList.add('hidden');
+        };
+
+        window.performExtract = function() {
+            const text = document.getElementById('extractInput').value.trim();
+            if (!text) {
+                showToast('请输入Q/A文本', 'error');
+                return;
+            }
+
+            // 尝试解析Q/A格式
+            const qaList = extractor.parseQAText(text);
+            
+            if (qaList.length === 0) {
+                // 没有识别到标准格式，尝试单行解析
+                showToast('未识别到标准Q/A格式，请使用 Q: xxx A: xxx 格式', 'warning');
+                return;
+            }
+
+            // 提取第一个Q/A
+            const { question, answer } = qaList[0];
+            const result = extractor.extract(question, answer);
+
+            if (result.success) {
+                // 显示提取结果
+                const data = extractor.enhance(result.data);
+                displayExtractResult(data);
+            } else {
+                showToast('提取失败: ' + result.error, 'error');
+            }
+        };
+
+        function displayExtractResult(data) {
+            const resultDiv = document.getElementById('extractResult');
+            resultDiv.classList.remove('hidden');
+
+            // 填充预览
+            document.getElementById('previewCategory').textContent = data.category;
+            document.getElementById('previewKeywords').textContent = data.keywords.join(', ');
+            document.getElementById('previewQuestions').innerHTML = data.questions.map(q => `<div class="text-sm text-gray-600">• ${q}</div>`).join('');
+            document.getElementById('previewAnswer').textContent = data.answer.substring(0, 200) + (data.answer.length > 200 ? '...' : '');
+            document.getElementById('previewRelated').textContent = [...data.relatedModels, ...data.relatedTopics].join(', ') || '无';
+
+            // 保存到隐藏字段
+            resultDiv.dataset.extracted = JSON.stringify(data);
+        }
+
+        window.confirmExtract = function() {
+            const resultDiv = document.getElementById('extractResult');
+            const data = JSON.parse(resultDiv.dataset.extracted);
+
+            const result = knowledgeManager.addKnowledge(data);
+            if (result.success) {
+                showToast(`添加成功: ${result.id}`);
+                hideExtractModal();
+                updateStats();
+                renderList();
+                document.getElementById('extractInput').value = '';
+            } else {
+                showToast(result.error, 'error');
+            }
+        };
+
+        // 批量导入
+        window.performBatchExtract = async function() {
+            const text = document.getElementById('extractInput').value.trim();
+            if (!text) {
+                showToast('请输入Q/A文本', 'error');
+                return;
+            }
+
+            // 解析所有Q/A
+            const qaList = extractor.parseQAText(text);
+            
+            if (qaList.length === 0) {
+                showToast('未识别到标准Q/A格式', 'warning');
+                return;
+            }
+
+            // 显示批量进度界面
+            document.getElementById('extractResult').classList.add('hidden');
+            document.getElementById('batchProgress').classList.remove('hidden');
+            document.getElementById('batchCloseBtn').classList.add('hidden');
+            
+            // 初始化统计
+            let success = 0;
+            let failed = 0;
+            const total = qaList.length;
+            
+            document.getElementById('batchTotal').textContent = total;
+            document.getElementById('batchSuccess').textContent = '0';
+            document.getElementById('batchFailed').textContent = '0';
+            document.getElementById('batchProgressText').textContent = `0/${total}`;
+            document.getElementById('batchProgressBar').style.width = '0%';
+            document.getElementById('batchLog').innerHTML = '';
+
+            // 批量处理
+            for (let i = 0; i < qaList.length; i++) {
+                const { question, answer } = qaList[i];
+                
+                try {
+                    const extracted = extractor.extract(question, answer);
+                    
+                    if (extracted.success) {
+                        const data = extractor.enhance(extracted.data);
+                        const result = knowledgeManager.addKnowledge(data);
+                        
+                        if (result.success) {
+                            success++;
+                            batchLog(`✓ [${result.id}] ${question.substring(0, 30)}...`, 'success');
+                        } else {
+                            failed++;
+                            batchLog(`✗ ${question.substring(0, 30)}... - ${result.error}`, 'error');
+                        }
+                    } else {
+                        failed++;
+                        batchLog(`✗ ${question.substring(0, 30)}... - 提取失败`, 'error');
+                    }
+                } catch (e) {
+                    failed++;
+                    batchLog(`✗ ${question.substring(0, 30)}... - ${e.message}`, 'error');
+                }
+
+                // 更新进度
+                const progress = ((i + 1) / total) * 100;
+                document.getElementById('batchProgressBar').style.width = progress + '%';
+                document.getElementById('batchProgressText').textContent = `${i + 1}/${total}`;
+                document.getElementById('batchSuccess').textContent = success;
+                document.getElementById('batchFailed').textContent = failed;
+
+                // 每10条暂停一下，避免阻塞UI
+                if ((i + 1) % 10 === 0) {
+                    await new Promise(r => setTimeout(r, 10));
+                }
+            }
+
+            batchLog(`\n批量导入完成！成功: ${success}, 失败: ${failed}`, 'info');
+            document.getElementById('batchCloseBtn').classList.remove('hidden');
+            
+            // 刷新列表
+            updateStats();
+            renderList();
+        };
+
+        function batchLog(message, type) {
+            const logArea = document.getElementById('batchLog');
+            const div = document.createElement('div');
+            div.className = type === 'success' ? 'text-green-600' : 
+                           type === 'error' ? 'text-red-600' : 'text-blue-600';
+            div.textContent = message;
+            logArea.appendChild(div);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        // 显示提示
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg text-white transform transition-transform duration-300 z-50 ${
+                type === 'error' ? 'bg-red-600' : type === 'warning' ? 'bg-yellow-600' : 'bg-green-600'
+            }`;
+            toast.classList.remove('translate-y-20');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20');
+            }, 3000);
+        }
+
+        // 初始化
+        updateStats();
+        renderList();
+    </script>
+</body>
+</html>
