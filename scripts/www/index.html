@@ -1,11 +1,1557 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>东盟二手车AI智能客服 - ASEAN Used Car Assistant</title>
+    
+    <link rel="stylesheet" href="css/tailwind.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .chat-container { height: calc(100vh - 240px); min-height: 400px; max-height: calc(100vh - 240px); }
+        .message-bubble { 
+            max-width: 85%; 
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .message-bubble.user {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border-radius: 18px 18px 4px 18px;
+        }
+        .message-bubble.ai {
+            background: #f3f4f6;
+            color: #1f2937;
+            border-radius: 18px 18px 18px 4px;
+        }
+        .message-bubble.local {
+            border-left: 4px solid #10b981;
+        }
+        .message-bubble.hybrid {
+            border-left: 4px solid #8b5cf6;
+        }
+        .mode-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .mode-badge.local {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .mode-badge.hybrid {
+            background: #ede9fe;
+            color: #5b21b6;
+        }
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #9ca3af;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+            margin: 0 2px;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 32px;
+            background: #e5e7eb;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle-switch.active {
+            background: #8b5cf6;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .toggle-switch.active::after {
+            transform: translateX(28px);
+        }
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+        
+        /* 工作流面板样式 */
+        .workflow-panel {
+            width: 320px;
+            background: linear-gradient(180deg, #0c4a6e 0%, #075985 100%);
+            border-radius: 16px;
+            padding: 16px;
+            color: white;
+            font-size: 12px;
+            height: calc(100vh - 240px);
+            min-height: 400px;
+            overflow: hidden;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        /* AI增强模式下的紫色主题 */
+        .workflow-panel.ai-mode {
+            background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%);
+        }
+        @media (max-width: 1024px) {
+            .workflow-panel {
+                width: 280px;
+            }
+        }
+        @media (max-width: 768px) {
+            .workflow-panel {
+                display: none !important;
+            }
+            .chat-container {
+                height: calc(100vh - 200px);
+            }
+        }
+        .workflow-panel.hidden {
+            display: none;
+        }
+        .workflow-nodes-container {
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 4px;
+            flex: 1;
+        }
+        .workflow-nodes-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .workflow-nodes-container::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+        }
+        .workflow-nodes-container::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+        }
+        .workflow-node {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        .workflow-node.active {
+            background: rgba(14, 165, 233, 0.3);
+            border-color: #0ea5e9;
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.4);
+        }
+        .ai-mode .workflow-node.active {
+            background: rgba(139, 92, 246, 0.3);
+            border-color: #8b5cf6;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+        }
+        .workflow-node.completed {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+        }
+        .workflow-node-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .workflow-node-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .workflow-node-icon.input { background: #3b82f6; }
+        .workflow-node-icon.intent { background: #f59e0b; }
+        .workflow-node-icon.search { background: #8b5cf6; }
+        .workflow-node-icon.reasoning { background: #ec4899; }
+        .workflow-node-icon.generate { background: #10b981; }
+        .workflow-node-icon.output { background: #06b6d4; }
+        .workflow-node-title {
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .workflow-node-content {
+            color: rgba(255,255,255,0.8);
+            line-height: 1.4;
+            max-height: 60px;
+            overflow-y: auto;
+            word-break: break-word;
+            font-size: 11px;
+        }
+        .workflow-node-time {
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+        }
+        .workflow-connector {
+            width: 2px;
+            height: 12px;
+            background: rgba(255,255,255,0.2);
+            margin-left: 23px;
+            margin-bottom: 6px;
+        }
+        .workflow-connector.active {
+            background: linear-gradient(180deg, #0ea5e9, #10b981);
+        }
+        .ai-mode .workflow-connector.active {
+            background: linear-gradient(180deg, #8b5cf6, #10b981);
+        }
+        /* 本地模式专用连接线 */
+        .local-only-conn {
+            display: block;
+        }
+        .ai-mode .local-only-conn {
+            display: none;
+        }
+        .workflow-status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            margin-left: auto;
+        }
+        .workflow-status-badge.pending { background: rgba(255,255,255,0.2); }
+        .workflow-status-badge.processing { background: #f59e0b; }
+        .workflow-status-badge.completed { background: #10b981; }
+        
+        /* 执行详情展开 */
+        .workflow-details {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: none;
+        }
+        .workflow-details.show {
+            display: block;
+        }
+        .workflow-details-toggle {
+            cursor: pointer;
+            color: rgba(255,255,255,0.6);
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .workflow-details-toggle:hover {
+            color: white;
+        }
+        .workflow-detail-item {
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .workflow-detail-item:last-child {
+            border-bottom: none;
+        }
+        .workflow-detail-label {
+            color: rgba(255,255,255,0.5);
+            font-size: 10px;
+        }
+        .workflow-detail-value {
+            color: rgba(255,255,255,0.9);
+            font-size: 11px;
+            margin-top: 2px;
+        }
+        
+        /* 聊天区域调整 */
+        .chat-area {
+            flex: 1;
+            min-width: 0;
+        }
+        .main-content {
+            display: flex;
+            gap: 16px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 顶部导航 -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-6xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-car text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-gray-800">东盟二手车AI智能客服</h1>
+                        <p class="text-xs text-gray-500">ASEAN Used Car Assistant | 本地数据库 + AI增强</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- 知识库统计 -->
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-blue-50 rounded-lg px-3 py-2 text-center">
+                            <div class="text-lg font-bold text-blue-600" id="statTotalTop">-</div>
+                            <div class="text-xs text-gray-500">知识库</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg px-3 py-2 text-center">
+                            <div class="text-lg font-bold text-gray-600" id="statModeTop">本地</div>
+                            <div class="text-xs text-gray-500">当前模式</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 模式切换 -->
+                    <div class="flex items-center space-x-3 bg-gray-100 rounded-lg px-4 py-2">
+                        <span class="text-sm font-medium text-gray-600">纯本地</span>
+                        <div id="modeToggle" class="toggle-switch" title="点击切换到AI增强模式"></div>
+                        <span class="text-sm font-medium text-gray-600">AI增强</span>
+                    </div>
+                    
+                    <a href="admin.html" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-600 transition">
+                        <i class="fas fa-database mr-2"></i>知识库
+                    </a>
+                    
+                    <button id="setApiKeyBtn" class="px-4 py-2 bg-yellow-500 text-white rounded-lg text-sm hover:bg-yellow-600 transition opacity-50 cursor-not-allowed" disabled>
+                        <i class="fas fa-key mr-2"></i>设置API Key
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="max-w-6xl mx-auto px-4 py-4">
+        <!-- 模式说明 -->
+        <div id="modeInfo" class="mb-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div class="flex items-start space-x-3">
+                <i class="fas fa-database text-blue-600 mt-1"></i>
+                <div>
+                    <h3 class="font-bold text-blue-800">当前模式：纯本地版</h3>
+                    <p class="text-sm text-blue-600 mt-1">
+                        完全离线运行，基于本地知识库匹配回答。响应速度快，无需网络，但知识库有限。
+                        <span class="text-xs block mt-1">基于本地知识库智能匹配回答</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 快捷场景 -->
+        <div class="flex flex-wrap gap-2 mb-4">
+            <button class="scene-btn px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 transition" data-prompt="丰田Hilux二手多少钱？">
+                <i class="fas fa-calculator mr-1"></i>车辆估价
+            </button>
+            <button class="scene-btn px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition" data-prompt="怎么检查水淹车？">
+                <i class="fas fa-search mr-1"></i>车况识别
+            </button>
+            <button class="scene-btn px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition" data-prompt="马来西亚过户需要什么手续？">
+                <i class="fas fa-clipboard-list mr-1"></i>过户流程
+            </button>
+            <button class="scene-btn px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition" data-prompt="5万令吉预算推荐什么二手车？">
+                <i class="fas fa-thumbs-up mr-1"></i>购车推荐
+            </button>
+            <button class="scene-btn px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition" data-prompt="进口二手车税费多少？">
+                <i class="fas fa-globe mr-1"></i>跨境交易
+            </button>
+        </div>
+
+        <!-- 聊天窗口和工作流面板 -->
+        <div class="main-content">
+            <!-- 聊天区域 -->
+            <div class="chat-area bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div id="chatMessages" class="chat-container overflow-y-auto p-4 space-y-4">
+                    <!-- 欢迎消息 -->
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-robot text-white text-sm"></i>
+                        </div>
+                        <div class="message-bubble ai local p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="mode-badge local">
+                                    <i class="fas fa-database mr-1"></i>本地数据库
+                                </span>
+                            </div>
+                            <p class="text-sm leading-relaxed">您好！我是二手车AI助手。</p>
+                            <p class="text-sm leading-relaxed mt-2">当前使用<span class="font-bold text-green-600">纯本地模式</span>，完全离线运行，基于本地知识库回答。</p>
+                            <p class="text-sm text-gray-500 mt-2">您可以问我关于车辆价格、车况判断、交易流程等问题。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t p-4 bg-gray-50">
+                    <div class="flex items-center space-x-3">
+                        <input type="text" id="messageInput" 
+                            class="flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="输入您的问题..."
+                            autocomplete="off"
+                            maxlength="2000">
+                        <button id="sendBtn" class="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-paper-plane mr-2"></i>发送
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 text-xs text-gray-400">
+                        <span id="charCount">0/2000</span>
+                        <button id="clearChat" class="hover:text-gray-600">
+                            <i class="fas fa-trash-alt mr-1"></i>清空对话
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 工作流面板 -->
+            <div id="workflowPanel" class="workflow-panel">
+                <div class="flex items-center justify-between mb-3 flex-shrink-0">
+                    <h3 class="font-semibold text-sm" id="workflowTitle">
+                        <i class="fas fa-project-diagram mr-2"></i>处理流程
+                    </h3>
+                    <span id="workflowStatus" class="workflow-status-badge pending">等待中</span>
+                </div>
+                <div class="workflow-nodes-container flex-1 overflow-y-auto">
+                
+                <!-- 节点1: 用户输入 -->
+                <div class="workflow-node" id="node-input">
+                    <div class="workflow-node-header">
+                        <div class="workflow-node-icon input">
+                            <i class="fas fa-keyboard"></i>
+                        </div>
+                        <span class="workflow-node-title">用户输入</span>
+                        <span class="workflow-status-badge pending node-status">等待中</span>
+                    </div>
+                    <div class="workflow-node-content" id="node-input-content">等待用户输入...</div>
+                    <div class="workflow-node-time" id="node-input-time"></div>
+                    <div class="workflow-details-toggle" onclick="toggleDetails('input')">
+                        <i class="fas fa-chevron-down"></i> 执行详情
+                    </div>
+                    <div class="workflow-details" id="node-input-details">
+                        <div class="workflow-detail-item">
+                            <div class="workflow-detail-label">输入长度</div>
+                            <div class="workflow-detail-value" id="node-input-length">-</div>
+                        </div>
+                        <div class="workflow-detail-item">
+                            <div class="workflow-detail-label">关键词提取</div>
+                            <div class="workflow-detail-value" id="node-input-keywords">-</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="workflow-connector" id="conn-1"></div>
+                
+                <!-- 节点2: 意图识别 -->
+                <div class="workflow-node" id="node-intent">
+                    <div class="workflow-node-header">
+                        <div class="workflow-node-icon intent">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <span class="workflow-node-title">意图识别</span>
+                        <span class="workflow-status-badge pending node-status">等待中</span>
+                    </div>
+                    <div class="workflow-node-content" id="node-intent-content">等待分析用户意图...</div>
+                    <div class="workflow-node-time" id="node-intent-time"></div>
+                    <div class="workflow-details-toggle" onclick="toggleDetails('intent')">
+                        <i class="fas fa-chevron-down"></i> 执行详情
+                    </div>
+                    <div class="workflow-details" id="node-intent-details">
+                        <div class="workflow-detail-item">
+                            <div class="workflow-detail-label">识别意图</div>
+                            <div class="workflow-detail-value" id="node-intent-type">-</div>
+                        </div>
+                        <div class="workflow-detail-item">
+                            <div class="workflow-detail-label">置信度</div>
+                            <div class="workflow-detail-value" id="node-intent-confidence">-</div>
+                        </div>
+                        <div class="workflow-detail-item">
+                            <div class="workflow-detail-label">相关实体</div>
+                            <div class="workflow-detail-value" id="node-intent-entities">-</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="workflow-connector" id="conn-2"></div>
+                
+                <!-- 节点3: 知识检索 -->
+                <div class="workflow-node" id="node-search">
+                    <div class="workflow-node-header">
+                        <div class="workflow-node-icon search">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <span class="workflow-node-title">知识检索</span>
+                        <span class="workflow-status-badge pending node-status">等待中</span>
+                    </div>
+                    <div class="workflow-node-content" id="node-search-content">等待检索知识库...</div>
+                    <div class="workflow-node-time" id="node-search-time"></div>
+                    <div class="workflow-details-toggle" onclick="toggleDetails('search')">
+                        <i class="fas fa-chevron-down"></i> 执行详情
+                    </div>
+                    <div class="workflow-details" id="node-search-details">
+                        <div class="workflow-detail-item">
+                            <div class="workflow-detail-label">检索范围</div>
+                            <div class="workflow-detail-value" id="node-search-scope">本地知识库</div>
+                        </div>
+                        <div class="workflow-detail-item">
+                            <div class="workflow-detail-label">匹配结果</div>
+                            <div class="workflow-detail-value" id="node-search-matches">-</div>
+                        </div>
+                        <div class="workflow-detail-item">
+                            <div class="workflow-detail-label">匹配度</div>
+                            <div class="workflow-detail-value" id="node-search-score">-</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 本地模式: conn-3 直接连接到输出 -->
+                <!-- AI模式: conn-3 -> 推理决策 -> conn-4 -> 回答生成 -> conn-5 -> 输出 -->
+                
+                <!-- AI增强模式专用节点 (本地模式下隐藏) -->
+                <div id="ai-only-nodes" class="hidden">
+                    <div class="workflow-connector" id="conn-3"></div>
+                    
+                    <!-- 节点4: 推理决策 -->
+                    <div class="workflow-node" id="node-reasoning">
+                        <div class="workflow-node-header">
+                            <div class="workflow-node-icon reasoning">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <span class="workflow-node-title">推理决策</span>
+                            <span class="workflow-status-badge pending node-status">等待中</span>
+                        </div>
+                        <div class="workflow-node-content" id="node-reasoning-content">等待推理决策...</div>
+                        <div class="workflow-node-time" id="node-reasoning-time"></div>
+                        <div class="workflow-details-toggle" onclick="toggleDetails('reasoning')">
+                            <i class="fas fa-chevron-down"></i> 执行详情
+                        </div>
+                        <div class="workflow-details" id="node-reasoning-details">
+                            <div class="workflow-detail-item">
+                                <div class="workflow-detail-label">决策策略</div>
+                                <div class="workflow-detail-value" id="node-reasoning-strategy">-</div>
+                            </div>
+                            <div class="workflow-detail-item">
+                                <div class="workflow-detail-label">知识库匹配</div>
+                                <div class="workflow-detail-value" id="node-reasoning-local">-</div>
+                            </div>
+                            <div class="workflow-detail-item">
+                                <div class="workflow-detail-label">AI增强</div>
+                                <div class="workflow-detail-value" id="node-reasoning-ai">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="workflow-connector" id="conn-4"></div>
+                    
+                    <!-- 节点5: 回答生成 -->
+                    <div class="workflow-node" id="node-generate">
+                        <div class="workflow-node-header">
+                            <div class="workflow-node-icon generate">
+                                <i class="fas fa-magic"></i>
+                            </div>
+                            <span class="workflow-node-title">回答生成</span>
+                            <span class="workflow-status-badge pending node-status">等待中</span>
+                        </div>
+                        <div class="workflow-node-content" id="node-generate-content">等待生成回答...</div>
+                        <div class="workflow-node-time" id="node-generate-time"></div>
+                        <div class="workflow-details-toggle" onclick="toggleDetails('generate')">
+                            <i class="fas fa-chevron-down"></i> 执行详情
+                        </div>
+                        <div class="workflow-details" id="node-generate-details">
+                            <div class="workflow-detail-item">
+                                <div class="workflow-detail-label">生成方式</div>
+                                <div class="workflow-detail-value" id="node-generate-method">-</div>
+                            </div>
+                            <div class="workflow-detail-item">
+                                <div class="workflow-detail-label">使用模型</div>
+                                <div class="workflow-detail-value" id="node-generate-model">-</div>
+                            </div>
+                            <div class="workflow-detail-item">
+                                <div class="workflow-detail-label">Token消耗</div>
+                                <div class="workflow-detail-value" id="node-generate-tokens">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="workflow-connector" id="conn-5"></div>
+                </div>
+                
+                <!-- 本地模式专用连接线 (AI模式下隐藏) -->
+                <div class="workflow-connector local-only-conn" id="conn-3-local"></div>
+                
+                <!-- 节点6: 输出内容 (两种模式共用) -->
+                <div class="workflow-node" id="node-output">
+                    <div class="workflow-node-header">
+                        <div class="workflow-node-icon output">
+                            <i class="fas fa-paper-plane"></i>
+                        </div>
+                        <span class="workflow-node-title">输出内容</span>
+                        <span class="workflow-status-badge pending node-status">等待中</span>
+                    </div>
+                    <div class="workflow-node-content" id="node-output-content">等待输出...</div>
+                    <div class="workflow-node-time" id="node-output-time"></div>
+                    <div class="workflow-details-toggle" onclick="toggleDetails('output')">
+                        <i class="fas fa-chevron-down"></i> 执行详情
+                    </div>
+                    <div class="workflow-details" id="node-output-details">
+                        <div class="workflow-detail-item">
+                            <div class="workflow-detail-label">响应时间</div>
+                            <div class="workflow-detail-value" id="node-output-duration">-</div>
+                        </div>
+                        <div class="workflow-detail-item">
+                            <div class="workflow-detail-label">输出长度</div>
+                            <div class="workflow-detail-value" id="node-output-length">-</div>
+                        </div>
+                        <div class="workflow-detail-item">
+                            <div class="workflow-detail-label">回答质量</div>
+                            <div class="workflow-detail-value" id="node-output-quality">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- API Key弹窗 -->
+    <div id="apiKeyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold">设置智谱API Key</h3>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form class="space-y-4" onsubmit="return false;">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">智谱API Key</label>
+                    <input type="password" id="apiKeyInput" 
+                        class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter your Zhipu API Key" autocomplete="off">
+                    <p class="text-xs text-gray-500 mt-2">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        从<a href="https://open.bigmodel.cn/" target="_blank" class="text-blue-600 underline">智谱AI开放平台</a>获取
+                    </p>
+                    <p class="text-xs text-orange-500 mt-1">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        API Key仅保存在当前会话中，页面关闭后需重新设置
+                    </p>
+                </div>
+                <div id="apiKeyError" class="hidden p-3 bg-red-50 text-red-700 rounded-lg text-sm"></div>
+                <div class="flex space-x-3">
+                    <button type="button" id="saveApiKey" class="flex-1 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition">
+                        保存
+                    </button>
+                    <button type="button" id="testApiKey" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition">
+                        测试连接
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        // 动态导入模块
+        let LocalDatabase, HybridAIService, ZhipuAIService, KnowledgeManager;
+        let localDB, hybridAI, zhipuService, knowledgeManager;
+        
+        try {
+            const localDBModule = await import('./js/modules/localDatabase.js');
+            LocalDatabase = localDBModule.LocalDatabase;
+            
+            const hybridModule = await import('./js/modules/hybridAI.js');
+            HybridAIService = hybridModule.HybridAIService;
+            
+            const zhipuModule = await import('./js/modules/zhipuAI.js');
+            ZhipuAIService = zhipuModule.ZhipuAIService;
+            
+            const kmModule = await import('./js/modules/knowledgeManager.js');
+            KnowledgeManager = kmModule.KnowledgeManager;
+            
+            console.log('所有模块加载成功');
+        } catch (error) {
+            console.error('模块加载失败:', error);
+            alert('模块加载失败，请检查浏览器控制台');
+        }
+
+        // 更新知识库统计信息
+        function updateKnowledgeStats() {
+            console.log('[Stats] 更新统计被调用, localDB:', localDB);
+            if (localDB && localDB.getStats) {
+                const stats = localDB.getStats();
+                console.log('[Stats] 获取到统计数据:', stats);
+                // 更新顶部统计
+                const statTotalTop = document.getElementById('statTotalTop');
+                if (statTotalTop) {
+                    statTotalTop.textContent = stats.totalQAPairs;
+                    console.log('[Stats] 已更新知识库数量:', stats.totalQAPairs);
+                } else {
+                    console.warn('[Stats] 未找到 statTotalTop 元素');
+                }
+            } else {
+                console.warn('[Stats] localDB 未初始化或没有 getStats 方法');
+            }
+        }
+
+        // 初始化服务
+        try {
+            localDB = new LocalDatabase();
+            
+            // 先加载本地扩展知识库文件
+            const extendedCount = await localDB.loadExtendedKnowledgeBase();
+            
+            // 再使用 KnowledgeManager 加载自定义知识（从localStorage）
+            let customCount = 0;
+            if (KnowledgeManager) {
+                // 先创建实例但不自动加载
+                knowledgeManager = new KnowledgeManager(localDB, { autoLoad: false });
+                // 手动加载，跳过索引重建（后面统一重建）
+                customCount = knowledgeManager.loadCustomKnowledge(true);
+                console.log('KnowledgeManager 初始化成功');
+            }
+            
+            // 统一重建索引（如果加载了任何数据）
+            if (extendedCount > 0 || customCount > 0) {
+                localDB.rebuildIndex();
+            }
+            
+            zhipuService = new ZhipuAIService();
+            hybridAI = new HybridAIService(zhipuService);
+            console.log('服务初始化成功, 知识库总计:', localDB.qaPairs.length);
+            
+            // 更新知识库统计信息
+            updateKnowledgeStats();
+        } catch (error) {
+            console.error('服务初始化失败:', error);
+            alert('服务初始化失败: ' + error.message);
+        }
+
+        // 从sessionStorage加载API Key（比localStorage更安全，页面关闭后清除）
+        const savedKey = sessionStorage.getItem('zhipu_api_key');
+        if (savedKey && zhipuService) {
+            try {
+                zhipuService.setApiKey(savedKey);
+                console.log('API Key已加载');
+            } catch (e) {
+                console.warn('保存的API Key无效');
+            }
+        }
+
+        // 状态
+        let isHybridMode = false;
+        let isProcessing = false;
+
+        // DOM元素
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const charCount = document.getElementById('charCount');
+        const modeToggle = document.getElementById('modeToggle');
+        const modeInfo = document.getElementById('modeInfo');
+        const setApiKeyBtn = document.getElementById('setApiKeyBtn');
+        const apiKeyModal = document.getElementById('apiKeyModal');
+        // 统计元素已在顶部导航栏定义
+        const workflowPanel = document.getElementById('workflowPanel');
+
+        // 工作流状态管理
+        const workflowState = {
+            nodes: ['input', 'intent', 'search', 'reasoning', 'generate', 'output'],
+            localNodes: ['input', 'intent', 'search', 'output'], // 纯本地版简化的节点
+            currentNode: null,
+            startTime: null,
+            nodeStartTimes: {}
+        };
+
+        // 模式说明模板
+        const modeTemplates = {
+            local: {
+                icon: 'fa-database',
+                iconColor: 'text-blue-600',
+                title: '当前模式：纯本地版',
+                titleColor: 'text-blue-800',
+                desc: '完全离线运行，基于本地知识库匹配回答。响应速度快，无需网络，但知识库有限。',
+                descColor: 'text-blue-600',
+                bgClass: 'bg-blue-50',
+                borderClass: 'border-blue-200',
+                badgeText: '本地数据库',
+                badgeClass: 'local'
+            },
+            hybrid: {
+                icon: 'fa-brain',
+                iconColor: 'text-purple-600',
+                title: '当前模式：AI增强版',
+                titleColor: 'text-purple-800',
+                desc: '本地知识库 + 智谱AI大模型。优先使用本地数据库，匹配度低时自动调用AI总结回答。',
+                descColor: 'text-purple-600',
+                bgClass: 'bg-purple-50',
+                borderClass: 'border-purple-200',
+                badgeText: 'AI增强',
+                badgeClass: 'hybrid'
+            }
+        };
+
+        // 更新工作流面板显示（根据模式）
+        function updateWorkflowPanel() {
+            const aiOnlyNodes = document.getElementById('ai-only-nodes');
+            const localOnlyConn = document.querySelector('.local-only-conn');
+            const workflowTitle = document.getElementById('workflowTitle');
+            const searchScope = document.getElementById('node-search-scope');
+            const panel = document.getElementById('workflowPanel');
+            
+            if (isHybridMode) {
+                // AI增强模式：显示所有节点，使用紫色主题
+                if (aiOnlyNodes) aiOnlyNodes.classList.remove('hidden');
+                if (localOnlyConn) localOnlyConn.style.display = 'none';
+                if (workflowTitle) workflowTitle.innerHTML = '<i class="fas fa-brain mr-2"></i>AI工作流';
+                if (searchScope) searchScope.textContent = '本地知识库 + AI模型';
+                if (panel) panel.classList.add('ai-mode');
+            } else {
+                // 纯本地模式：只显示简化节点，使用蓝色主题
+                if (aiOnlyNodes) aiOnlyNodes.classList.add('hidden');
+                if (localOnlyConn) localOnlyConn.style.display = 'block';
+                if (workflowTitle) workflowTitle.innerHTML = '<i class="fas fa-database mr-2"></i>本地处理流程';
+                if (searchScope) searchScope.textContent = '本地知识库';
+                if (panel) panel.classList.remove('ai-mode');
+            }
+        }
+
+        // 更新模式显示
+        function updateModeDisplay() {
+            console.log('更新模式显示:', isHybridMode ? 'AI增强' : '本地');
+            
+            const mode = isHybridMode ? 'hybrid' : 'local';
+            const template = modeTemplates[mode];
+            
+            if (isHybridMode) {
+                modeToggle.classList.add('active');
+                modeToggle.title = '点击切换到纯本地模式';
+                setApiKeyBtn.disabled = false;
+                setApiKeyBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                // 更新顶部模式显示
+                const statModeTop = document.getElementById('statModeTop');
+                if (statModeTop) {
+                    statModeTop.textContent = 'AI增强';
+                    statModeTop.className = 'text-lg font-bold text-purple-600';
+                }
+            } else {
+                modeToggle.classList.remove('active');
+                modeToggle.title = '点击切换到AI增强模式';
+                setApiKeyBtn.disabled = true;
+                setApiKeyBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                // 更新顶部模式显示
+                const statModeTop = document.getElementById('statModeTop');
+                if (statModeTop) {
+                    statModeTop.textContent = '本地';
+                    statModeTop.className = 'text-lg font-bold text-blue-600';
+                }
+            }
+            
+            // 更新工作流面板
+            updateWorkflowPanel();
+            
+            modeInfo.className = `mb-4 ${template.bgClass} border ${template.borderClass} rounded-xl p-4`;
+            modeInfo.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <i class="fas ${template.icon} ${template.iconColor} mt-1"></i>
+                    <div>
+                        <h3 class="font-bold ${template.titleColor}">${template.title}</h3>
+                        <p class="text-sm ${template.descColor} mt-1">
+                            ${template.desc}
+                            ${isHybridMode ? '<span class="text-xs block mt-1">需要设置API Key才能正常使用</span>' : '<span class="text-xs block mt-1">基于本地知识库智能匹配回答</span>'}
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 切换模式
+        modeToggle.addEventListener('click', () => {
+            console.log('切换模式按钮被点击');
+            isHybridMode = !isHybridMode;
+            
+            if (hybridAI) {
+                hybridAI.setAIEnhancement(isHybridMode);
+            }
+            
+            updateModeDisplay();
+            
+            // 添加系统消息
+            addSystemMessage(isHybridMode ? 
+                '已切换到AI增强模式。本地数据库匹配度低时将调用智谱AI生成回答。' :
+                '已切换到纯本地模式。完全离线运行，基于本地知识库回答。'
+            );
+        });
+
+        // 添加系统消息
+        function addSystemMessage(text) {
+            const div = document.createElement('div');
+            div.className = 'flex justify-center';
+            div.innerHTML = `
+                <div class="bg-gray-100 text-gray-500 text-xs px-4 py-2 rounded-full">
+                    ${escapeHtml(text)}
+                </div>
+            `;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 安全的HTML转义
+        function escapeHtml(text) {
+            if (typeof text !== 'string') return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 安全的Markdown粗体解析（只允许**text**格式）
+        function parseBold(text) {
+            // 先转义HTML，再处理粗体
+            let safe = escapeHtml(text);
+            // 使用非贪婪匹配，且限制内容不能包含<或>（防止绕过）
+            safe = safe.replace(/\*\*([^<>*]+?)\*\*/g, '<strong>$1</strong>');
+            return safe;
+        }
+
+        // 格式化消息
+        function formatMessage(text) {
+            if (typeof text !== 'string') return '';
+            let safe = parseBold(text);
+            safe = safe.replace(/\n/g, '<br>');
+            return safe;
+        }
+
+        // 添加消息
+        function addMessage(text, type, mode = 'local', meta = {}) {
+            const div = document.createElement('div');
+            
+            if (type === 'user') {
+                div.className = 'flex items-start space-x-3';
+                div.innerHTML = `
+                    <div class="flex-1 flex justify-end">
+                        <div class="message-bubble user p-3">${escapeHtml(text)}</div>
+                    </div>
+                    <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-user text-gray-600 text-sm"></i>
+                    </div>
+                `;
+            } else if (type === 'error') {
+                // 添加错误消息的特殊处理
+                div.className = 'flex justify-center my-2';
+                div.innerHTML = `
+                    <div class="error-message">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span class="text-sm">${escapeHtml(text)}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                div.className = 'flex items-start space-x-3';
+                const modeClass = mode === 'hybrid' ? 'hybrid' : 'local';
+                const modeBadge = mode === 'hybrid' ? 
+                    '<span class="mode-badge hybrid"><i class="fas fa-brain mr-1"></i>AI增强</span>' :
+                    '<span class="mode-badge local"><i class="fas fa-database mr-1"></i>本地数据库</span>';
+                
+                const metaInfo = meta.processingTime ? 
+                    `<span class="text-xs text-gray-400 ml-2">${meta.processingTime}ms</span>` : '';
+                
+                const confidence = meta.confidence ? 
+                    `<span class="text-xs text-gray-400 ml-2">匹配度: ${(meta.confidence * 100).toFixed(0)}%</span>` : '';
+
+                div.innerHTML = `
+                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-robot text-white text-sm"></i>
+                    </div>
+                    <div class="message-bubble ai ${modeClass} p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            ${modeBadge}
+                            ${metaInfo}
+                            ${confidence}
+                        </div>
+                        <div class="text-sm leading-relaxed">${formatMessage(text)}</div>
+                    </div>
+                `;
+            }
+            
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 显示加载动画
+        function showLoading() {
+            const id = 'loading-' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = 'flex items-start space-x-3';
+            div.innerHTML = `
+                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-white text-sm"></i>
+                </div>
+                <div class="message-bubble ai p-3">
+                    <div class="typing-indicator">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return id;
+        }
+
+        // 移除加载动画
+        function removeLoading(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        // 工作流节点更新函数
+        function updateWorkflowNode(nodeId, status, content, details = {}) {
+            const node = document.getElementById(`node-${nodeId}`);
+            if (!node) return;
+            
+            const statusBadge = node.querySelector('.node-status');
+            const contentEl = document.getElementById(`node-${nodeId}-content`);
+            const timeEl = document.getElementById(`node-${nodeId}-time`);
+            
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
+            
+            // 更新状态样式
+            if (statusBadge) {
+                statusBadge.className = `workflow-status-badge ${status} node-status`;
+                if (status === 'processing') {
+                    statusBadge.textContent = '处理中';
+                } else if (status === 'completed') {
+                    statusBadge.textContent = '已完成';
+                } else {
+                    statusBadge.textContent = '等待中';
+                }
+            }
+            
+            // 更新节点样式
+            if (status === 'processing') {
+                node.classList.add('active');
+                node.classList.remove('completed');
+                workflowState.nodeStartTimes[nodeId] = performance.now();
+            } else if (status === 'completed') {
+                node.classList.remove('active');
+                node.classList.add('completed');
+            } else {
+                node.classList.remove('active', 'completed');
+            }
+            
+            // 更新内容
+            if (content && contentEl) {
+                contentEl.textContent = content.length > 100 ? content.substring(0, 100) + '...' : content;
+            }
+            
+            // 更新时间
+            if (status !== 'pending' && timeEl) {
+                const duration = workflowState.nodeStartTimes[nodeId] ? 
+                    Math.round(performance.now() - workflowState.nodeStartTimes[nodeId]) : 0;
+                timeEl.textContent = duration > 0 ? `${timeStr} (${duration}ms)` : timeStr;
+            }
+            
+            // 更新详情
+            Object.keys(details).forEach(key => {
+                const detailEl = document.getElementById(`node-${nodeId}-${key}`);
+                if (detailEl) {
+                    detailEl.textContent = details[key];
+                }
+            });
+            
+            // 更新连接线状态
+            // 使用当前模式的节点列表来确定连接线索引
+            const currentNodes = isHybridMode ? workflowState.nodes : workflowState.localNodes;
+            const nodeIndex = currentNodes.indexOf(nodeId);
+            if (nodeIndex > 0 && status === 'processing') {
+                // 根据节点ID确定连接线编号
+                // 纯本地模式: input -> conn-1 -> intent -> conn-2 -> search -> conn-3-local -> output
+                // AI增强模式: input -> conn-1 -> intent -> conn-2 -> search -> conn-3 -> reasoning -> conn-4 -> generate -> conn-5 -> output
+                let connId = null;
+                if (isHybridMode) {
+                    const aiConnMap = {
+                        'intent': 'conn-1',
+                        'search': 'conn-2',
+                        'reasoning': 'conn-3',
+                        'generate': 'conn-4',
+                        'output': 'conn-5'
+                    };
+                    connId = aiConnMap[nodeId];
+                } else {
+                    const localConnMap = {
+                        'intent': 'conn-1',
+                        'search': 'conn-2',
+                        'output': 'conn-3-local'
+                    };
+                    connId = localConnMap[nodeId];
+                }
+                if (connId) {
+                    const conn = document.getElementById(connId);
+                    if (conn) conn.classList.add('active');
+                }
+            }
+        }
+
+        // 重置工作流
+        function resetWorkflow() {
+            // 根据当前模式选择要重置的节点
+            const nodesToReset = isHybridMode ? workflowState.nodes : workflowState.localNodes;
+            
+            nodesToReset.forEach((nodeId, index) => {
+                const node = document.getElementById(`node-${nodeId}`);
+                if (node) {
+                    // 清除错误样式
+                    node.style.borderColor = '';
+                    node.style.background = '';
+                }
+                
+                updateWorkflowNode(nodeId, 'pending', 
+                    nodeId === 'input' ? '等待用户输入...' :
+                    nodeId === 'intent' ? '等待分析用户意图...' :
+                    nodeId === 'search' ? '等待检索知识库...' :
+                    nodeId === 'reasoning' ? '等待推理决策...' :
+                    nodeId === 'generate' ? '等待生成回答...' :
+                    '等待输出...'
+                );
+            });
+            
+            // 重置所有连接线
+            const allConns = ['conn-1', 'conn-2', 'conn-3', 'conn-4', 'conn-5', 'conn-3-local'];
+            allConns.forEach(connId => {
+                const conn = document.getElementById(connId);
+                if (conn) conn.classList.remove('active');
+            });
+            
+            workflowState.startTime = performance.now();
+            workflowState.currentNode = null;
+            workflowState.nodeStartTimes = {};
+            
+            const workflowStatus = document.getElementById('workflowStatus');
+            if (workflowStatus) {
+                workflowStatus.textContent = '运行中';
+                workflowStatus.className = 'workflow-status-badge processing';
+            }
+        }
+
+        // 完成工作流
+        function completeWorkflow() {
+            const totalTime = Math.round(performance.now() - workflowState.startTime);
+            const workflowStatus = document.getElementById('workflowStatus');
+            if (workflowStatus) {
+                workflowStatus.textContent = `已完成 (${totalTime}ms)`;
+                workflowStatus.className = 'workflow-status-badge completed';
+            }
+        }
+
+        // 意图识别函数
+        function recognizeIntent(query) {
+            const keywords = {
+                price: ['价格', '多少钱', '价位', '报价', '估值', '估价', '值多少', '预算', '费用'],
+                condition: ['车况', '事故', '泡水', '调表', '检测', '检查', '怎么样', '质量', '损坏'],
+                process: ['过户', '手续', '流程', '贷款', '分期', '保险', '上牌', '年检'],
+                recommend: ['推荐', '买什么', '建议', '选车', '适合', '值得', '性价比'],
+                policy: ['政策', '补贴', '新能源', '电动车', '购置税', '限行', '摇号']
+            };
+            
+            const entities = [];
+            let intent = 'general';
+            let maxScore = 0;
+            
+            // 识别意图
+            for (const [type, words] of Object.entries(keywords)) {
+                const score = words.filter(w => query.includes(w)).length;
+                if (score > maxScore) {
+                    maxScore = score;
+                    intent = type;
+                }
+            }
+            
+            // 提取实体（车型、品牌等）- 东盟常见品牌
+            const carBrands = [
+                '丰田', 'Toyota', 'Hilux', 'Vios', 'Yaris', 'Camry', 'Corolla', 'Altis',
+                '本田', 'Honda', 'City', 'Jazz', 'Civic', 'Accord', 'CR-V', 'HR-V', 'BR-V',
+                '三菱', 'Mitsubishi', 'Xpander', 'Triton', 'ASX', 'Outlander',
+                '马自达', 'Mazda', '2', '3', '6', 'CX-5', 'CX-3',
+                '日产', 'Nissan', 'Almera', 'Sylphy', 'X-Trail', 'Navara',
+                '福特', 'Ford', 'Ranger', 'Everest', 'Focus',
+                '五十铃', 'Isuzu', 'D-Max', 'MU-X',
+                '铃木', 'Suzuki', 'Swift', 'Ertiga', 'Jimny',
+                '现代', 'Hyundai', '起亚', 'Kia',
+                '宝马', 'BMW', '奔驰', 'Mercedes', 'Benz', '奥迪', 'Audi',
+                '雷克萨斯', 'Lexus', '沃尔沃', 'Volvo',
+                '保时捷', 'Porsche', '路虎', 'Land Rover', '捷豹', 'Jaguar',
+                '比亚迪', 'BYD', '秦', 'Qin', '唐', 'Tang', '宋', 'Song', '汉', 'Han',
+                '元', 'Yuan', '海豚', 'Dolphin', '海豹', 'Seal', 'Atto', '驱逐舰'
+            ];
+            carBrands.forEach(brand => {
+                if (query.toLowerCase().includes(brand.toLowerCase())) entities.push(brand);
+            });
+            
+            // 提取数字（价格、年份等）
+            const numbers = query.match(/(\d+)(万|元|年|款|w|k)?/gi);
+            if (numbers) {
+                const uniqueNumbers = [...new Set(numbers)].slice(0, 3);
+                entities.push(...uniqueNumbers);
+            }
+            
+            // 提取车型级别
+            const carTypes = ['轿车', 'SUV', 'MPV', '跑车', '皮卡', '面包车', '两厢车', '三厢车'];
+            carTypes.forEach(type => {
+                if (query.includes(type)) entities.push(type);
+            });
+            
+            const intentMap = {
+                price: '车辆估价咨询',
+                condition: '车况评估咨询',
+                process: '交易流程咨询',
+                recommend: '购车推荐咨询',
+                policy: '政策法规咨询',
+                general: '一般性问题'
+            };
+            
+            return {
+                intent: intentMap[intent] || intentMap.general,
+                intentType: intent,
+                confidence: maxScore > 0 ? Math.min(0.5 + maxScore * 0.15, 0.95) : 0.5,
+                entities: entities.length > 0 ? [...new Set(entities)].slice(0, 5) : ['无特定实体']
+            };
+        }
+
+        // 发送消息
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            console.log('发送消息:', text);
+            
+            if (!text || isProcessing) {
+                if (isProcessing) {
+                    addSystemMessage('请等待当前对话完成...');
+                }
+                return;
+            }
+
+            // AI增强模式检查API Key
+            if (isHybridMode && zhipuService && !zhipuService.hasApiKey()) {
+                showApiKeyModal();
+                return;
+            }
+
+            addMessage(text, 'user');
+            messageInput.value = '';
+            updateCharCount();
+            isProcessing = true;
+            sendBtn.disabled = true;
+
+            const loadingId = showLoading();
+            
+            const startTime = performance.now();
+            
+            // 重置并更新工作流（两种模式都显示）
+            resetWorkflow();
+            workflowState.currentNode = 'input';
+            
+            // 节点1: 用户输入
+            updateWorkflowNode('input', 'processing', text, {
+                length: `${text.length} 字符`,
+                keywords: text.split(/\s+/).filter(w => w.length > 1).slice(0, 5).join(', ') || '无'
+            });
+            await new Promise(r => setTimeout(r, 50));
+            updateWorkflowNode('input', 'completed', text);
+            
+            // 节点2: 意图识别
+            workflowState.currentNode = 'intent';
+            updateWorkflowNode('intent', 'processing', '分析用户意图中...');
+            await new Promise(r => setTimeout(r, 80));
+            const intentResult = recognizeIntent(text);
+            updateWorkflowNode('intent', 'completed', `识别意图: ${intentResult.intent}`, {
+                type: intentResult.intent,
+                confidence: `${(intentResult.confidence * 100).toFixed(0)}%`,
+                entities: intentResult.entities.join(', ')
+            });
+            
+            // 节点3: 知识检索
+            workflowState.currentNode = 'search';
+            updateWorkflowNode('search', 'processing', '检索本地知识库...');
+
+            try {
+                let result;
+                if (isHybridMode && hybridAI) {
+                    console.log('使用混合AI模式');
+                    result = await hybridAI.processMessage(text, {});
+                    
+                    // AI增强模式：更新工作流节点3-6
+                    // 节点3: 知识检索完成
+                    const localMatch = result.localMatch || {};
+                    const hasLocalMatch = result.source === 'local' || localMatch.id;
+                    updateWorkflowNode('search', 'completed', 
+                        hasLocalMatch ? `找到匹配: ${localMatch.id || '本地数据'}` : '本地匹配度低，启用AI增强', {
+                        matches: hasLocalMatch ? '本地知识库匹配' : '未找到高匹配度结果',
+                        score: result.confidence ? `${(result.confidence * 100).toFixed(0)}%` : 'N/A'
+                    });
+                    
+                    // 节点4: 推理决策
+                    workflowState.currentNode = 'reasoning';
+                    updateWorkflowNode('reasoning', 'processing', '分析最佳回答策略...');
+                    await new Promise(r => setTimeout(r, 100));
+                    const strategy = result.source === 'local' ? '直接使用本地知识库' : 
+                                    result.source === 'hybrid' ? '本地+AI混合生成' : 'AI生成回答';
+                    updateWorkflowNode('reasoning', 'completed', `决策: ${strategy}`, {
+                        strategy: strategy,
+                        local: hasLocalMatch ? `已匹配: ${localMatch.id || 'N/A'}` : '未使用',
+                        ai: result.isEnhanced ? '已启用智谱AI' : '未启用'
+                    });
+                    
+                    // 节点5: 回答生成
+                    workflowState.currentNode = 'generate';
+                    updateWorkflowNode('generate', 'processing', '生成回答中...');
+                    const model = result.model || (result.isEnhanced ? 'glm-4-flash' : '本地模板');
+                    const method = result.source === 'local' ? '本地模板匹配' : 'AI大模型生成';
+                    updateWorkflowNode('generate', 'completed', `回答已生成 (${result.answer?.length || 0}字符)`, {
+                        method: method,
+                        model: model,
+                        tokens: result.isEnhanced ? '约 ' + Math.ceil(result.answer?.length / 2 || 0) : 'N/A'
+                    });
+                    
+                    // 节点6: 输出内容
+                    workflowState.currentNode = 'output';
+                    updateWorkflowNode('output', 'processing', '准备输出...');
+                    const totalTime = Math.round(performance.now() - startTime);
+                    updateWorkflowNode('output', 'completed', '回答已输出', {
+                        duration: `${totalTime}ms`,
+                        length: `${result.answer?.length || 0} 字符`,
+                        quality: result.confidence > 0.8 ? '高' : result.confidence > 0.5 ? '中' : '低'
+                    });
+                    
+                    workflowState.currentNode = null;
+                    completeWorkflow();
+                } else if (hybridAI) {
+                    console.log('使用纯本地模式');
+                    result = hybridAI.processLocalOnly(text);
+                    
+                    // 纯本地模式：简化工作流（节点3后直接到输出）
+                    const hasLocalMatch = result.found && result.matchedId;
+                    updateWorkflowNode('search', 'completed', 
+                        hasLocalMatch ? `找到匹配: ${result.matchedId}` : '使用默认回复', {
+                        matches: hasLocalMatch ? `匹配: ${result.category || '未知分类'}` : '未匹配',
+                        score: result.confidence ? `${(result.confidence * 100).toFixed(0)}%` : 'N/A'
+                    });
+                    
+                    // 直接到输出节点（跳过AI特有的节点）
+                    workflowState.currentNode = 'output';
+                    updateWorkflowNode('output', 'processing', '准备输出...');
+                    const totalTime = Math.round(performance.now() - startTime);
+                    updateWorkflowNode('output', 'completed', '回答已输出', {
+                        duration: `${totalTime}ms`,
+                        length: `${result.answer?.length || 0} 字符`,
+                        quality: result.confidence > 0.8 ? '高' : result.confidence > 0.5 ? '中' : '低'
+                    });
+                    
+                    workflowState.currentNode = null;
+                    completeWorkflow();
+                } else {
+                    throw new Error('AI服务未初始化');
+                }
+
+                console.log('处理结果:', result);
+
+                removeLoading(loadingId);
+                
+                // 如果处理时间很长，记录警告
+                const totalTime = Math.round(performance.now() - startTime);
+                if (totalTime > 10000) {
+                    console.warn('处理时间过长:', totalTime + 'ms');
+                }
+                
+                addMessage(result.answer, 'ai', result.source, {
+                    processingTime: result.processingTime || totalTime,
+                    confidence: result.confidence
+                });
+            } catch (error) {
+                console.error('发送消息错误:', error);
+                removeLoading(loadingId);
+                addMessage('抱歉，处理您的消息时出错: ' + error.message, 'error', 'local', {});
+                
+                // 工作流错误状态（两种模式都适用）
+                const workflowStatus = document.getElementById('workflowStatus');
+                if (workflowStatus) {
+                    workflowStatus.textContent = '执行出错';
+                    workflowStatus.className = 'workflow-status-badge pending';
+                }
+                // 标记当前节点为错误状态
+                if (workflowState.currentNode) {
+                    const node = document.getElementById(`node-${workflowState.currentNode}`);
+                    if (node) {
+                        node.style.borderColor = '#ef4444';
+                        node.style.background = 'rgba(239, 68, 68, 0.2)';
+                    }
+                }
+            } finally {
+                isProcessing = false;
+                sendBtn.disabled = false;
+            }
+        }
+
+        // 更新字符计数
+        function updateCharCount() {
+            const len = messageInput.value.length;
+            charCount.textContent = `${len}/2000`;
+            charCount.className = len > 1800 ? 'text-red-500 font-medium' : 'text-gray-400';
+        }
+
+        // API Key弹窗
+        function showApiKeyModal() {
+            apiKeyModal.classList.remove('hidden');
+            apiKeyModal.classList.add('flex');
+            document.getElementById('apiKeyError').classList.add('hidden');
+            if (zhipuService) {
+                document.getElementById('apiKeyInput').value = zhipuService.apiKey || '';
+            }
+        }
+
+        function hideApiKeyModal() {
+            apiKeyModal.classList.add('hidden');
+            apiKeyModal.classList.remove('flex');
+        }
+
+        // 事件绑定
+        sendBtn.addEventListener('click', sendMessage);
+        
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // 使用防抖优化输入处理
+        let inputTimeout = null;
+        messageInput.addEventListener('input', () => {
+            if (inputTimeout) {
+                clearTimeout(inputTimeout);
+            }
+            inputTimeout = setTimeout(updateCharCount, 50);
+        });
+
+        document.querySelectorAll('.scene-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                messageInput.value = btn.dataset.prompt;
+                updateCharCount();
+            });
+        });
+
+        document.getElementById('clearChat').addEventListener('click', () => {
+            if (confirm('确定要清空对话吗？')) {
+                const mode = isHybridMode ? 'hybrid' : 'local';
+                const badge = isHybridMode ? 
+                    '<span class="mode-badge hybrid"><i class="fas fa-brain mr-1"></i>AI增强</span>' :
+                    '<span class="mode-badge local"><i class="fas fa-database mr-1"></i>本地数据库</span>';
+                
+                chatMessages.innerHTML = `
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-robot text-white text-sm"></i>
+                        </div>
+                        <div class="message-bubble ai ${mode} p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                ${badge}
+                            </div>
+                            <p class="text-sm leading-relaxed">对话已清空。有什么可以帮您的吗？</p>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        // API Key设置
+        setApiKeyBtn.addEventListener('click', showApiKeyModal);
+        document.getElementById('closeModal').addEventListener('click', hideApiKeyModal);
+        apiKeyModal.addEventListener('click', (e) => {
+            if (e.target === apiKeyModal) hideApiKeyModal();
+        });
+
+        document.getElementById('saveApiKey').addEventListener('click', () => {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            try {
+                if (zhipuService) {
+                    zhipuService.setApiKey(key);
+                    // 使用sessionStorage替代localStorage，更安全
+                    sessionStorage.setItem('zhipu_api_key', key);
+                    hideApiKeyModal();
+                    addSystemMessage('API Key已保存（当前会话有效）');
+                }
+            } catch (e) {
+                const errorEl = document.getElementById('apiKeyError');
+                errorEl.textContent = e.message;
+                errorEl.classList.remove('hidden');
+                errorEl.className = 'p-3 bg-red-50 text-red-700 rounded-lg text-sm';
+            }
+        });
+
+        document.getElementById('testApiKey').addEventListener('click', async () => {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (!zhipuService) return;
+            
+            const errorEl = document.getElementById('apiKeyError');
+            errorEl.classList.remove('hidden');
+            errorEl.textContent = '正在测试连接...';
+            errorEl.className = 'p-3 bg-blue-50 text-blue-700 rounded-lg text-sm';
+            
+            try {
+                zhipuService.setApiKey(key);
+                const result = await zhipuService.sendMessage('Hello', {});
+                if (result.success) {
+                    sessionStorage.setItem('zhipu_api_key', key);
+                    errorEl.textContent = '✓ 连接成功！';
+                    errorEl.className = 'p-3 bg-green-50 text-green-700 rounded-lg text-sm';
+                    setTimeout(hideApiKeyModal, 1500);
+                } else {
+                    errorEl.textContent = '连接失败：' + result.error;
+                    errorEl.className = 'p-3 bg-red-50 text-red-700 rounded-lg text-sm';
+                }
+            } catch (e) {
+                errorEl.textContent = '错误：' + e.message;
+                errorEl.className = 'p-3 bg-red-50 text-red-700 rounded-lg text-sm';
+            }
+        });
+
+        // 全局函数：切换详情显示
+        window.toggleDetails = function(nodeId) {
+            const details = document.getElementById(`node-${nodeId}-details`);
+            if (!details) return;
+            
+            const toggle = details.previousElementSibling;
+            if (!toggle) return;
+            
+            const icon = toggle.querySelector('i');
+            
+            if (details.classList.contains('show')) {
+                details.classList.remove('show');
+                if (icon) icon.className = 'fas fa-chevron-down';
+            } else {
+                details.classList.add('show');
+                if (icon) icon.className = 'fas fa-chevron-up';
+            }
+        };
+
+        // 初始化
+        updateModeDisplay();
+        updateCharCount();
+        console.log('应用初始化完成');
+    </script>
+</body>
 </html>
