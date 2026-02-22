@@ -1,0 +1,102 @@
+{
+  "name": "used-car-ai-chatbot",
+  "title": "二手车AI智能客服系统",
+  "description": "二手车智能客服工作流展示 - AI思考过程可视化",
+  "version": "1.0.0",
+  "author": "AI Developer",
+  "main": "index.html",
+  "icon": "assets/icon.png",
+  "width": 1400,
+  "height": 900,
+  "minWidth": 1200,
+  "minHeight": 700,
+  "resizable": true,
+  "fullscreen": false,
+  "alwaysOnTop": false,
+  "transparent": false,
+  "devtools": false,
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "inject": [],
+  "scripts": [],
+  "styles": [],
+  "headers": {},
+  "proxy": null,
+  "rewrite": [],
+  "disableCSP": false,
+  "hideTitleBar": false,
+  "titleBarStyle": "default",
+  "themeColor": "#1e3a5f",
+  "backgroundColor": "#f8fafc",
+  "zoom": 1.0,
+  "enableGPU": true,
+  "enableWebGL": true,
+  "enableMediaStream": true,
+  "enableSpeechAPI": false,
+  "notifications": true,
+  "tray": {
+    "show": true,
+    "icon": "assets/tray-icon.png",
+    "tooltip": "二手车AI智能客服系统",
+    "menu": [
+      {
+        "label": "显示主窗口",
+        "action": "show"
+      },
+      {
+        "label": "隐藏主窗口",
+        "action": "hide"
+      },
+      {
+        "type": "separator"
+      },
+      {
+        "label": "退出",
+        "action": "quit"
+      }
+    ]
+  },
+  "shortcuts": [
+    {
+      "key": "Ctrl+Shift+I",
+      "action": "toggleDevTools"
+    },
+    {
+      "key": "Ctrl+R",
+      "action": "reload"
+    },
+    {
+      "key": "F11",
+      "action": "toggleFullscreen"
+    },
+    {
+      "key": "Ctrl+Q",
+      "action": "quit"
+    }
+  ],
+  "platforms": {
+    "windows": {
+      "target": "nsis",
+      "icon": "assets/icon.ico",
+      "publisher": "AI Developer",
+      "fileAssociations": []
+    },
+    "macos": {
+      "target": "dmg",
+      "icon": "assets/icon.icns",
+      "bundleIdentifier": "com.ai.used-car-chatbot",
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png",
+      "category": "Office"
+    }
+  },
+  "build": {
+    "outputDir": "dist",
+    "asar": true,
+    "compression": "maximum",
+    "removeSourceMaps": true,
+    "minify": true
+  }
+}
