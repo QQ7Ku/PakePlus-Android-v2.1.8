@@ -1,0 +1,267 @@
+/* ============================================
+   设置页面样式
+   ============================================ */
+
+/* 知识库列表样式 */
+.kb-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.2s;
+    background: white;
+}
+
+.kb-item:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+.kb-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.kb-item-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 10px;
+    background: #dbeafe;
+    color: #1e40af;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.kb-item-question {
+    font-weight: 500;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.kb-item-answer {
+    font-size: 0.875rem;
+    color: #64748b;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.kb-item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.kb-item-btn {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+}
+
+.kb-item-btn.edit {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.kb-item-btn.edit:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+.kb-item-btn.delete {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.kb-item-btn.delete:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* 模态框动画 */
+.modal-enter {
+    animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 预览列表样式 */
+.preview-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px;
+    background: #f8fafc;
+}
+
+.preview-item.valid {
+    border-left: 3px solid #10b981;
+}
+
+.preview-item.invalid {
+    border-left: 3px solid #ef4444;
+    background: #fef2f2;
+}
+
+.preview-item-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.preview-item-status {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.preview-item-status.valid {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.preview-item-status.invalid {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* API状态指示器 */
+.api-status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.api-status-indicator.connected {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.api-status-indicator.disconnected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.api-status-indicator.testing {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* 测试结果显示 */
+.test-result {
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+.test-result.success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #10b981;
+}
+
+.test-result.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #ef4444;
+}
+
+/* 设置页面特定样式 */
+.settings-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.settings-section-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.settings-section-body {
+    padding: 20px;
+}
+
+/* 开关样式 */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background-color: #3b82f6;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+}
+
+/* 响应式调整 */
+@media (max-width: 1024px) {
+    .kb-item-answer {
+        -webkit-line-clamp: 3;
+    }
+}
+
+@media (max-width: 640px) {
+    .kb-item-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .kb-item-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
