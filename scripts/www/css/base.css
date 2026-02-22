@@ -1,0 +1,298 @@
+/* ============================================
+   二手车AI智能客服系统 - 基础样式
+   ============================================ */
+
+/* CSS变量定义 */
+:root {
+    --primary: #1e3a5f;
+    --secondary: #3b82f6;
+    --accent: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --purple: #8b5cf6;
+    
+    --bg-primary: #f8fafc;
+    --bg-secondary: #f1f5f9;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+    
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    
+    --radius-sm: 0.375rem;
+    --radius: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+}
+
+/* 基础重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* 选中文字样式 */
+::selection {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: var(--primary);
+}
+
+/* 链接样式 */
+a {
+    color: var(--secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+a:hover {
+    color: var(--primary);
+}
+
+/* 按钮基础样式 */
+button {
+    cursor: pointer;
+    border: none;
+    outline: none;
+    transition: all 0.2s;
+}
+
+button:focus {
+    outline: 2px solid var(--secondary);
+    outline-offset: 2px;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 输入框基础样式 */
+input, textarea, select {
+    font-family: inherit;
+    font-size: inherit;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+}
+
+/* 代码块样式 */
+code, pre {
+    font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+    font-size: 0.875rem;
+}
+
+pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* 动画关键帧 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes thinking {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes typing {
+    0%, 100% {
+        opacity: 0.3;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* 动画类 */
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-slide-in {
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+.animate-pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.animate-thinking {
+    animation: thinking 1s ease-in-out infinite;
+}
+
+/* 思考步骤动画 */
+.thinking-step {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.thinking-step:nth-child(1) { animation-delay: 0.1s; }
+.thinking-step:nth-child(2) { animation-delay: 0.2s; }
+.thinking-step:nth-child(3) { animation-delay: 0.3s; }
+.thinking-step:nth-child(4) { animation-delay: 0.4s; }
+.thinking-step:nth-child(5) { animation-delay: 0.5s; }
+
+/* 消息气泡动画 */
+.message-enter {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* 打字指示器 */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background-color: var(--secondary);
+    border-radius: 50%;
+    animation: typing 1.4s ease-in-out infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+/* 工作流节点样式 */
+.workflow-node {
+    position: relative;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    border: 2px solid var(--border-color);
+    background: white;
+    transition: all 0.3s;
+}
+
+.workflow-node.active {
+    border-color: var(--secondary);
+    background: rgba(59, 130, 246, 0.05);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.workflow-node.completed {
+    border-color: var(--accent);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.workflow-node::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -16px;
+    width: 2px;
+    height: 16px;
+    background: var(--border-color);
+    transform: translateX(-50%);
+}
+
+.workflow-node:last-child::after {
+    display: none;
+}
+
+/* 代码高亮 */
+.code-keyword { color: #c678dd; }
+.code-string { color: #98c379; }
+.code-comment { color: #5c6370; font-style: italic; }
+.code-function { color: #61afef; }
+.code-number { color: #d19a66; }
+
+/* 响应式工具类 */
+@media (max-width: 1024px) {
+    .hide-mobile {
+        display: none;
+    }
+}
+
+@media (min-width: 1025px) {
+    .show-mobile {
+        display: none;
+    }
+}
+
+/* 打印样式 */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    body {
+        background: white;
+    }
+}
