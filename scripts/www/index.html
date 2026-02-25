@@ -1,11 +1,654 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <!-- iPad Pro and tablet specific viewport fixes -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
+    <!-- Prevent iOS Safari from auto-zooming on input focus -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>新能源二手车3D检测系统 - BYD Qin Pro DM 2019</title>
+    <link rel="stylesheet" href="src/css/style.css">
+    <!-- Tablet compatibility fixes - load first -->
+    <script src="src/js/tablet-fix.js"></script>
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- GLTFLoader -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <!-- FBXLoader -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+    <!-- GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2canvas for screenshots -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="touch-optimized">
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-container">
+            <div class="car-loader">
+                <div class="car-body"></div>
+                <div class="wheel wheel-front"></div>
+                <div class="wheel wheel-rear"></div>
+            </div>
+            <h2>新能源二手车3D检测系统</h2>
+            <p id="loading-text">正在加载3D检测平台...</p>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="main-header">
+        <div class="logo">
+            <i class="fas fa-car-battery"></i>
+            <span>EV检测3D系统</span>
+        </div>
+        <div class="vehicle-info-header">
+            <span class="vehicle-model">BYD Qin Pro DM 2019</span>
+            <span class="vehicle-status" id="header-status">检测中</span>
+        </div>
+        <div class="user-actions">
+            <button class="btn-export" id="btn-export-word">
+                <i class="fas fa-file-word"></i> 导出Word报告
+            </button>
+            <button class="btn-export" id="btn-export-pdf">
+                <i class="fas fa-file-pdf"></i> 导出PDF
+            </button>
+            <div class="user-role-toggle">
+                <span class="role-label">顾客</span>
+                <label class="switch">
+                    <input type="checkbox" id="role-switch">
+                    <span class="slider"></span>
+                </label>
+                <span class="role-label">商家</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <!-- Left Sidebar - Controls -->
+        <aside class="sidebar sidebar-left">
+            <div class="panel" id="inspection-type-panel">
+                <h3><i class="fas fa-search"></i> 检测类型</h3>
+                <div class="inspection-types">
+                    <button class="type-btn active" data-type="paint">
+                        <i class="fas fa-spray-can"></i> 漆面检测
+                    </button>
+                    <button class="type-btn" data-type="structure">
+                        <i class="fas fa-car-crash"></i> 结构检测
+                    </button>
+                    <button class="type-btn" data-type="interior">
+                        <i class="fas fa-couch"></i> 内饰检测
+                    </button>
+                    <button class="type-btn" data-type="mechanical">
+                        <i class="fas fa-cogs"></i> 机械检测
+                    </button>
+                    <button class="type-btn" data-type="electrical">
+                        <i class="fas fa-bolt"></i> 电气检测
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel collapsible" id="paint-points-panel">
+                <h3 class="panel-header" onclick="togglePanel('paint-points-panel')">
+                    <span><i class="fas fa-map-marker-alt"></i> 漆面检测点</span>
+                    <i class="fas fa-chevron-down panel-toggle"></i>
+                </h3>
+                <div class="paint-points-list panel-content">
+                    <div class="paint-section">
+                        <h4><i class="fas fa-car-side"></i> 前部</h4>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="hood" data-name="引擎盖漆面">
+                            <span class="point-color" style="background: #e74c3c;"></span>
+                            <span class="point-name">引擎盖漆面</span>
+                        </label>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="frontBumper" data-name="前保险杠漆面">
+                            <span class="point-color" style="background: #c0392b;"></span>
+                            <span class="point-name">前保险杠漆面</span>
+                        </label>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="leftFender" data-name="左前翼子板漆面">
+                            <span class="point-color" style="background: #e67e22;"></span>
+                            <span class="point-name">左前翼子板漆面</span>
+                        </label>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="rightFender" data-name="右前翼子板漆面">
+                            <span class="point-color" style="background: #e67e22;"></span>
+                            <span class="point-name">右前翼子板漆面</span>
+                        </label>
+                    </div>
+                    <div class="paint-section">
+                        <h4><i class="fas fa-door-open"></i> 侧面</h4>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="leftFrontDoor" data-name="左前门漆面">
+                            <span class="point-color" style="background: #f39c12;"></span>
+                            <span class="point-name">左前门漆面</span>
+                        </label>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="rightFrontDoor" data-name="右前门漆面">
+                            <span class="point-color" style="background: #f39c12;"></span>
+                            <span class="point-name">右前门漆面</span>
+                        </label>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="leftRearDoor" data-name="左后门漆面">
+                            <span class="point-color" style="background: #f1c40f;"></span>
+                            <span class="point-name">左后门漆面</span>
+                        </label>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="rightRearDoor" data-name="右后门漆面">
+                            <span class="point-color" style="background: #f1c40f;"></span>
+                            <span class="point-name">右后门漆面</span>
+                        </label>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="leftRearFender" data-name="左后翼子板漆面">
+                            <span class="point-color" style="background: #16a085;"></span>
+                            <span class="point-name">左后翼子板漆面</span>
+                        </label>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="rightRearFender" data-name="右后翼子板漆面">
+                            <span class="point-color" style="background: #16a085;"></span>
+                            <span class="point-name">右后翼子板漆面</span>
+                        </label>
+                    </div>
+                    <div class="paint-section">
+                        <h4><i class="fas fa-car-side fa-flip-horizontal"></i> 后部</h4>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="trunk" data-name="后备箱盖漆面">
+                            <span class="point-color" style="background: #2980b9;"></span>
+                            <span class="point-name">后备箱盖漆面</span>
+                        </label>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="rearBumper" data-name="后保险杠漆面">
+                            <span class="point-color" style="background: #8e44ad;"></span>
+                            <span class="point-name">后保险杠漆面</span>
+                        </label>
+                    </div>
+                    <div class="paint-section">
+                        <h4><i class="fas fa-arrows-alt-v"></i> 顶部</h4>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="roof" data-name="车顶漆面">
+                            <span class="point-color" style="background: #2c3e50;"></span>
+                            <span class="point-name">车顶漆面</span>
+                        </label>
+                    </div>
+                    <div class="paint-section">
+                        <h4><i class="fas fa-columns"></i> 立柱</h4>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="leftAPillar" data-name="左A柱漆面">
+                            <span class="point-color" style="background: #27ae60;"></span>
+                            <span class="point-name">左A柱漆面</span>
+                        </label>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="rightAPillar" data-name="右A柱漆面">
+                            <span class="point-color" style="background: #27ae60;"></span>
+                            <span class="point-name">右A柱漆面</span>
+                        </label>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="leftBPillar" data-name="左B柱漆面">
+                            <span class="point-color" style="background: #229954;"></span>
+                            <span class="point-name">左B柱漆面</span>
+                        </label>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="rightBPillar" data-name="右B柱漆面">
+                            <span class="point-color" style="background: #229954;"></span>
+                            <span class="point-name">右B柱漆面</span>
+                        </label>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="leftCPillar" data-name="左C柱漆面">
+                            <span class="point-color" style="background: #1e8449;"></span>
+                            <span class="point-name">左C柱漆面</span>
+                        </label>
+                        <label class="point-item">
+                            <input type="checkbox" checked data-point="rightCPillar" data-name="右C柱漆面">
+                            <span class="point-color" style="background: #1e8449;"></span>
+                            <span class="point-name">右C柱漆面</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="points-actions">
+                    <button class="btn-select-all" id="btn-select-all-points">
+                        <i class="fas fa-check-square"></i> 全选
+                    </button>
+                    <button class="btn-deselect-all" id="btn-deselect-all-points">
+                        <i class="fas fa-square"></i> 全不选
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel" id="view-panel">
+                <h3><i class="fas fa-eye"></i> 视图控制</h3>
+                <div class="view-buttons">
+                    <button class="view-btn" data-view="front">
+                        <i class="fas fa-arrow-up"></i> 前视
+                    </button>
+                    <button class="view-btn" data-view="rear">
+                        <i class="fas fa-arrow-down"></i> 后视
+                    </button>
+                    <button class="view-btn" data-view="left">
+                        <i class="fas fa-arrow-left"></i> 左视
+                    </button>
+                    <button class="view-btn" data-view="right">
+                        <i class="fas fa-arrow-right"></i> 右视
+                    </button>
+                    <button class="view-btn" data-view="top">
+                        <i class="fas fa-arrows-alt-v"></i> 俯视
+                    </button>
+                    <button class="view-btn active" data-view="iso">
+                        <i class="fas fa-cube"></i> 等轴测
+                    </button>
+                </div>
+                <div class="control-group">
+                    <label>线框模式</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="wireframe-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="control-group">
+                    <label>自动旋转</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autorotate-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="control-group">
+                    <label>显示热点</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="hotspots-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center - 3D Canvas -->
+        <section class="canvas-container">
+            <div id="canvas-wrapper">
+                <canvas id="main-canvas"></canvas>
+            </div>
+            
+            <!-- Hotspot Tooltip -->
+            <div class="hotspot-tooltip" id="hotspot-tooltip">
+                <div class="tooltip-header">
+                    <span class="tooltip-title" id="tooltip-title">检测点</span>
+                    <span class="tooltip-status" id="tooltip-status">正常</span>
+                </div>
+                <div class="tooltip-content" id="tooltip-content"></div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+                <div class="stat-item">
+                    <span class="stat-label">车辆型号</span>
+                    <span class="stat-value" id="car-model">BYD Qin Pro DM 2019</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">VIN码</span>
+                    <span class="stat-value" id="car-vin">LGXC16D39Kxxxxxxx</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">检测日期</span>
+                    <span class="stat-value" id="inspection-date">2024-01-15</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">漆面评分</span>
+                    <span class="stat-value health-good" id="paint-score">85分</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">发现问题</span>
+                    <span class="stat-value health-warning" id="issue-count">3处</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Sidebar - Details -->
+        <aside class="sidebar sidebar-right">
+            <div class="panel" id="selected-point-panel">
+                <h3><i class="fas fa-crosshairs"></i> 当前检测点</h3>
+                <div class="point-details" id="point-details">
+                    <p class="hint-text">点击3D模型上的热点查看详情</p>
+                </div>
+            </div>
+
+            <div class="panel" id="inspection-summary-panel">
+                <h3><i class="fas fa-clipboard-check"></i> 检测摘要</h3>
+                <div class="summary-content">
+                    <div class="score-overview">
+                        <div class="score-ring">
+                            <svg viewBox="0 0 100 100">
+                                <circle class="score-bg" cx="50" cy="50" r="45"></circle>
+                                <circle class="score-fill" cx="50" cy="50" r="45" style="--score: 85;"></circle>
+                            </svg>
+                            <div class="score-text">
+                                <span class="score-number" id="overall-score">85</span>
+                                <span class="score-label">综合评分</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grade-display">
+                        <span class="grade-label">车况等级</span>
+                        <span class="grade-value" id="grade-value">良好</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel" id="issues-list-panel">
+                <h3><i class="fas fa-exclamation-triangle"></i> 问题列表</h3>
+                <div class="issues-list" id="issues-list">
+                    <p class="hint-text">暂无发现问题</p>
+                </div>
+            </div>
+
+            <!-- Merchant Only Panel -->
+            <div class="panel merchant-only" id="merchant-panel">
+                <h3><i class="fas fa-tools"></i> 商家工具</h3>
+                <div class="merchant-tools">
+                    <button class="tool-btn" id="btn-add-issue">
+                        <i class="fas fa-plus-circle"></i> 添加问题
+                    </button>
+                    <button class="tool-btn" id="btn-edit-vehicle">
+                        <i class="fas fa-car"></i> 编辑车辆信息
+                    </button>
+                    <button class="tool-btn" id="btn-load-model">
+                        <i class="fas fa-upload"></i> 加载FBX模型
+                    </button>
+                    <button class="tool-btn" id="btn-save-data">
+                        <i class="fas fa-save"></i> 保存检测数据
+                    </button>
+                    <button class="tool-btn" id="btn-load-data">
+                        <i class="fas fa-folder-open"></i> 载入检测数据
+                    </button>
+                    <button class="tool-btn" id="btn-reset-data">
+                        <i class="fas fa-undo"></i> 重置数据
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Issue Detail Modal -->
+    <div class="modal" id="issue-detail-modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> 问题详情</h3>
+                <button class="close-btn" id="close-issue-detail"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="issue-detail-content" id="issue-detail-content">
+                    <!-- Dynamic content -->
+                </div>
+                <div class="issue-images" id="issue-images">
+                    <h4><i class="fas fa-images"></i> 问题图片</h4>
+                    <div class="image-gallery" id="image-gallery">
+                        <!-- Dynamic images -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Issue Modal -->
+    <div class="modal" id="add-issue-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> 添加检测问题</h3>
+                <button class="close-btn" id="close-add-issue"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-issue-form">
+                    <div class="form-group">
+                        <label>检测部位</label>
+                        <select id="issue-point" required>
+                            <optgroup label="前部">
+                                <option value="hood">引擎盖漆面</option>
+                                <option value="frontBumper">前保险杠漆面</option>
+                                <option value="leftFender">左前翼子板漆面</option>
+                                <option value="rightFender">右前翼子板漆面</option>
+                            </optgroup>
+                            <optgroup label="侧面">
+                                <option value="leftFrontDoor">左前门漆面</option>
+                                <option value="rightFrontDoor">右前门漆面</option>
+                                <option value="leftRearDoor">左后门漆面</option>
+                                <option value="rightRearDoor">右后门漆面</option>
+                                <option value="leftRearFender">左后翼子板漆面</option>
+                                <option value="rightRearFender">右后翼子板漆面</option>
+                            </optgroup>
+                            <optgroup label="后部">
+                                <option value="trunk">后备箱盖漆面</option>
+                                <option value="rearBumper">后保险杠漆面</option>
+                            </optgroup>
+                            <optgroup label="顶部">
+                                <option value="roof">车顶漆面</option>
+                            </optgroup>
+                            <optgroup label="立柱">
+                                <option value="leftAPillar">左A柱漆面</option>
+                                <option value="rightAPillar">右A柱漆面</option>
+                                <option value="leftBPillar">左B柱漆面</option>
+                                <option value="rightBPillar">右B柱漆面</option>
+                                <option value="leftCPillar">左C柱漆面</option>
+                                <option value="rightCPillar">右C柱漆面</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>问题类型</label>
+                        <select id="issue-type" required>
+                            <option value="scratch">划痕</option>
+                            <option value="dent">凹陷</option>
+                            <option value="paint-fade">漆面褪色</option>
+                            <option value="paint-peel">漆面剥落</option>
+                            <option value="rust">锈蚀</option>
+                            <option value="crack">裂纹</option>
+                            <option value="color-diff">色差</option>
+                            <option value="overspray">飞漆/流漆</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>严重程度</label>
+                        <div class="severity-options">
+                            <label class="severity-option">
+                                <input type="radio" name="severity" value="minor" checked>
+                                <span class="severity-label minor">轻微</span>
+                            </label>
+                            <label class="severity-option">
+                                <input type="radio" name="severity" value="moderate">
+                                <span class="severity-label moderate">中等</span>
+                            </label>
+                            <label class="severity-option">
+                                <input type="radio" name="severity" value="severe">
+                                <span class="severity-label severe">严重</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>问题描述</label>
+                        <textarea id="issue-description" rows="3" placeholder="请详细描述问题..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>修复建议</label>
+                        <textarea id="issue-suggestion" rows="2" placeholder="修复建议..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>修复费用预估 (元)</label>
+                        <input type="number" id="issue-cost" min="0" step="10" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>上传图片</label>
+                        <div class="image-upload-area" id="image-upload-area">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>拖拽图片到此处或点击上传</p>
+                            <span>支持 JPG, PNG 格式</span>
+                            <input type="file" id="issue-images-input" accept="image/*" multiple hidden>
+                        </div>
+                        <div class="uploaded-images" id="uploaded-images"></div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="cancel-add-issue">取消</button>
+                        <button type="submit" class="btn-primary">保存问题</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Vehicle Modal -->
+    <div class="modal" id="vehicle-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-car"></i> 编辑车辆信息</h3>
+                <button class="close-btn" id="close-vehicle"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="vehicle-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>车辆型号</label>
+                            <input type="text" id="vehicle-model-input" value="BYD Qin Pro DM 2019" required>
+                        </div>
+                        <div class="form-group">
+                            <label>VIN码</label>
+                            <input type="text" id="vehicle-vin-input" value="LGXC16D39Kxxxxxxx" maxlength="17">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>车牌号</label>
+                            <input type="text" id="vehicle-plate-input" placeholder="例如: 京A·12345">
+                        </div>
+                        <div class="form-group">
+                            <label>行驶里程 (km)</label>
+                            <input type="number" id="vehicle-mileage-input" value="50000" min="0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>注册日期</label>
+                            <input type="date" id="vehicle-reg-date-input">
+                        </div>
+                        <div class="form-group">
+                            <label>检测日期</label>
+                            <input type="date" id="inspection-date-input">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>车辆颜色</label>
+                        <div class="color-options">
+                            <label class="color-option">
+                                <input type="radio" name="vehicle-color" value="red" checked>
+                                <span class="color-swatch" style="background: #cc0000;"></span>
+                                <span class="color-name">赤帝红</span>
+                            </label>
+                            <label class="color-option">
+                                <input type="radio" name="vehicle-color" value="white">
+                                <span class="color-swatch" style="background: #ffffff; border: 1px solid #ccc;"></span>
+                                <span class="color-name">雪域白</span>
+                            </label>
+                            <label class="color-option">
+                                <input type="radio" name="vehicle-color" value="black">
+                                <span class="color-swatch" style="background: #111111;"></span>
+                                <span class="color-name">玄羽黑</span>
+                            </label>
+                            <label class="color-option">
+                                <input type="radio" name="vehicle-color" value="silver">
+                                <span class="color-swatch" style="background: #888888;"></span>
+                                <span class="color-name">时光灰</span>
+                            </label>
+                            <label class="color-option">
+                                <input type="radio" name="vehicle-color" value="blue">
+                                <span class="color-swatch" style="background: #0033cc;"></span>
+                                <span class="color-name">山脉灰</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>备注</label>
+                        <textarea id="vehicle-notes-input" rows="2" placeholder="其他备注信息..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="cancel-vehicle-edit">取消</button>
+                        <button type="submit" class="btn-primary">保存修改</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Model Modal -->
+    <div class="modal" id="load-model-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-upload"></i> 加载3D模型</h3>
+                <button class="close-btn" id="close-load-model"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-area" id="model-upload-area">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>拖拽模型文件到此处</p>
+                    <span>支持 FBX, GLB, GLTF 格式</span>
+                    <input type="file" id="model-file-input" accept=".fbx,.glb,.gltf" hidden>
+                    <button class="btn-browse" onclick="document.getElementById('model-file-input').click()">
+                        浏览文件
+                    </button>
+                </div>
+                <div class="model-info">
+                    <p><strong>默认模型:</strong> BYD Qin Pro DM 2019</p>
+                    <p class="hint">支持格式: FBX, GLB, GLTF | 如果未选择文件，将使用默认模型</p>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancel-load-model">取消</button>
+                    <button type="button" class="btn-primary" id="confirm-load-model">加载模型</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Viewer Modal -->
+    <div class="modal image-viewer-modal" id="image-viewer-modal">
+        <div class="modal-content image-viewer-content">
+            <button class="close-btn image-viewer-close" id="close-image-viewer"><i class="fas fa-times"></i></button>
+            <button class="nav-btn prev-btn" id="prev-image"><i class="fas fa-chevron-left"></i></button>
+            <div class="image-container">
+                <img id="viewer-image" src="" alt="问题图片">
+            </div>
+            <button class="nav-btn next-btn" id="next-image"><i class="fas fa-chevron-right"></i></button>
+            <div class="image-counter" id="image-counter">1 / 3</div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notification-text">操作成功</span>
+    </div>
+
+    <script src="src/js/3d-engine.js"></script>
+    <script src="src/js/byd-model.js"></script>
+    <script src="src/js/inspection-data.js"></script>
+    <script src="src/js/report-export.js"></script>
+    <script src="src/js/app.js"></script>
+    
+    <script>
+        // Toggle collapsible panels
+        function togglePanel(panelId) {
+            const panel = document.getElementById(panelId);
+            if (panel) {
+                panel.classList.toggle('collapsed');
+            }
+        }
+    </script>
+</body>
 </html>
