@@ -1,11 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>车辆检测可视化系统</title>
+    <meta name="description" content="3D车辆检测维修点可视化系统" />
+    <meta name="keywords" content="车辆检测,3D可视化,二手车检测" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="alternate icon" href="./favicon.ico" />
+    <script src="./error-monitor.js"></script>
+    <!-- PakePlus/Tauri specific -->
+    <style>
+      /* 防止文本被选中 */
+      body { -moz-user-select: none; user-select: none; -webkit-user-select: none; }
+      /* 隐藏滚动条但保留功能 */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
+      /* 拖拽区域 */
+      .drag-region { -webkit-app-region: drag; }
+      .no-drag { -webkit-app-region: no-drag; }
+    </style>
+    <script type="module" crossorigin src="./assets/index-C9L4PYsD.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/three-ZhSZsvMD.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-Dezasnlk.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-Cw-zXdqA.css">
+  </head>
+  <body class="bg-dark-900 text-white antialiased overflow-hidden">
+    <div id="root"></div>
+  </body>
 </html>
