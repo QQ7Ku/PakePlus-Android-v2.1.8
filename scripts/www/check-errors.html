@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>控制台错误检查</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0f;
+      color: #fff;
+      padding: 20px;
+    }
+    h1 { color: #3b82f6; margin-bottom: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .section {
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+    .section h2 {
+      color: #9ca3af;
+      font-size: 14px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .error-item {
+      background: #7f1d1d;
+      border: 1px solid #ef4444;
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 8px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .warning-item {
+      background: #713f12;
+      border: 1px solid #eab308;
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 8px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .success {
+      color: #22c55e;
+      padding: 20px;
+      text-align: center;
+    }
+    .timestamp {
+      color: #6b7280;
+      font-size: 11px;
+    }
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover { background: #2563eb; }
+    .info {
+      background: #1e3a8a;
+      border: 1px solid #3b82f6;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🐛 控制台错误检查工具</h1>
+    
+    <div class="info">
+      请在下方页面中操作，然后点击"检查错误"按钮查看控制台错误。
+    </div>
+    
+    <button onclick="checkErrors()">🔍 检查错误</button>
+    <button onclick="clearErrors()">🗑️ 清除记录</button>
+    <button onclick="reloadFrame()">🔄 重新加载</button>
+    
+    <iframe id="appFrame" src="/" sandbox="allow-scripts allow-same-origin"></iframe>
+    
+    <div class="section">
+      <h2>❌ 错误 (Errors)</h2>
+      <div id="errors">等待检查...</div>
+    </div>
+    
+    <div class="section">
+      <h2>⚠️ 警告 (Warnings)</h2>
+      <div id="warnings">等待检查...</div>
+    </div>
+  </div>
+
+  <script>
+    function checkErrors() {
+      const frame = document.getElementById('appFrame');
+      const frameWindow = frame.contentWindow;
+      
+      const errors = frameWindow.consoleErrors || [];
+      const warnings = frameWindow.consoleWarnings || [];
+      
+      displayErrors(errors);
+      displayWarnings(warnings);
+    }
+    
+    function displayErrors(errors) {
+      const container = document.getElementById('errors');
+      if (errors.length === 0) {
+        container.innerHTML = '<div class="success">✅ 未发现错误</div>';
+        return;
+      }
+      
+      container.innerHTML = errors.map(e => `
+        <div class="error-item">
+          <div><strong>${e.type}:</strong> ${e.message}</div>
+          ${e.filename ? `<div>📄 ${e.filename}:${e.lineno}:${e.colno}</div>` : ''}
+          ${e.stack ? `<div style="margin-top:5px;white-space:pre-wrap;color:#fca5a5;">${e.stack}</div>` : ''}
+          <div class="timestamp">⏰ ${e.timestamp}</div>
+        </div>
+      `).join('');
+    }
+    
+    function displayWarnings(warnings) {
+      const container = document.getElementById('warnings');
+      if (warnings.length === 0) {
+        container.innerHTML = '<div class="success">✅ 未发现警告</div>';
+        return;
+      }
+      
+      container.innerHTML = warnings.map(w => `
+        <div class="warning-item">
+          <div><strong>${w.type}:</strong> ${w.message}</div>
+          <div class="timestamp">⏰ ${w.timestamp}</div>
+        </div>
+      `).join('');
+    }
+    
+    function clearErrors() {
+      const frame = document.getElementById('appFrame');
+      frame.contentWindow.consoleErrors = [];
+      frame.contentWindow.consoleWarnings = [];
+      document.getElementById('errors').innerHTML = '已清除';
+      document.getElementById('warnings').innerHTML = '已清除';
+    }
+    
+    function reloadFrame() {
+      const frame = document.getElementById('appFrame');
+      frame.src = frame.src;
+    }
+    
+    // 自动检查一次
+    setTimeout(checkErrors, 3000);
+  </script>
+</body>
+</html>
