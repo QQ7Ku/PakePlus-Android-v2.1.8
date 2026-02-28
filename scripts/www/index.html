@@ -1,11 +1,726 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="新能源汽车出海智能助手 - 支持东盟国家出口合规检测">
+    <meta name="keywords" content="新能源汽车,二手车出口,东盟,柬埔寨,泰国,合规检测">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#2563eb">
+    <title>EV Export Pro - 新能源汽车出海助手</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- FileSaver for Word export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <!-- html2canvas for PDF Chinese support -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-container">
+            <div class="globe-loader">
+                <i class="fas fa-globe-asia"></i>
+                <div class="orbit">
+                    <div class="car-icon"><i class="fas fa-car"></i></div>
+                </div>
+            </div>
+            <h2>EV Export Pro</h2>
+            <p>新能源汽车出海智能助手</p>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" class="hidden">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="logo">
+                <i class="fas fa-globe-asia"></i>
+                <div class="logo-text">
+                    <span class="logo-title">EV Export Pro</span>
+                    <span class="logo-subtitle">新能源二手车出海助手</span>
+                </div>
+            </div>
+            <div class="progress-steps">
+                <div class="step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <span class="step-label">证件识别</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <span class="step-label">报告识别</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <span class="step-label">人工审核</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step" data-step="4">
+                    <div class="step-number">4</div>
+                    <span class="step-label">报关信息</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step" data-step="5">
+                    <div class="step-number">5</div>
+                    <span class="step-label">政策检测</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-reset" id="btn-reset">
+                    <i class="fas fa-redo"></i> 重新开始
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-container">
+            <!-- Step 1: License Recognition -->
+            <section class="step-content active" id="step-1">
+                <div class="step-header">
+                    <h2><i class="fas fa-id-card"></i> AI识别行驶证</h2>
+                    <p>上传行驶证照片，AI自动识别车辆信息</p>
+                </div>
+                
+                <div class="upload-section">
+                    <div class="upload-area" id="license-upload-area">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h3>上传行驶证</h3>
+                        <p>支持 JPG、PNG 格式，建议图片清晰</p>
+                        <input type="file" id="license-input" accept="image/*" hidden>
+                        <button class="btn-upload" onclick="document.getElementById('license-input').click()">
+                            <i class="fas fa-camera"></i> 选择图片
+                        </button>
+                        <button class="btn-demo" id="btn-demo-license">
+                            <i class="fas fa-magic"></i> 使用演示数据
+                        </button>
+                    </div>
+                    
+                    <div class="preview-area hidden" id="license-preview-area">
+                        <div class="preview-container">
+                            <img id="license-preview" src="" alt="行驶证预览">
+                            <div class="scanning-line" id="scanning-line"></div>
+                            <div class="scanning-overlay" id="scanning-overlay">
+                                <div class="scanning-text">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <span>AI识别中...</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="preview-actions">
+                            <button class="btn-secondary" id="btn-reupload-license">
+                                <i class="fas fa-redo"></i> 重新上传
+                            </button>
+                            <button class="btn-primary" id="btn-confirm-license">
+                                <i class="fas fa-check"></i> 确认识别结果
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recognition-result hidden" id="license-result">
+                    <h3><i class="fas fa-check-circle"></i> 识别结果</h3>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <label>车牌号码</label>
+                            <span id="result-plate">-</span>
+                        </div>
+                        <div class="result-item">
+                            <label>车辆类型</label>
+                            <span id="result-type">-</span>
+                        </div>
+                        <div class="result-item">
+                            <label>所有人</label>
+                            <span id="result-owner">-</span>
+                        </div>
+                        <div class="result-item">
+                            <label>使用性质</label>
+                            <span id="result-usage">-</span>
+                        </div>
+                        <div class="result-item">
+                            <label>品牌型号</label>
+                            <span id="result-model">-</span>
+                        </div>
+                        <div class="result-item">
+                            <label>VIN码</label>
+                            <span id="result-vin">-</span>
+                        </div>
+                        <div class="result-item">
+                            <label>发动机号</label>
+                            <span id="result-engine">-</span>
+                        </div>
+                        <div class="result-item">
+                            <label>注册日期</label>
+                            <span id="result-reg-date">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-navigation">
+                    <button class="btn-next" id="btn-step1-next" disabled>
+                        下一步 <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Step 2: Report Recognition -->
+            <section class="step-content" id="step-2">
+                <div class="step-header">
+                    <h2><i class="fas fa-clipboard-check"></i> 检测报告识别</h2>
+                    <p>上传第三方检测报告，AI自动提取检测项目</p>
+                </div>
+                
+                <div class="upload-section">
+                    <div class="upload-area" id="report-upload-area">
+                        <div class="upload-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <h3>上传检测报告</h3>
+                        <p>支持长截图、PDF报告，AI将自动识别检测项目</p>
+                        <input type="file" id="report-input" accept="image/*,.pdf" hidden>
+                        <button class="btn-upload" onclick="document.getElementById('report-input').click()">
+                            <i class="fas fa-camera"></i> 选择报告
+                        </button>
+                        <button class="btn-demo" id="btn-demo-report">
+                            <i class="fas fa-magic"></i> 使用示例报告
+                        </button>
+                    </div>
+                    
+                    <div class="preview-area hidden" id="report-preview-area">
+                        <div class="preview-container report-preview">
+                            <img id="report-preview" src="" alt="报告预览">
+                            <div class="scanning-line" id="report-scanning-line"></div>
+                            <div class="scanning-overlay" id="report-scanning-overlay">
+                                <div class="scanning-text">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <span>正在分析检测报告...</span>
+                                </div>
+                                <div class="scanning-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="report-scan-progress"></div>
+                                    </div>
+                                    <span class="progress-text" id="report-scan-text">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="preview-actions">
+                            <button class="btn-secondary" id="btn-reupload-report">
+                                <i class="fas fa-redo"></i> 重新上传
+                            </button>
+                            <button class="btn-primary" id="btn-confirm-report">
+                                <i class="fas fa-check"></i> 确认检测结果
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detection-summary hidden" id="detection-summary">
+                    <h3><i class="fas fa-clipboard-list"></i> 检测项目概览</h3>
+                    <div class="summary-cards">
+                        <div class="summary-card">
+                            <div class="card-icon good">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="card-info">
+                                <span class="card-value" id="summary-good">0</span>
+                                <span class="card-label">正常项目</span>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="card-icon warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="card-info">
+                                <span class="card-value" id="summary-warning">0</span>
+                                <span class="card-label">需注意</span>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="card-icon danger">
+                                <i class="fas fa-times-circle"></i>
+                            </div>
+                            <div class="card-info">
+                                <span class="card-value" id="summary-danger">0</span>
+                                <span class="card-label">异常项目</span>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="card-icon info">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="card-info">
+                                <span class="card-value" id="summary-score">-</span>
+                                <span class="card-label">综合评分</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Inspection Items List -->
+                    <div class="detailed-items-section">
+                        <h4><i class="fas fa-tasks"></i> 检测项目明细</h4>
+                        <div class="inspection-categories" id="inspection-categories">
+                            <!-- Categories will be rendered by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-navigation">
+                    <button class="btn-prev" id="btn-step2-prev">
+                        <i class="fas fa-arrow-left"></i> 上一步
+                    </button>
+                    <button class="btn-next" id="btn-step2-next" disabled>
+                        下一步 <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Step 3: Manual Review - Vehicle Info Confirmation -->
+            <section class="step-content" id="step-3">
+                <div class="step-header">
+                    <h2><i class="fas fa-user-check"></i> 人工审核 - 车辆信息确认</h2>
+                    <p>核对并编辑车辆详细信息，确保数据准确无误</p>
+                </div>
+                
+                <!-- 基本信息 -->
+                <div class="form-container">
+                    <div class="form-section">
+                        <h3><i class="fas fa-car"></i> 基本信息</h3>
+                        <div class="form-grid-2col">
+                            <!-- 左侧：车辆识别信息 -->
+                            <div class="form-group-column">
+                                <h4 class="column-title"><i class="fas fa-id-card"></i> 车辆识别</h4>
+                                <div class="form-group">
+                                    <label>车牌号码 <span class="required">*</span></label>
+                                    <input type="text" id="form-plate" placeholder="例如：京A12345">
+                                </div>
+                                <div class="form-group">
+                                    <label>VIN码 <span class="required">*</span></label>
+                                    <input type="text" id="form-vin" placeholder="17位车辆识别码" maxlength="17">
+                                </div>
+                                <div class="form-group">
+                                    <label>发动机号</label>
+                                    <input type="text" id="form-engine" placeholder="发动机号">
+                                </div>
+                                <div class="form-group">
+                                    <label>注册日期 <span class="required">*</span></label>
+                                    <input type="date" id="form-reg-date">
+                                </div>
+                            </div>
+                            <!-- 右侧：车辆属性信息 -->
+                            <div class="form-group-column">
+                                <h4 class="column-title"><i class="fas fa-cogs"></i> 车辆属性</h4>
+                                <div class="form-group">
+                                    <label>车辆品牌 <span class="required">*</span></label>
+                                    <input type="text" id="form-brand" placeholder="例如：比亚迪">
+                                </div>
+                                <div class="form-group">
+                                    <label>车辆型号 <span class="required">*</span></label>
+                                    <input type="text" id="form-model" placeholder="例如：秦Pro DM">
+                                </div>
+                                <div class="form-group">
+                                    <label>车辆年份 <span class="required">*</span></label>
+                                    <input type="number" id="form-year" placeholder="例如：2022" min="2010" max="2030">
+                                </div>
+                                <div class="form-group">
+                                    <label>行驶里程 (km) <span class="required">*</span></label>
+                                    <input type="number" id="form-mileage" placeholder="例如：50000" min="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>车辆颜色</label>
+                                    <input type="text" id="form-color" placeholder="例如：白色">
+                                </div>
+                                <div class="form-group">
+                                    <label>使用性质</label>
+                                    <select id="form-usage">
+                                        <option value="非营运" selected>非营运</option>
+                                        <option value="营运">营运</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>动力源类型</label>
+                                    <select id="form-power-type">
+                                        <option value="纯电动">纯电动</option>
+                                        <option value="插电混动" selected>插电混动</option>
+                                        <option value="燃料电池">燃料电池</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 新能源信息 -->
+                <div class="form-container">
+                    <div class="form-section">
+                        <h3><i class="fas fa-battery-full"></i> 新能源信息</h3>
+                        <div class="form-grid-2col">
+                            <!-- 左侧：电池核心参数 -->
+                            <div class="form-group-column">
+                                <h4 class="column-title"><i class="fas fa-bolt"></i> 电池核心参数</h4>
+                                <div class="form-group">
+                                    <label>电池类型 <span class="required">*</span></label>
+                                    <select id="form-battery-type">
+                                        <option value="">请选择</option>
+                                        <option value="磷酸铁锂">磷酸铁锂 (LFP)</option>
+                                        <option value="三元锂">三元锂 (NCM)</option>
+                                        <option value="固态电池">固态电池</option>
+                                        <option value="其他">其他</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>电池容量 (kWh) <span class="required">*</span></label>
+                                    <input type="number" id="form-battery-capacity" placeholder="例如：60" min="0" step="0.1">
+                                </div>
+                                <div class="form-group">
+                                    <label>电池健康度 (%) <span class="required">*</span></label>
+                                    <input type="number" id="form-battery-health" placeholder="例如：95" min="0" max="100">
+                                </div>
+                                <div class="form-group">
+                                    <label>续航里程 (km) <span class="required">*</span></label>
+                                    <input type="number" id="form-range" placeholder="例如：500" min="0">
+                                </div>
+                            </div>
+                            <!-- 右侧：电池状态信息 -->
+                            <div class="form-group-column">
+                                <h4 class="column-title"><i class="fas fa-info-circle"></i> 电池状态信息</h4>
+                                <div class="form-group">
+                                    <label>电池状态</label>
+                                    <select id="form-battery-status">
+                                        <option value="全新" selected>全新（未使用）</option>
+                                        <option value="良好">良好</option>
+                                        <option value="一般">一般</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>是否属危险品（锂电池）</label>
+                                    <select id="form-is-dangerous">
+                                        <option value="是">是</option>
+                                        <option value="否" selected>否</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>包装方式</label>
+                                    <input type="text" id="form-package-type" placeholder="例如：标准集装箱">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 检测结果摘要 -->
+                <div class="form-container">
+                    <div class="form-section section-gray">
+                        <h3><i class="fas fa-clipboard-check"></i> 检测结果摘要（已审核）</h3>
+                        <div class="inspection-summary-cards" id="inspection-summary-display">
+                            <div class="summary-card-item">
+                                <div class="card-label">检测机构</div>
+                                <div class="card-value" id="display-inspection-org">-</div>
+                            </div>
+                            <div class="summary-card-item">
+                                <div class="card-label">报告编号</div>
+                                <div class="card-value" id="display-report-no">-</div>
+                            </div>
+                            <div class="summary-card-item highlight">
+                                <div class="card-label">综合评分</div>
+                                <div class="card-value score" id="display-score">-</div>
+                            </div>
+                            <div class="summary-card-item highlight">
+                                <div class="card-label">检测等级</div>
+                                <div class="card-value grade" id="display-grade">-</div>
+                            </div>
+                            <div class="summary-card-item">
+                                <div class="card-label">审核人</div>
+                                <div class="card-value" id="display-auditor">-</div>
+                            </div>
+                        </div>
+                        <div class="audit-notes-box">
+                            <div class="notes-label"><i class="fas fa-comment-alt"></i> 审核备注</div>
+                            <div class="notes-content" id="display-notes">-</div>
+                        </div>
+                        <div class="issues-list-preview" id="issues-list-preview">
+                            <h4>检测项目列表</h4>
+                            <div class="preview-list" id="preview-list"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 问题列表 -->
+                <div class="form-container">
+                    <div class="form-section issues-section">
+                        <div class="section-header">
+                            <h3><i class="fas fa-exclamation-triangle"></i> 检测问题列表</h3>
+                            <button class="btn-add-item" id="btn-add-issue">
+                                <i class="fas fa-plus"></i> 添加问题
+                            </button>
+                        </div>
+                        <div class="editable-issues-list" id="editable-issues-list"></div>
+                    </div>
+                </div>
+                
+                <!-- 底部导航 -->
+                <div class="step-navigation">
+                    <button class="btn-prev" id="btn-step3-prev">
+                        <i class="fas fa-arrow-left"></i> 上一步
+                    </button>
+                    <button class="btn-next" id="btn-step3-next">
+                        下一步 <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Step 4: Export Declaration -->
+            <section class="step-content" id="step-4">
+                <div class="step-header">
+                    <h2><i class="fas fa-globe-asia"></i> 报关信息确认</h2>
+                    <p>选择目标出口国家，确认报关信息</p>
+                </div>
+                
+                <!-- 车辆信息摘要（从Step 3传递，只读） -->
+                <div class="form-container">
+                    <div class="form-section section-gray">
+                        <h3><i class="fas fa-info-circle"></i> 车辆信息摘要</h3>
+                        <div class="vehicle-info-bar" id="vehicle-info-summary">
+                            <div class="info-bar-item">
+                                <i class="fas fa-car"></i>
+                                <span class="label">车牌</span>
+                                <span class="value" id="summary-plate">-</span>
+                            </div>
+                            <div class="info-bar-divider"></div>
+                            <div class="info-bar-item">
+                                <i class="fas fa-trademark"></i>
+                                <span class="label">品牌</span>
+                                <span class="value" id="summary-brand">-</span>
+                            </div>
+                            <div class="info-bar-divider"></div>
+                            <div class="info-bar-item">
+                                <i class="fas fa-car-side"></i>
+                                <span class="label">型号</span>
+                                <span class="value" id="summary-model">-</span>
+                            </div>
+                            <div class="info-bar-divider"></div>
+                            <div class="info-bar-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span class="label">年份</span>
+                                <span class="value" id="summary-year">-</span>
+                            </div>
+                            <div class="info-bar-divider"></div>
+                            <div class="info-bar-item">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span class="label">里程</span>
+                                <span class="value" id="summary-mileage">-</span>
+                            </div>
+                            <div class="info-bar-divider"></div>
+                            <div class="info-bar-item">
+                                <i class="fas fa-battery-full"></i>
+                                <span class="label">电池容量</span>
+                                <span class="value" id="summary-battery">-</span>
+                            </div>
+                            <div class="info-bar-divider"></div>
+                            <div class="info-bar-item">
+                                <i class="fas fa-road"></i>
+                                <span class="label">续航</span>
+                                <span class="value" id="summary-range">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 目标国家选择（保留原有内容） -->
+                <div class="form-section">
+                    <h3><i class="fas fa-globe-asia"></i> 目标国家</h3>
+                    <div class="country-selection" style="margin-top: 15px;">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="country-search" placeholder="搜索国家...">
+                        </div>
+
+                        <div class="region-tabs">
+                            <button class="tab-btn active" data-region="all">全部</button>
+                            <button class="tab-btn" data-region="asean">东盟国家</button>
+                            <button class="tab-btn" data-region="southeast">东南亚</button>
+                            <button class="tab-btn" data-region="other">其他</button>
+                        </div>
+
+                        <div class="countries-grid" id="countries-grid">
+                            <!-- Countries will be rendered by JS -->
+                        </div>
+
+                        <div class="selected-country" id="selected-country">
+                            <div class="selected-placeholder">
+                                <i class="fas fa-hand-pointer"></i>
+                                <p>请点击上方选择目标国家</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-navigation">
+                    <button class="btn-prev" id="btn-step4-prev">
+                        <i class="fas fa-arrow-left"></i> 上一步
+                    </button>
+                    <button class="btn-next" id="btn-step4-next" disabled>
+                        开始政策检测 <i class="fas fa-shield-alt"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Step 5: Policy Compliance Check -->
+            <section class="step-content" id="step-5">
+                <div class="step-header">
+                    <h2><i class="fas fa-shield-alt"></i> AI政策合规检测</h2>
+                    <p>AI正在分析车辆是否符合目标国家的进口政策</p>
+                </div>
+
+                <div class="checking-container" id="checking-container">
+                    <div class="checking-animation">
+                        <div class="ai-brain">
+                            <i class="fas fa-brain"></i>
+                            <div class="pulse-rings">
+                                <div class="ring"></div>
+                                <div class="ring"></div>
+                                <div class="ring"></div>
+                            </div>
+                        </div>
+                        <h3>AI政策分析中</h3>
+                        <p id="checking-status">正在读取车辆信息...</p>
+                        <div class="checking-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="checking-progress-bar"></div>
+                            </div>
+                            <span class="progress-percent" id="checking-percent">0%</span>
+                        </div>
+                        <div class="checking-items" id="checking-items">
+                            <!-- Checking items will be rendered by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-container hidden" id="result-container">
+                    <div class="result-header">
+                        <div class="result-status" id="result-status">
+                            <i class="fas fa-check-circle"></i>
+                            <span>合规通过</span>
+                        </div>
+                        <div class="result-country" id="result-country">
+                            <img src="" alt="国旗" id="result-flag">
+                            <span id="result-country-name">-</span>
+                        </div>
+                    </div>
+
+                    <div class="result-score-card">
+                        <div class="score-circle" id="compliance-score">
+                            <svg viewBox="0 0 100 100">
+                                <circle class="score-bg" cx="50" cy="50" r="45"></circle>
+                                <circle class="score-fill" cx="50" cy="50" r="45" style="--score: 0;"></circle>
+                            </svg>
+                            <div class="score-text">
+                                <span class="score-number" id="score-number">0</span>
+                                <span class="score-label">合规评分</span>
+                            </div>
+                        </div>
+                        <div class="score-details">
+                            <div class="detail-item">
+                                <span class="detail-label">通过项目</span>
+                                <span class="detail-value pass" id="detail-pass">0</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">警告项目</span>
+                                <span class="detail-value warning" id="detail-warning">0</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">未通过</span>
+                                <span class="detail-value fail" id="detail-fail">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="compliance-details">
+                        <h3><i class="fas fa-list-check"></i> 详细检测结果</h3>
+                        <div class="compliance-list" id="compliance-list">
+                            <!-- Compliance items will be rendered by JS -->
+                        </div>
+                    </div>
+
+                    <div class="recommendations" id="recommendations">
+                        <h3><i class="fas fa-lightbulb"></i> AI建议</h3>
+                        <div class="recommendation-list" id="recommendation-list">
+                            <!-- Recommendations will be rendered by JS -->
+                        </div>
+                    </div>
+
+                    <div class="export-info" id="export-info">
+                        <h3><i class="fas fa-info-circle"></i> 出口相关信息</h3>
+                        <div class="info-grid" id="export-info-grid">
+                            <!-- Export info will be rendered by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="export-actions" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                    <button class="btn-primary" id="btn-export-word" style="flex: 1; min-width: 200px;">
+                        <i class="fas fa-file-word"></i> 导出Word报告
+                    </button>
+                    <button class="btn-primary" id="btn-export-pdf" style="flex: 1; min-width: 200px;">
+                        <i class="fas fa-file-pdf"></i> 导出PDF报告
+                    </button>
+                    <button class="btn-primary" id="btn-export-report" style="flex: 1; min-width: 200px;">
+                        <i class="fas fa-file-export"></i> 导出文本报告
+                    </button>
+                    <button class="btn-success" id="btn-export-declaration" style="flex: 1; min-width: 200px;">
+                        <i class="fas fa-file-alt"></i> 导出报关确认单
+                    </button>
+                </div>
+
+                <div class="step-navigation" id="step5-navigation">
+                    <button class="btn-prev" id="btn-step5-prev">
+                        <i class="fas fa-arrow-left"></i> 上一步
+                    </button>
+                    <button class="btn-success" id="btn-start-over">
+                        <i class="fas fa-redo"></i> 开始新的检测
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>&copy; 2024 EV Export Pro - 新能源汽车出海智能助手</p>
+        </footer>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">提示</h3>
+                <button class="close-btn" id="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Modal content -->
+            </div>
+            <div class="modal-footer" id="modal-footer">
+                <!-- Modal buttons -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
 </html>
