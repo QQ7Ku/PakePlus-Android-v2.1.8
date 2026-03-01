@@ -740,9 +740,9 @@ class UIController {
             btnSelectFiles.addEventListener('click', () => imageUploadInput?.click());
         }
         
-        // "拍照"按钮点击 - 打开相机（单张）
+        // "拍照"按钮点击 - 智能相机调用
         if (btnTakePhoto) {
-            btnTakePhoto.addEventListener('click', () => cameraInput?.click());
+            btnTakePhoto.addEventListener('click', () => this.handleTakePhotoClick());
         }
         
         // 文件input的change事件
@@ -759,6 +759,263 @@ class UIController {
                 throttledFileSelect(e.target.files);
                 e.target.value = '';
             });
+        }
+        
+        // 初始化相机服务
+        this.initCameraService();
+    }
+    
+    // ==================== 相机服务 ====================
+    
+    initCameraService() {
+        this.cameraStream = null;
+        this.videoElement = null;
+        this.canvasElement = null;
+        this.isCameraActive = false;
+    }
+    
+    /**
+     * 检测是否为移动设备
+     */
+    isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+    
+    /**
+     * 检测是否为 iOS 设备
+     */
+    isIOS() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    }
+    
+    /**
+     * 检测是否为安卓设备
+     */
+    isAndroid() {
+        return /Android/.test(navigator.userAgent);
+    }
+    
+    /**
+     * 处理拍照按钮点击
+     * 优先使用原生相机，如果不支持则使用 getUserMedia
+     */
+    async handleTakePhotoClick() {
+        const cameraInput = document.getElementById('camera-upload-input');
+        
+        // 方法1: 使用 input capture（最简单，兼容性较好）
+        if (cameraInput) {
+            // iOS 和大部分安卓设备支持
+            if (this.isMobileDevice()) {
+                cameraInput.click();
+                return;
+            }
+            
+            // 桌面设备：尝试使用 getUserMedia
+            const hasGetUserMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+            if (hasGetUserMedia) {
+                try {
+                    await this.startCameraCapture();
+                    return;
+                } catch (error) {
+                    console.warn('getUserMedia 失败，回退到文件选择:', error);
+                    // 回退到普通文件选择
+                    cameraInput.click();
+                }
+            } else {
+                // 不支持 getUserMedia，使用文件选择
+                cameraInput.click();
+            }
+        }
+    }
+    
+    /**
+     * 使用 getUserMedia 启动相机
+     */
+    async startCameraCapture() {
+        try {
+            // 请求相机权限
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'environment', // 优先使用后置相机
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                },
+                audio: false
+            });
+            
+            this.cameraStream = stream;
+            this.showCameraModal();
+            
+        } catch (error) {
+            console.error('相机启动失败:', error);
+            
+            // 根据错误类型给出提示
+            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                alert('请允许访问相机权限，或选择"从相册选择"上传图片');
+            } else if (error.name === 'NotFoundError') {
+                alert('未检测到相机设备，请使用相册选择图片');
+            } else {
+                alert('相机启动失败: ' + error.message);
+            }
+            
+            throw error;
+        }
+    }
+    
+    /**
+     * 显示相机拍摄模态框
+     */
+    showCameraModal() {
+        // 创建相机模态框
+        const modal = document.createElement('div');
+        modal.id = 'camera-capture-modal';
+        modal.className = 'camera-modal';
+        modal.innerHTML = `
+            <div class="camera-modal-overlay"></div>
+            <div class="camera-modal-content">
+                <div class="camera-header">
+                    <button class="camera-close-btn" title="关闭">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <span class="camera-title">拍照</span>
+                    <button class="camera-switch-btn" title="切换摄像头">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="camera-video-container">
+                    <video id="camera-video" autoplay playsinline></video>
+                    <canvas id="camera-canvas" style="display: none;"></canvas>
+                </div>
+                <div class="camera-controls">
+                    <button class="camera-capture-btn" title="拍照">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // 设置视频流
+        this.videoElement = modal.querySelector('#camera-video');
+        this.canvasElement = modal.querySelector('#camera-canvas');
+        this.videoElement.srcObject = this.cameraStream;
+        
+        // 绑定事件
+        const closeBtn = modal.querySelector('.camera-close-btn');
+        const captureBtn = modal.querySelector('.camera-capture-btn');
+        const switchBtn = modal.querySelector('.camera-switch-btn');
+        
+        closeBtn.addEventListener('click', () => this.closeCameraModal());
+        captureBtn.addEventListener('click', () => this.capturePhoto());
+        switchBtn.addEventListener('click', () => this.switchCamera());
+        
+        // 点击遮罩关闭
+        modal.querySelector('.camera-modal-overlay').addEventListener('click', () => {
+            this.closeCameraModal();
+        });
+        
+        this.isCameraActive = true;
+    }
+    
+    /**
+     * 关闭相机模态框
+     */
+    closeCameraModal() {
+        // 停止相机流
+        if (this.cameraStream) {
+            this.cameraStream.getTracks().forEach(track => track.stop());
+            this.cameraStream = null;
+        }
+        
+        // 移除模态框
+        const modal = document.getElementById('camera-capture-modal');
+        if (modal) {
+            modal.remove();
+        }
+        
+        this.videoElement = null;
+        this.canvasElement = null;
+        this.isCameraActive = false;
+    }
+    
+    /**
+     * 拍照
+     */
+    capturePhoto() {
+        if (!this.videoElement || !this.canvasElement) return;
+        
+        const video = this.videoElement;
+        const canvas = this.canvasElement;
+        const context = canvas.getContext('2d');
+        
+        // 设置画布尺寸与视频一致
+        canvas.width = video.videoWidth || 1280;
+        canvas.height = video.videoHeight || 720;
+        
+        // 绘制视频帧到画布
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // 转换为 Blob
+        canvas.toBlob((blob) => {
+            if (blob) {
+                // 创建 File 对象
+                const file = new File([blob], `camera_${Date.now()}.jpg`, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                });
+                
+                // 处理图片
+                this.handleFileSelect([file]);
+                
+                // 关闭相机
+                this.closeCameraModal();
+            }
+        }, 'image/jpeg', 0.9);
+    }
+    
+    /**
+     * 切换前后摄像头
+     */
+    async switchCamera() {
+        if (!this.cameraStream) return;
+        
+        // 获取当前使用的摄像头
+        const videoTrack = this.cameraStream.getVideoTracks()[0];
+        const settings = videoTrack.getSettings();
+        const currentFacingMode = settings.facingMode || 'environment';
+        const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+        
+        // 停止当前流
+        this.cameraStream.getTracks().forEach(track => track.stop());
+        
+        try {
+            // 请求新的流
+            const newStream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: newFacingMode,
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                },
+                audio: false
+            });
+            
+            this.cameraStream = newStream;
+            this.videoElement.srcObject = newStream;
+            
+        } catch (error) {
+            console.error('切换摄像头失败:', error);
+            // 尝试恢复原来的流
+            try {
+                const originalStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: currentFacingMode },
+                    audio: false
+                });
+                this.cameraStream = originalStream;
+                this.videoElement.srcObject = originalStream;
+            } catch (e) {
+                console.error('恢复摄像头失败:', e);
+            }
         }
 
         // 拖拽事件（节流）
