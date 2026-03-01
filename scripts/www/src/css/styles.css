@@ -1,0 +1,1651 @@
+/**
+ * BYD Qin Pro DM Inspection System - Image Upload Styles
+ * Optimized CSS with improved maintainability, performance and accessibility
+ * @version 2.0
+ */
+
+/* ============================================
+   CSS Custom Properties (Variables)
+   ============================================ */
+
+:root {
+    /* Primary Colors */
+    --color-primary: #3498db;
+    --color-primary-dark: #2980b9;
+    --color-primary-light: #5dade2;
+    --color-primary-rgb: 52, 152, 219;
+    
+    /* Success Colors */
+    --color-success: #27ae60;
+    --color-success-dark: #219a52;
+    --color-success-rgb: 39, 174, 96;
+    
+    /* Danger/Error Colors */
+    --color-danger: #e74c3c;
+    --color-danger-dark: #c0392b;
+    --color-danger-rgb: 231, 76, 60;
+    
+    /* Warning Colors */
+    --color-warning: #f39c12;
+    --color-warning-rgb: 243, 156, 18;
+    
+    /* Camera/Photo Colors */
+    --color-camera: #11998e;
+    --color-camera-light: #38ef7d;
+    --color-camera-rgb: 17, 153, 142;
+    
+    /* Neutral Colors */
+    --color-white: #ffffff;
+    --color-black: #000000;
+    --color-gray-100: #f8f9fa;
+    --color-gray-200: #e9ecef;
+    --color-gray-300: #dee2e6;
+    --color-gray-400: #ced4da;
+    --color-gray-500: #adb5bd;
+    --color-gray-600: #6c757d;
+    --color-gray-700: #495057;
+    --color-gray-800: #343a40;
+    --color-gray-900: #212529;
+    
+    /* Text Colors */
+    --text-primary: var(--color-gray-800);
+    --text-secondary: var(--color-gray-600);
+    --text-muted: var(--color-gray-500);
+    --text-inverse: var(--color-white);
+    
+    /* Background Colors */
+    --bg-body: var(--color-gray-100);
+    --bg-card: var(--color-white);
+    --bg-panel: var(--color-gray-100);
+    --bg-hover: rgba(var(--color-primary-rgb), 0.05);
+    --bg-overlay: rgba(0, 0, 0, 0.9);
+    
+    /* Border Colors */
+    --border-color: var(--color-gray-300);
+    --border-color-hover: var(--color-primary);
+    
+    /* Spacing Scale (8px base) */
+    --space-unit: 0.5rem;
+    --space-2xs: calc(var(--space-unit) * 0.5);  /* 4px */
+    --space-xs: var(--space-unit);                /* 8px */
+    --space-sm: calc(var(--space-unit) * 1.5);    /* 12px */
+    --space-md: calc(var(--space-unit) * 2);      /* 16px */
+    --space-lg: calc(var(--space-unit) * 3);      /* 24px */
+    --space-xl: calc(var(--space-unit) * 4);      /* 32px */
+    --space-2xl: calc(var(--space-unit) * 6);     /* 48px */
+    
+    /* Legacy spacing aliases for compatibility */
+    --spacing-xs: var(--space-xs);
+    --spacing-sm: var(--space-sm);
+    --spacing-md: var(--space-md);
+    --spacing-lg: var(--space-lg);
+    --spacing-xl: var(--space-xl);
+    
+    /* Border Radius */
+    --radius-sm: 0.375rem;   /* 6px */
+    --radius-md: 0.5rem;     /* 8px */
+    --radius-lg: 0.75rem;    /* 12px */
+    --radius-xl: 1rem;       /* 16px */
+    --radius-full: 9999px;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-glow-primary: 0 0 20px rgba(var(--color-primary-rgb), 0.3);
+    --shadow-glow-camera: 0 0 20px rgba(var(--color-camera-rgb), 0.3);
+    --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+    
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+    --transition-slow: 350ms ease;
+    --transition-bounce: 300ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    
+    /* Z-index Scale */
+    --z-base: 1;
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-modal-backdrop: 300;
+    --z-modal: 400;
+    --z-popover: 500;
+    --z-tooltip: 600;
+    --z-toast: 700;
+    --z-lightbox: 10000;
+    
+    /* Typography */
+    --font-size-xs: 0.75rem;    /* 12px */
+    --font-size-sm: 0.8125rem;  /* 13px */
+    --font-size-base: 0.875rem; /* 14px */
+    --font-size-lg: 1rem;       /* 16px */
+    --font-size-xl: 1.125rem;   /* 18px */
+    --font-size-2xl: 1.5rem;    /* 24px */
+    --font-size-3xl: 3rem;      /* 48px */
+    
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    
+    /* Animation */
+    --animation-spin: spin 0.8s linear infinite;
+    --animation-bounce: bounce 0.5s ease infinite alternate;
+    --animation-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ============================================
+   Keyframe Animations
+   ============================================ */
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-5px); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from { 
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to { 
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ============================================
+   Reduced Motion Support
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ============================================
+   1. Image Upload Section
+   ============================================ */
+
+/* Upload Group Container */
+.image-upload-group {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+}
+
+.upload-section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-md);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+}
+
+.upload-section-title i {
+    color: var(--color-primary);
+}
+
+/* Upload Button Group */
+.upload-buttons {
+    display: flex;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+/* Legacy Button Upload (keep for compatibility) */
+.btn-upload {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    min-height: 70px;
+    padding: var(--space-md) var(--space-sm);
+}
+
+.btn-upload i {
+    font-size: var(--font-size-2xl);
+}
+
+.btn-upload span {
+    font-size: var(--font-size-sm);
+}
+
+/* Primary Upload Button */
+.btn-upload-primary {
+    --btn-shadow-color: rgba(var(--color-primary-rgb), 0.3);
+    
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex: 1;
+    padding: var(--space-md);
+    color: var(--color-white);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    box-shadow: 0 4px 15px var(--btn-shadow-color);
+    transition: transform var(--transition-fast), 
+                box-shadow var(--transition-fast);
+    will-change: transform;
+}
+
+.btn-upload-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(var(--color-primary-rgb), 0.4);
+}
+
+.btn-upload-primary:active {
+    transform: translateY(0);
+}
+
+.btn-upload-primary:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.btn-upload-primary .upload-btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    font-size: var(--font-size-lg);
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+}
+
+.btn-upload-primary .upload-btn-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2xs);
+}
+
+.btn-upload-primary .btn-main-text {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+}
+
+.btn-upload-primary .btn-sub-text {
+    font-size: var(--font-size-xs);
+    opacity: 0.8;
+}
+
+/* Camera Button Variant */
+.btn-upload-primary--camera {
+    --btn-shadow-color: rgba(var(--color-camera-rgb), 0.3);
+    background: linear-gradient(135deg, var(--color-camera) 0%, var(--color-camera-light) 100%);
+}
+
+.btn-upload-primary--camera:hover {
+    box-shadow: 0 6px 20px rgba(var(--color-camera-rgb), 0.4);
+}
+
+/* Upload Area (Drag & Drop) */
+.image-upload-area {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    min-height: 160px;
+    padding: var(--space-xl);
+    background: var(--bg-card);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: border-color var(--transition-fast),
+                background-color var(--transition-fast),
+                transform var(--transition-fast);
+    will-change: transform;
+}
+
+.image-upload-area:hover {
+    background: var(--bg-hover);
+    border-color: var(--color-primary);
+}
+
+.image-upload-area:active {
+    transform: scale(0.98);
+}
+
+.image-upload-area:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Drag Over State */
+.image-upload-area--drag-over {
+    background: rgba(var(--color-primary-rgb), 0.1);
+    border-color: var(--color-primary);
+    border-style: solid;
+}
+
+.image-upload-area--drag-over .upload-icon {
+    color: var(--color-primary);
+    animation: var(--animation-bounce);
+}
+
+/* Error State */
+.image-upload-area--error {
+    background: rgba(var(--color-danger-rgb), 0.05);
+    border-color: var(--color-danger);
+}
+
+/* Disabled State */
+.image-upload-area--disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Upload Icon */
+.upload-icon {
+    font-size: var(--font-size-3xl);
+    color: var(--text-muted);
+    transition: color var(--transition-fast);
+}
+
+.image-upload-area:hover .upload-icon {
+    color: var(--color-primary);
+}
+
+/* Upload Text */
+.upload-text {
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.upload-text__primary {
+    margin-bottom: var(--space-xs);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+}
+
+.upload-text__secondary {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+/* Hidden File Input */
+.image-upload-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Image Count Info */
+.image-count-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: var(--space-sm) 0;
+}
+
+.image-count {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    text-align: right;
+}
+
+.image-size-info {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+/* Upload Limits */
+.upload-limits {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.upload-limits i {
+    font-size: var(--font-size-base);
+}
+
+/* Upload Progress */
+.upload-progress {
+    width: 100%;
+    margin-top: var(--space-md);
+}
+
+.upload-progress__bar {
+    height: 4px;
+    overflow: hidden;
+    background: var(--bg-panel);
+    border-radius: var(--radius-sm);
+}
+
+.upload-progress__fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-success));
+    border-radius: var(--radius-sm);
+    transition: width 0.3s ease;
+    will-change: width;
+}
+
+.upload-progress__text {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--space-xs);
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+/* ============================================
+   2. Image Preview Grid
+   ============================================ */
+
+.image-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-md);
+    margin-top: var(--space-sm);
+}
+
+/* Preview Item */
+.image-preview-item {
+    position: relative;
+    overflow: hidden;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition-fast),
+                box-shadow var(--transition-fast);
+}
+
+.image-preview-item:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Preview Thumbnail */
+.image-preview-thumb {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: var(--bg-panel);
+}
+
+.image-preview-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-normal);
+    will-change: transform;
+}
+
+.image-preview-item:hover .image-preview-thumb img {
+    transform: scale(1.05);
+}
+
+/* Loading State with Skeleton */
+.image-preview-thumb--loading {
+    background: linear-gradient(
+        90deg,
+        var(--bg-panel) 25%,
+        var(--color-gray-200) 50%,
+        var(--bg-panel) 75%
+    );
+    background-size: 200% 100%;
+    animation: var(--animation-pulse);
+}
+
+.image-preview-thumb--loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin: -12px 0 0 -12px;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--color-primary);
+    border-radius: var(--radius-full);
+    animation: var(--animation-spin);
+}
+
+/* Image Info */
+.image-preview-info {
+    padding: var(--space-sm);
+    background: var(--bg-panel);
+}
+
+.image-preview-name {
+    margin-bottom: var(--space-2xs);
+    overflow: hidden;
+    color: var(--text-primary);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.image-preview-size {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+/* Remove Button */
+.image-preview-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: var(--z-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: var(--color-white);
+    background: var(--color-danger);
+    border: none;
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    cursor: pointer;
+    opacity: 0;
+    box-shadow: var(--shadow-sm);
+    transition: opacity var(--transition-fast),
+                background-color var(--transition-fast),
+                transform var(--transition-fast);
+    will-change: transform, opacity;
+}
+
+.image-preview-item:hover .image-preview-remove {
+    opacity: 1;
+}
+
+.image-preview-remove:hover {
+    background: var(--color-danger-dark);
+    transform: scale(1.1);
+}
+
+.image-preview-remove:active {
+    transform: scale(0.95);
+}
+
+.image-preview-remove:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--color-white);
+    outline-offset: 2px;
+}
+
+/* Error State in Preview */
+.image-preview-item--error {
+    border-color: var(--color-danger);
+}
+
+.image-preview-item--error .image-preview-thumb {
+    background: rgba(var(--color-danger-rgb), 0.1);
+}
+
+.image-preview-error {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-sm);
+    color: var(--color-white);
+    font-size: var(--font-size-xs);
+    text-align: center;
+    background: rgba(var(--color-danger-rgb), 0.8);
+}
+
+/* ============================================
+   3. Upload States
+   ============================================ */
+
+/* Loading State */
+.upload-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-xl);
+}
+
+.upload-loading__spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--color-primary);
+    border-radius: var(--radius-full);
+    animation: var(--animation-spin);
+}
+
+.upload-loading__text {
+    color: var(--text-secondary);
+    font-size: var(--font-size-base);
+}
+
+/* Success State */
+.upload-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-lg);
+    color: var(--color-success);
+}
+
+.upload-success i {
+    font-size: var(--font-size-3xl);
+}
+
+.upload-success__text {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Error Message */
+.upload-error-message {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    color: var(--color-danger);
+    font-size: var(--font-size-sm);
+    background: rgba(var(--color-danger-rgb), 0.1);
+    border: 1px solid var(--color-danger);
+    border-radius: var(--radius-sm);
+}
+
+.upload-error-message i {
+    font-size: var(--font-size-base);
+}
+
+/* ============================================
+   4. Empty States
+   ============================================ */
+
+.image-empty-state {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: var(--space-xl);
+    color: var(--text-muted);
+    text-align: center;
+    background: var(--bg-card);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.image-empty-state i {
+    font-size: var(--font-size-2xl);
+    opacity: 0.6;
+}
+
+.image-empty-state__text {
+    font-size: var(--font-size-sm);
+}
+
+/* Small Empty State */
+.image-empty-state--small {
+    min-height: 80px;
+    padding: var(--space-md);
+}
+
+.image-empty-state--small i {
+    font-size: var(--font-size-xl);
+}
+
+.image-empty-state--small span {
+    font-size: var(--font-size-xs);
+}
+
+/* Empty State Icon Circle */
+.empty-state-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    margin-bottom: var(--space-sm);
+    background: var(--bg-hover);
+    border-radius: var(--radius-full);
+}
+
+.empty-state-icon i {
+    font-size: var(--font-size-lg);
+    color: var(--text-muted);
+}
+
+.empty-state-text {
+    font-size: var(--font-size-sm);
+}
+
+/* ============================================
+   5. Point Images Grid (Inspection Points)
+   ============================================ */
+
+.point-images-section {
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-color);
+}
+
+.point-images-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+}
+
+/* Point Image Thumbnail */
+.point-image-thumb {
+    position: relative;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition-fast),
+                box-shadow var(--transition-fast);
+}
+
+.point-image-thumb:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.point-image-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-normal);
+    will-change: transform;
+}
+
+.point-image-thumb:hover img {
+    transform: scale(1.05);
+}
+
+/* More Images Overlay */
+.point-image-more {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-white);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    background: rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.point-image-more:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* Image Group */
+.image-group {
+    margin-bottom: var(--space-md);
+}
+
+.image-group-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xs);
+    font-size: var(--font-size-sm);
+}
+
+.group-image-count {
+    font-size: var(--font-size-xs);
+    opacity: 0.7;
+}
+
+/* Severity Badges */
+.severity-badge {
+    padding: 2px 8px;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    border-radius: var(--radius-sm);
+}
+
+.severity-badge--severe {
+    color: var(--color-danger);
+    background: rgba(var(--color-danger-rgb), 0.2);
+}
+
+.severity-badge--moderate {
+    color: var(--color-warning);
+    background: rgba(var(--color-warning-rgb), 0.2);
+}
+
+.severity-badge--minor {
+    color: #f1c40f;
+    background: rgba(241, 196, 15, 0.2);
+}
+
+/* ============================================
+   6. Issue Cards with Images
+   ============================================ */
+
+/* Issue Card Container */
+.issue-card-with-image {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    cursor: pointer;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: border-color var(--transition-fast),
+                box-shadow var(--transition-fast);
+}
+
+.issue-card-with-image:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.issue-card-with-image:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Issue Card Image Wrapper */
+.issue-card-image-wrapper {
+    position: relative;
+    flex-shrink: 0;
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+    background: var(--bg-panel);
+    border-radius: var(--radius-sm);
+}
+
+.issue-image-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-normal);
+    will-change: transform;
+}
+
+.issue-card-with-image:hover .issue-image-thumb {
+    transform: scale(1.05);
+}
+
+/* Image Count Badge */
+.issue-image-count {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: var(--z-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    color: var(--color-white);
+    font-size: 11px;
+    font-weight: var(--font-weight-semibold);
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+}
+
+/* Issue Card Content */
+.issue-card-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+}
+
+.issue-card-title {
+    margin-bottom: var(--space-xs);
+    overflow: hidden;
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.issue-card-desc {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    line-height: 1.5;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+/* Issue Thumbnail (Compact) */
+.issue-thumbnail {
+    position: relative;
+    flex-shrink: 0;
+    width: 70px;
+    height: 70px;
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+}
+
+.issue-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-fast);
+    will-change: transform;
+}
+
+.issue-thumbnail:hover img {
+    transform: scale(1.05);
+}
+
+/* Compact Badge */
+.image-count-badge {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    z-index: var(--z-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    color: var(--color-white);
+    font-size: 10px;
+    font-weight: var(--font-weight-semibold);
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 9px;
+}
+
+/* Issue Image Indicator */
+.issue-image-indicator {
+    margin-left: var(--space-sm);
+    color: var(--color-primary);
+    font-size: var(--font-size-xs);
+}
+
+/* ============================================
+   7. Image Viewer (Lightbox)
+   ============================================ */
+
+/* Lightbox Overlay */
+.image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-lightbox);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.95);
+    animation: fadeIn var(--transition-fast);
+}
+
+.lightbox-overlay {
+    position: absolute;
+    inset: 0;
+}
+
+.lightbox-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 90vw;
+    max-height: 90vh;
+}
+
+.lightbox-image-container {
+    max-width: 100%;
+    max-height: 80vh;
+}
+
+.lightbox-image-container img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+}
+
+/* Lightbox Close Button */
+.lightbox-close {
+    position: absolute;
+    top: -50px;
+    right: 0;
+    z-index: calc(var(--z-lightbox) + 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    color: var(--color-white);
+    font-size: var(--font-size-lg);
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: var(--radius-full);
+    transition: background-color var(--transition-fast),
+                transform var(--transition-fast);
+    will-change: transform;
+}
+
+.lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.lightbox-close:focus-visible {
+    outline: 2px solid var(--color-white);
+    outline-offset: 2px;
+}
+
+/* Lightbox Navigation */
+.lightbox-nav {
+    position: absolute;
+    top: 50%;
+    z-index: calc(var(--z-lightbox) + 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 80px;
+    color: var(--color-white);
+    font-size: var(--font-size-xl);
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    transform: translateY(-50%);
+    transition: background-color var(--transition-fast);
+    will-change: background-color;
+}
+
+.lightbox-nav:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.lightbox-nav:focus-visible {
+    outline: 2px solid var(--color-white);
+    outline-offset: 2px;
+}
+
+.lightbox-nav--prev {
+    left: -70px;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.lightbox-nav--next {
+    right: -70px;
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+/* Lightbox Info */
+.lightbox-info {
+    max-width: 100%;
+    margin-top: var(--space-md);
+    color: var(--color-white);
+    text-align: center;
+}
+
+.lightbox-title {
+    margin-bottom: var(--space-xs);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+}
+
+.lightbox-desc {
+    max-width: 600px;
+    margin-bottom: var(--space-xs);
+    font-size: var(--font-size-base);
+    opacity: 0.8;
+}
+
+.lightbox-meta {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+    font-size: var(--font-size-sm);
+    opacity: 0.6;
+}
+
+/* Legacy Image Viewer Overlay (keep for compatibility) */
+.image-viewer-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-lightbox);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.9);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-normal),
+                visibility var(--transition-normal);
+}
+
+.image-viewer-overlay--active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.image-viewer-content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 90vw;
+    max-height: 90vh;
+}
+
+.image-viewer-content img {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+}
+
+.image-viewer-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: calc(var(--z-lightbox) + 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    color: var(--color-white);
+    font-size: var(--font-size-xl);
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: var(--radius-full);
+    transition: background-color var(--transition-fast),
+                transform var(--transition-fast);
+    will-change: transform;
+}
+
+.image-viewer-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.image-viewer-nav {
+    position: absolute;
+    top: 50%;
+    z-index: calc(var(--z-lightbox) + 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 80px;
+    color: var(--color-white);
+    font-size: var(--font-size-xl);
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    transform: translateY(-50%);
+    transition: background-color var(--transition-fast);
+}
+
+.image-viewer-nav:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.image-viewer-nav--prev {
+    left: 20px;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.image-viewer-nav--next {
+    right: 20px;
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.image-viewer-counter {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    z-index: calc(var(--z-lightbox) + 1);
+    padding: var(--space-sm) var(--space-md);
+    color: var(--color-white);
+    font-size: var(--font-size-base);
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: var(--radius-md);
+    transform: translateX(-50%);
+}
+
+/* ============================================
+   8. Image Viewer Modal
+   ============================================ */
+
+.image-viewer-modal .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.image-viewer-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--space-md);
+}
+
+.image-viewer-item {
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: border-color var(--transition-fast),
+                transform var(--transition-fast);
+    will-change: transform;
+}
+
+.image-viewer-item:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+}
+
+.image-viewer-item:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.image-viewer-item img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.image-viewer-info {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-sm);
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    background: var(--bg-card);
+}
+
+/* ============================================
+   9. Modal Body Upload Styles
+   ============================================ */
+
+.modal-body .image-upload-group {
+    margin-bottom: var(--space-md);
+}
+
+.modal-body .upload-buttons {
+    margin-bottom: var(--space-sm);
+}
+
+/* Simplified Upload Area in Modal */
+.modal-body .image-upload-area {
+    min-height: 100px;
+    padding: var(--space-md);
+}
+
+.modal-body .image-upload-area .upload-icon {
+    font-size: var(--font-size-2xl);
+}
+
+.modal-body .image-upload-area .upload-text {
+    margin: var(--space-xs) 0;
+    font-size: var(--font-size-sm);
+}
+
+.modal-body .image-upload-area .upload-hint {
+    font-size: var(--font-size-xs);
+}
+
+/* ============================================
+   10. Utility Classes
+   ============================================ */
+
+.desktop-only {
+    display: flex;
+}
+
+.mobile-only {
+    display: none;
+}
+
+/* Visually Hidden (for accessibility) */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Focus Visible Utility */
+.focus-ring:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* ============================================
+   11. Responsive Adaptations
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* Upload Area */
+    .image-upload-area {
+        min-height: 120px;
+        padding: var(--space-lg);
+    }
+    
+    .upload-icon {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .upload-text__primary {
+        font-size: var(--font-size-base);
+    }
+    
+    .upload-text__secondary {
+        font-size: var(--font-size-xs);
+    }
+    
+    /* Preview Grid - 2 columns */
+    .image-preview-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-sm);
+    }
+    
+    /* Remove button always visible on mobile */
+    .image-preview-remove {
+        width: 28px;
+        height: 28px;
+        font-size: var(--font-size-sm);
+        opacity: 1;
+    }
+    
+    /* Upload limits */
+    .upload-limits {
+        flex-direction: column;
+        font-size: 11px;
+        text-align: center;
+    }
+    
+    /* Display control */
+    .desktop-only {
+        display: none;
+    }
+    
+    .mobile-only {
+        display: flex;
+    }
+    
+    /* Upload buttons */
+    .upload-buttons {
+        gap: var(--space-sm);
+    }
+    
+    .btn-upload {
+        min-height: 60px;
+        padding: var(--space-sm);
+    }
+    
+    .btn-upload i {
+        font-size: var(--font-size-xl);
+    }
+    
+    .btn-upload span {
+        font-size: var(--font-size-xs);
+    }
+    
+    .btn-upload-primary {
+        flex-direction: column;
+        padding: var(--space-sm);
+        text-align: center;
+    }
+    
+    .btn-upload-primary .upload-btn-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .btn-upload-primary .upload-btn-text {
+        align-items: center;
+    }
+    
+    .btn-upload-primary .btn-main-text {
+        font-size: var(--font-size-sm);
+    }
+    
+    .btn-upload-primary .btn-sub-text {
+        font-size: 11px;
+    }
+    
+    /* Point Images Grid - 2 columns */
+    .point-images-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-xs);
+    }
+    
+    /* Issue Card adjustments */
+    .issue-card-with-image {
+        gap: var(--space-sm);
+        padding: var(--space-sm);
+    }
+    
+    .issue-card-image-wrapper {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .issue-card-title {
+        font-size: var(--font-size-sm);
+    }
+    
+    .issue-card-desc {
+        font-size: 11px;
+    }
+    
+    /* Lightbox adjustments */
+    .lightbox-nav--prev {
+        left: 10px;
+    }
+    
+    .lightbox-nav--next {
+        right: 10px;
+    }
+    
+    .lightbox-close {
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.5);
+    }
+    
+    /* Legacy image viewer */
+    .image-viewer-nav {
+        width: 40px;
+        height: 60px;
+        font-size: var(--font-size-lg);
+    }
+    
+    .image-viewer-nav--prev {
+        left: 0;
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+    
+    .image-viewer-nav--next {
+        right: 0;
+        border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    }
+    
+    .image-viewer-close {
+        top: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: var(--font-size-lg);
+    }
+    
+    .image-viewer-counter {
+        padding: var(--space-xs) var(--space-sm);
+        font-size: var(--font-size-sm);
+    }
+    
+    /* Empty states */
+    .image-empty-state {
+        padding: var(--space-lg);
+    }
+    
+    .image-empty-state i {
+        font-size: var(--font-size-xl);
+    }
+}
+
+@media (max-width: 480px) {
+    /* Keep 2 columns on very small screens */
+    .image-preview-grid,
+    .point-images-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Simplified issue card */
+    .issue-card-image-wrapper {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .issue-card-content {
+        justify-content: flex-start;
+    }
+    
+    .issue-card-desc {
+        -webkit-line-clamp: 1;
+    }
+    
+    /* Image viewer modal */
+    .image-viewer-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Issue thumbnail */
+    .issue-thumbnail {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+/* ============================================
+   12. Touch Device Optimizations
+   ============================================ */
+
+@media (pointer: coarse) {
+    /* Larger tap targets */
+    .image-upload-area {
+        min-height: 180px;
+    }
+    
+    .image-preview-remove {
+        width: 32px;
+        height: 32px;
+        font-size: var(--font-size-base);
+        opacity: 1;
+    }
+    
+    /* Click feedback */
+    .image-upload-area:active {
+        background: var(--bg-hover);
+    }
+    
+    /* Larger lightbox controls */
+    .lightbox-nav {
+        width: 60px;
+        height: 100px;
+    }
+    
+    .lightbox-close {
+        width: 48px;
+        height: 48px;
+    }
+    
+    /* Point image thumb */
+    .point-image-thumb,
+    .issue-card-with-image {
+        cursor: pointer;
+    }
+}
+
+/* ============================================
+   13. Print Styles
+   ============================================ */
+
+@media print {
+    .image-upload-area,
+    .upload-buttons,
+    .image-preview-remove,
+    .image-lightbox,
+    .image-viewer-overlay,
+    .lightbox-nav,
+    .lightbox-close {
+        display: none !important;
+    }
+    
+    .image-preview-grid {
+        grid-template-columns: repeat(3, 1fr);
+        page-break-inside: avoid;
+    }
+    
+    .image-preview-item {
+        break-inside: avoid;
+    }
+}
