@@ -38,6 +38,18 @@ class Engine3DService {
         // Animation management
         this.animationMixers = new Map();
         
+        // Performance settings from device detector
+        this.perfConfig = window.DevicePerformanceDetector?.getOptimizationConfig() || {
+            pixelRatio: Math.min(window.devicePixelRatio, 2),
+            antialias: true,
+            shadows: { enabled: true, mapSize: 2048 },
+            hotspotSegments: 32,
+            frameRate: 60
+        };
+        
+        // Page visibility
+        this.isVisible = true;
+        
         // Bound event handlers (for proper cleanup)
         this._boundOnResize = this.onResize.bind(this);
         this._boundOnClick = this.onClick.bind(this);
@@ -77,8 +89,9 @@ class Engine3DService {
     }
 
     setupRenderer() {
-        const isMobile = this.isMobile();
-        const pixelRatio = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
+        const config = this.perfConfig;
+        
+        console.log('🎨 Setting up renderer with config:', config);
 
         // Check WebGL support first
         if (!this.isWebGLSupported()) {
@@ -97,9 +110,9 @@ class Engine3DService {
         try {
             this.renderer = new THREE.WebGLRenderer({
                 canvas: this.canvas,
-                antialias: !isMobile,
+                antialias: config.antialias,
                 alpha: true,
-                powerPreference: 'default',  // Changed from high-performance for better compatibility
+                powerPreference: config.frameRate === 30 ? 'low-power' : 'default',
                 failIfMajorPerformanceCaveat: false,
                 preserveDrawingBuffer: true
             });
@@ -109,9 +122,17 @@ class Engine3DService {
         }
 
         this.renderer.setSize(width, height);
-        this.renderer.setPixelRatio(Math.min(pixelRatio, 2));
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.renderer.setPixelRatio(config.pixelRatio);
+        this.renderer.shadowMap.enabled = config.shadows.enabled;
+        
+        if (config.shadows.enabled) {
+            const shadowTypes = {
+                'PCFSoftShadowMap': THREE.PCFSoftShadowMap,
+                'PCFShadowMap': THREE.PCFShadowMap,
+                'BasicShadowMap': THREE.BasicShadowMap
+            };
+            this.renderer.shadowMap.type = shadowTypes[config.shadows.type] || THREE.PCFSoftShadowMap;
+        }
 
         // Context loss handling
         this.canvas.addEventListener('webglcontextlost', (e) => {
@@ -154,18 +175,37 @@ class Engine3DService {
     }
 
     setupLighting() {
+        const config = this.perfConfig;
+        let lightCount = 0;
+
+        // 环境光 - 始终启用
         const ambient = new THREE.AmbientLight(0xffffff, 0.5);
         this.scene.add(ambient);
+        lightCount++;
 
-        const main = new THREE.DirectionalLight(0xffffff, 1);
-        main.position.set(5, 10, 5);
-        main.castShadow = true;
-        main.shadow.mapSize.set(2048, 2048);
-        this.scene.add(main);
+        // 主光源
+        if (lightCount < config.maxLights) {
+            const main = new THREE.DirectionalLight(0xffffff, 1);
+            main.position.set(5, 10, 5);
+            
+            if (config.shadows.enabled) {
+                main.castShadow = true;
+                main.shadow.mapSize.set(config.shadows.mapSize, config.shadows.mapSize);
+                main.shadow.camera.near = 0.5;
+                main.shadow.camera.far = 50;
+                main.shadow.bias = -0.0005;
+            }
+            
+            this.scene.add(main);
+            lightCount++;
+        }
 
-        const fill = new THREE.DirectionalLight(0x88ccff, 0.4);
-        fill.position.set(-5, 5, -5);
-        this.scene.add(fill);
+        // 补光 - 仅在高端设备
+        if (lightCount < config.maxLights && config.maxLights > 3) {
+            const fill = new THREE.DirectionalLight(0x88ccff, 0.4);
+            fill.position.set(-5, 5, -5);
+            this.scene.add(fill);
+        }
     }
 
     setupEnvironment() {
@@ -190,6 +230,7 @@ class Engine3DService {
 
     setupEvents() {
         window.addEventListener('resize', this._boundOnResize);
+        document.addEventListener('visibilitychange', () => this.onVisibilityChange());
         
         // Mouse
         this.canvas.addEventListener('click', this._boundOnClick);
@@ -202,6 +243,17 @@ class Engine3DService {
         // WebGL Context
         this.canvas.addEventListener('webglcontextlost', this._boundContextLost);
         this.canvas.addEventListener('webglcontextrestored', this._boundContextRestored);
+    }
+
+    onVisibilityChange() {
+        this.isVisible = !document.hidden;
+        if (document.hidden) {
+            this.isRunning = false;
+            console.log('📱 Page hidden, pausing render');
+        } else {
+            this.isRunning = true;
+            console.log('📱 Page visible, resuming render');
+        }
     }
 
     onContextLost(e) {
@@ -246,6 +298,7 @@ class Engine3DService {
         const colors = isStructure ? Constants.HOTSPOT_COLORS.structure : Constants.HOTSPOT_COLORS.paint;
         const isMobile = this.isMobile();
         const scale = isMobile ? 2.0 : 1.0;
+        const segments = this.perfConfig.hotspotSegments || 32;
 
         const group = new THREE.Group();
         group.position.set(position.x, position.y, position.z);
@@ -256,8 +309,8 @@ class Engine3DService {
             visible: false
         };
 
-        // Ring - outer glow
-        const ringGeo = new THREE.RingGeometry(0.15 * scale, 0.2 * scale, 32);
+        // Ring - outer glow (使用配置的分段数)
+        const ringGeo = new THREE.RingGeometry(0.15 * scale, 0.2 * scale, segments);
         const ringMat = new THREE.MeshBasicMaterial({
             color: colors.ring,
             transparent: true,
@@ -269,8 +322,8 @@ class Engine3DService {
         ring.name = 'ring';
         group.add(ring);
 
-        // Dot - center point with glow effect
-        const dotGeo = new THREE.SphereGeometry(0.1 * scale, 16, 16);
+        // Dot - center point with glow effect (使用配置的分段数)
+        const dotGeo = new THREE.SphereGeometry(0.1 * scale, segments, segments);
         const dotMat = new THREE.MeshStandardMaterial({ 
             color: colors.primary,
             emissive: colors.primary,
@@ -282,19 +335,21 @@ class Engine3DService {
         dot.name = 'dot';
         group.add(dot);
 
-        // Glow effect - larger transparent sphere
-        const glowGeo = new THREE.SphereGeometry(0.2 * scale, 16, 16);
-        const glowMat = new THREE.MeshBasicMaterial({
-            color: colors.glow,
-            transparent: true,
-            opacity: 0.3
-        });
-        const glow = new THREE.Mesh(glowGeo, glowMat);
-        glow.name = 'glow';
-        group.add(glow);
+        // Glow effect - larger transparent sphere (仅在高端设备显示)
+        if (this.perfConfig.frameRate >= 60) {
+            const glowGeo = new THREE.SphereGeometry(0.2 * scale, Math.max(8, segments/2), Math.max(8, segments/2));
+            const glowMat = new THREE.MeshBasicMaterial({
+                color: colors.glow,
+                transparent: true,
+                opacity: 0.3
+            });
+            const glow = new THREE.Mesh(glowGeo, glowMat);
+            glow.name = 'glow';
+            group.add(glow);
+        }
 
         // Hit area (invisible)
-        const hitGeo = new THREE.SphereGeometry(0.4 * scale, 16, 16);
+        const hitGeo = new THREE.SphereGeometry(0.4 * scale, 8, 8);
         const hitMat = new THREE.MeshBasicMaterial({
             color: colors.primary,
             transparent: true,
