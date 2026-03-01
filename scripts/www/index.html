@@ -1392,7 +1392,8 @@
                     <div class="form-group image-upload-group">
                         <!-- 隐藏的文件输入 -->
                         <input type="file" id="image-upload-input" accept="image/jpeg,image/png,image/webp" multiple style="display: none;">
-                        <input type="file" id="camera-upload-input" accept="image/*" capture="environment" style="display: none;">
+                        <!-- 相机输入 - capture属性由JS动态设置以兼容不同设备 -->
+                        <input type="file" id="camera-upload-input" accept="image/*" style="display: none;">
                         
                         <!-- 上传按钮组 -->
                         <div class="upload-buttons">
@@ -1414,6 +1415,11 @@
                                     <span class="btn-sub-text">打开相机</span>
                                 </div>
                             </button>
+                        </div>
+                        
+                        <!-- 调试信息（仅开发环境显示） -->
+                        <div id="camera-debug-info" style="display: none; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; font-size: 12px; color: #888;">
+                            <div>环境检测中...</div>
                         </div>
                         
                         <!-- 拖拽上传区域（桌面端） -->
