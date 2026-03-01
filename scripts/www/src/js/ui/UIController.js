@@ -359,6 +359,38 @@ class UIController {
         this.initLazyImageLoader();
         this.subscribeToStore();
         this.subscribeToEvents();
+        this.showCameraDebugInfo();
+    }
+    
+    /**
+     * 显示相机调试信息（开发环境）
+     */
+    showCameraDebugInfo() {
+        const debugDiv = document.getElementById('camera-debug-info');
+        if (!debugDiv) return;
+        
+        // 只在特定条件下显示（如URL参数包含 debug=1）
+        const urlParams = new URLSearchParams(window.location.search);
+        const isDebug = urlParams.get('debug') === '1' || this.isHuaweiDevice() || this.isPakePlus();
+        
+        if (!isDebug) return;
+        
+        const info = {
+            'UserAgent': navigator.userAgent.substring(0, 50) + '...',
+            'PakePlus': this.isPakePlus(),
+            '华为设备': this.isHuaweiDevice(),
+            '安卓': this.isAndroid(),
+            'iOS': this.isIOS(),
+            'getUserMedia': !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+            'TAURI': window.__TAURI__ !== undefined
+        };
+        
+        debugDiv.style.display = 'block';
+        debugDiv.innerHTML = Object.entries(info)
+            .map(([k, v]) => `<div><strong>${k}:</strong> ${v}</div>`)
+            .join('');
+        
+        console.log('📷 相机调试信息:', info);
     }
 
     // ==================== DOM缓存优化 ====================
@@ -796,35 +828,129 @@ class UIController {
     }
     
     /**
+     * 检测是否为华为设备（鸿蒙系统）
+     */
+    isHuaweiDevice() {
+        const ua = navigator.userAgent;
+        return /Huawei|HarmonyOS|OpenHarmony|HMSCore/.test(ua) || 
+               (/Android/.test(ua) && /HUAWEI|Honor| honor/.test(ua));
+    }
+    
+    /**
+     * 检测是否为 PakePlus 环境
+     */
+    isPakePlus() {
+        return navigator.userAgent.includes('PakePlus') || 
+               window.__TAURI__ !== undefined ||
+               window.pakeplus !== undefined;
+    }
+    
+    /**
      * 处理拍照按钮点击
-     * 优先使用原生相机，如果不支持则使用 getUserMedia
+     * 针对 PakePlus + 华为环境做特殊处理
      */
     async handleTakePhotoClick() {
-        const cameraInput = document.getElementById('camera-upload-input');
+        console.log('📷 拍照按钮点击');
+        console.log('UserAgent:', navigator.userAgent);
+        console.log('是否PakePlus:', this.isPakePlus());
+        console.log('是否华为设备:', this.isHuaweiDevice());
+        console.log('是否安卓:', this.isAndroid());
         
-        // 方法1: 使用 input capture（最简单，兼容性较好）
-        if (cameraInput) {
-            // iOS 和大部分安卓设备支持
-            if (this.isMobileDevice()) {
-                cameraInput.click();
+        // PakePlus + 华为/安卓环境特殊处理
+        if (this.isPakePlus() && (this.isHuaweiDevice() || this.isAndroid())) {
+            console.log('📦 PakePlus Android 环境：使用兼容模式');
+            this.openCameraForPakePlus();
+            return;
+        }
+        
+        // 华为设备浏览器环境
+        if (this.isHuaweiDevice()) {
+            console.log('🔄 华为设备浏览器：尝试多种方式');
+            this.openCameraForHuawei();
+            return;
+        }
+        
+        // 方法1: 使用 getUserMedia（桌面设备）
+        const hasGetUserMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+        if (hasGetUserMedia && !this.isMobileDevice()) {
+            try {
+                await this.startCameraCapture();
                 return;
+            } catch (error) {
+                console.warn('getUserMedia 失败:', error);
             }
-            
-            // 桌面设备：尝试使用 getUserMedia
-            const hasGetUserMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-            if (hasGetUserMedia) {
-                try {
-                    await this.startCameraCapture();
-                    return;
-                } catch (error) {
-                    console.warn('getUserMedia 失败，回退到文件选择:', error);
-                    // 回退到普通文件选择
-                    cameraInput.click();
-                }
-            } else {
-                // 不支持 getUserMedia，使用文件选择
-                cameraInput.click();
+        }
+        
+        // 方法2: 使用 input file
+        this.openCameraInputStandard();
+    }
+    
+    /**
+     * PakePlus 环境专用相机调用
+     * 使用最简单的 file input，不设置 capture 属性
+     */
+    openCameraForPakePlus() {
+        console.log('📦 PakePlus: 创建相机输入');
+        
+        // 创建最简单的 file input
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        // 注意：不设置 capture 属性，让系统弹出选择框
+        
+        input.addEventListener('change', (e) => {
+            console.log('PakePlus 文件选择:', e.target.files?.length);
+            if (e.target.files?.length > 0) {
+                this.handleFileSelect(e.target.files);
             }
+            input.remove();
+        });
+        
+        // 必须添加到 DOM 才能触发
+        input.style.cssText = 'position:fixed;top:-1000px;opacity:0;';
+        document.body.appendChild(input);
+        
+        // 使用 HTMLElement.click() 方法
+        input.click();
+        
+        // 3秒后清理
+        setTimeout(() => input.remove(), 3000);
+    }
+    
+    /**
+     * 华为设备专用相机调用
+     */
+    openCameraForHuawei() {
+        console.log('📱 华为设备: 创建相机输入');
+        
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        // 华为鸿蒙对 capture="camera" 支持更好
+        input.capture = 'camera';
+        
+        input.addEventListener('change', (e) => {
+            console.log('华为设备文件选择:', e.target.files?.length);
+            if (e.target.files?.length > 0) {
+                this.handleFileSelect(e.target.files);
+            }
+            input.remove();
+        });
+        
+        input.style.cssText = 'position:fixed;top:-1000px;opacity:0;';
+        document.body.appendChild(input);
+        input.click();
+        
+        setTimeout(() => input.remove(), 3000);
+    }
+    
+    /**
+     * 标准相机输入（其他设备）
+     */
+    openCameraInputStandard() {
+        const cameraInput = document.getElementById('camera-upload-input');
+        if (cameraInput) {
+            cameraInput.click();
         }
     }
     
