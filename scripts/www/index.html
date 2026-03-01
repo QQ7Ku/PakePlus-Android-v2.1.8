@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#1a1a1a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="description" content="新能源二手车3D检测系统 - 比亚迪秦Pro DM 2019款专业检测">
@@ -26,6 +26,7 @@
     
     <!-- Main Styles -->
     <link rel="stylesheet" href="src/css/style.css">
+    <link rel="stylesheet" href="src/css/mobile-adaptation.css">
     
     <!-- Optimized UI Styles -->
     <style>
@@ -874,6 +875,154 @@
             display: none !important;
         }
     }
+
+    /* ============================================
+       相机拍摄模态框样式
+       ============================================ */
+    
+    .camera-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .camera-modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(10px);
+    }
+    
+    .camera-modal-content {
+        position: relative;
+        width: 100%;
+        max-width: 800px;
+        height: 90vh;
+        max-height: 800px;
+        background: #1a1a1a;
+        border-radius: 20px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+    }
+    
+    .camera-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, #2a2a2a 0%, #323232 100%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    
+    .camera-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #fff;
+    }
+    
+    .camera-close-btn,
+    .camera-switch-btn {
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    
+    .camera-close-btn:hover,
+    .camera-switch-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.05);
+    }
+    
+    .camera-video-container {
+        flex: 1;
+        position: relative;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    
+    #camera-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .camera-controls {
+        padding: 24px;
+        background: linear-gradient(to top, #1a1a1a 0%, transparent 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .camera-capture-btn {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        background: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .camera-capture-btn:hover {
+        transform: scale(1.05);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .camera-capture-btn:active {
+        transform: scale(0.95);
+    }
+    
+    .camera-capture-btn i {
+        font-size: 1.8rem;
+        color: #333;
+    }
+    
+    /* 相机模态框移动端适配 */
+    @media (max-width: 768px) {
+        .camera-modal-content {
+            width: 100%;
+            height: 100%;
+            max-height: none;
+            border-radius: 0;
+        }
+        
+        .camera-capture-btn {
+            width: 64px;
+            height: 64px;
+        }
+        
+        .camera-controls {
+            padding: 32px 24px;
+            padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+        }
+    }
     </style>
 </head>
 <body>
@@ -1332,6 +1481,7 @@
     
     <!-- Core (order: Utils -> EventBus -> Constants -> Store -> DataService -> Engine3D -> ModelLoader -> ReportService -> UI -> App) -->
     <script src="src/js/core/EventBus.js"></script>
+    <script src="src/js/device-performance.js"></script>
     <script src="src/js/core/Constants.js"></script>
     <script src="src/js/core/Store.js"></script>
     <script src="src/js/services/DataService.js"></script>
@@ -1341,6 +1491,7 @@
     <script src="src/js/services/ReportService.js"></script>
     <script src="src/js/ui/UIController.js"></script>
     <script src="src/js/utils/HotspotDebugger.js"></script>
+    <script src="src/js/touch-interaction-fix.js"></script>
     <script src="src/js/app.js"></script>
 
 </body>
