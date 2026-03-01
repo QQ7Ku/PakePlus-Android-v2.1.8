@@ -1063,11 +1063,11 @@
                         <input type="number" id="vMileage" class="input-field w-full px-4 py-2.5 rounded-xl border border-slate-200" placeholder="0">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-600 mb-2">新车价格 (<span class="currency-label">SGD</span>)</label>
+                        <label class="block text-sm font-medium text-slate-600 mb-2">新车价格 (<span class="currency-label"></span>)</label>
                         <input type="number" id="vNewPrice" class="input-field w-full px-4 py-2.5 rounded-xl border border-slate-200" placeholder="0">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-600 mb-2">当前报价 (<span class="currency-label">SGD</span>)</label>
+                        <label class="block text-sm font-medium text-slate-600 mb-2">当前报价 (<span class="currency-label"></span>)</label>
                         <input type="number" id="vPrice" class="input-field w-full px-4 py-2.5 rounded-xl border border-slate-200" placeholder="0">
                     </div>
                 </div>
@@ -1390,6 +1390,9 @@
         let currentCountry = SUPPORTED_COUNTRIES[0];
         let savedVehicles = [];
         let charts = {};
+        var MARKET_CHART_BASE = {
+            priceTrend: [[85000,86000,84500,87000,88000,86500,89000,90000,88500,91000,92000,91500],[92000,93000,91500,94000,95000,93500,96000,97000,95500,98000,99000,98500]]
+        };
         
         // ==========================================
         // Car Model Query Database
@@ -1530,10 +1533,18 @@
         // Initialization
         // ==========================================
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Multi-Agent System (初始化多Agent系统)
+            var savedCode = '';
+            try { savedCode = localStorage.getItem('selectedCountry') || ''; } catch (e) {}
+            if (savedCode) {
+                var c = SUPPORTED_COUNTRIES.find(function(x) { return x.code === savedCode; });
+                if (c) { currentCountry = c; }
+            }
+            document.getElementById('currentFlag').textContent = currentCountry.flag;
+            document.getElementById('currentCountry').textContent = currentCountry.name;
+            document.getElementById('currencyBadge').textContent = currentCountry.currency;
+            document.getElementById('exchangeRate').textContent = currentCountry.rate.toFixed(2);
             AgentManager.init(currentCountry.agent);
             
-            // Chart.js global responsive config (Chart.js 全局响应式配置)
             Chart.defaults.responsive = true;
             Chart.defaults.maintainAspectRatio = false;
             Chart.defaults.plugins.legend.labels.boxWidth = 12;
@@ -1550,10 +1561,9 @@
             // Old calculator functions removed - now using floating widget
             renderCountryList();
             initMarketCharts();
+            updateMarketData();
             loadSavedVehicles();
             updateCurrencyDisplay();
-            
-            // Show Agent indicator (显示当前Agent指示器)
             updateAgentIndicator();
             
             // Initialize touch optimizations (初始化触摸优化)
@@ -1653,10 +1663,22 @@
             updateCurrencyDisplay();
             renderCountryList();
             closeCountryModal();
-            showToast(`已切换到 ${currentCountry.name} | Agent: ${currentAgent?.config.name || 'Default'}`);
+            showToast(`已切换到 ${currentCountry.name} | ${currentCountry.currency} | Agent: ${currentAgent?.config.name || 'Default'}`);
             
-            // Update market data for selected country
+            // 全量刷新：市场看板
             updateMarketData();
+            // 若当前在车型查询结果页，用新货币重绘
+            if (currentQueryCar) {
+                updateQueryCarInfo();
+                renderQueryCharts();
+                renderDealerTable();
+            }
+            // 若计算器已打开，刷新人民币换算
+            const calcEl = document.getElementById('calcWidget');
+            if (calcEl && calcEl.style.display !== 'none' && typeof widgetCalculate === 'function') {
+                widgetCalculate();
+            }
+            try { localStorage.setItem('selectedCountry', code); } catch (e) {}
         }
         
         function openCountryModal() {
@@ -1694,6 +1716,11 @@
             document.querySelectorAll('.currency-label').forEach(el => {
                 el.textContent = currentCountry.currency;
             });
+            // Update calculator widget currency
+            const widgetCurrency = document.getElementById('widgetCurrency');
+            if (widgetCurrency) {
+                widgetCurrency.textContent = currentCountry.currency;
+            }
         }
         
         // ==========================================
@@ -2353,26 +2380,20 @@
         }
         
         function updateMarketData() {
-            // Simulate different data for different countries
-            const multipliers = {
-                'SG': 1, 'MY': 0.3, 'TH': 0.25, 'ID': 0.15, 'VN': 0.18,
+            var multipliers = {
+                'CN': 1, 'SG': 1, 'MY': 0.3, 'TH': 0.25, 'ID': 0.15, 'VN': 0.18,
                 'PH': 0.12, 'MM': 0.08, 'KH': 0.06, 'LA': 0.05, 'BN': 1
             };
-            const multiplier = multipliers[currentCountry.code] || 1;
-            
-            // Update stats
-            const baseSize = 2.8;
-            const baseVolume = 15280;
-            document.getElementById('marketSize').textContent = `¥${(baseSize * multiplier).toFixed(1)}B`;
+            var multiplier = multipliers[currentCountry.code] || 1;
+            var baseSize = 2.8;
+            var baseVolume = 15280;
+            document.getElementById('marketSize').textContent = '¥' + (baseSize * multiplier).toFixed(1) + 'B';
             document.getElementById('monthlyVolume').textContent = Math.floor(baseVolume * multiplier).toLocaleString();
-            
-            // Update chart data
-            if (charts.priceTrend) {
-                charts.priceTrend.data.datasets[0].data = charts.priceTrend.data.datasets[0].data.map(v => v * multiplier);
-                charts.priceTrend.data.datasets[1].data = charts.priceTrend.data.datasets[1].data.map(v => v * multiplier);
+            if (charts.priceTrend && MARKET_CHART_BASE && MARKET_CHART_BASE.priceTrend) {
+                charts.priceTrend.data.datasets[0].data = MARKET_CHART_BASE.priceTrend[0].map(function(v) { return v * multiplier; });
+                charts.priceTrend.data.datasets[1].data = MARKET_CHART_BASE.priceTrend[1].map(function(v) { return v * multiplier; });
                 charts.priceTrend.update();
             }
-            
             renderTopModels();
         }
         
@@ -3150,7 +3171,7 @@
                 </div>
                 <div class="flex items-baseline gap-2">
                     <span class="text-3xl font-bold" id="widgetCalcResult">0.00</span>
-                    <span class="text-lg" id="widgetCurrency">SGD</span>
+                    <span class="text-lg" id="widgetCurrency"></span>
                 </div>
                 <p class="text-blue-100 text-sm mt-1" id="widgetCalcResultCNY">≈ ¥0.00</p>
             </div>
@@ -3167,7 +3188,7 @@
                     </button>
                     <div id="section-basicInfo" class="p-3 space-y-3">
                         <div>
-                            <label class="block text-xs font-medium text-slate-500 mb-1.5">新车购置价 (<span class="currency-label">SGD</span>万)</label>
+                            <label class="block text-xs font-medium text-slate-500 mb-1.5">新车购置价 (<span class="currency-label"></span>万)</label>
                             <input type="number" id="widgetCalcPrice" step="0.01" 
                                    class="input-field w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" 
                                    placeholder="0.00" oninput="widgetCalculate()">
