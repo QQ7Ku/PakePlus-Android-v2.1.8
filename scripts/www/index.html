@@ -1,11 +1,1347 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="description" content="新能源二手车3D检测系统 - 比亚迪秦Pro DM 2019款专业检测">
+    
+    <title>新能源二手车检测 - BYD Qin Pro DM 2019</title>
+    
+    <!-- DNS Prefetch -->
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    
+    <!-- Fonts - Local fallback if CDN fails -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+          onerror="this.href='src/assets/fontawesome.css'">
+    <noscript><link rel="stylesheet" href="src/assets/fontawesome.css"></noscript>
+    
+    <!-- Main Styles -->
+    <link rel="stylesheet" href="src/css/style.css">
+    
+    <!-- Optimized UI Styles -->
+    <style>
+    /* ============================================
+       优化后的UI样式 - 图片上传和模态框
+       ============================================ */
+
+    /* ---------- 模态框整体优化 ---------- */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: opacity 0.3s ease;
+    }
+
+    .modal-content {
+        position: relative;
+        background: linear-gradient(145deg, #1e1e1e 0%, #252525 100%);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow: hidden;
+        box-shadow: 
+            0 25px 50px -12px rgba(0, 0, 0, 0.5),
+            0 0 0 1px rgba(255, 255, 255, 0.05);
+        animation: modalSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* 模态框头部 */
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px;
+        background: linear-gradient(135deg, #2a2a2a 0%, #323232 100%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .modal-header h3 i {
+        color: #4CAF50;
+        font-size: 1.1em;
+    }
+
+    .close-btn {
+        width: 36px;
+        height: 36px;
+        border: none;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        color: #999;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .close-btn:hover {
+        background: rgba(244, 67, 54, 0.2);
+        color: #f44336;
+        transform: rotate(90deg);
+    }
+
+    /* 模态框主体 - 分区布局 */
+    .modal-body {
+        padding: 0;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    /* 表单分区 */
+    .form-section {
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .form-section:last-of-type {
+        border-bottom: none;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+        color: #aaa;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .section-header i {
+        width: 28px;
+        height: 28px;
+        background: rgba(76, 175, 80, 0.15);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #4CAF50;
+        font-size: 0.9rem;
+    }
+
+    /* 表单组优化 */
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-group label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #e0e0e0;
+    }
+
+    .form-group label .required {
+        color: #f44336;
+    }
+
+    .hint-optional {
+        color: #888;
+        font-size: 0.8rem;
+        font-weight: 400;
+        margin-left: auto;
+    }
+
+    /* 输入框样式 */
+    .form-group select,
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        color: #fff;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-group select:focus,
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #4CAF50;
+        background: rgba(0, 0, 0, 0.4);
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+
+    .form-group select option,
+    .form-group select optgroup {
+        background: #2a2a2a;
+        color: #fff;
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    /* ---------- 严重程度选择器优化 ---------- */
+    .severity-selector {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+
+    .severity-option {
+        cursor: pointer;
+    }
+
+    .severity-option input {
+        display: none;
+    }
+
+    .severity-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 8px;
+        background: rgba(0, 0, 0, 0.25);
+        border: 2px solid transparent;
+        border-radius: 12px;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #aaa;
+    }
+
+    .severity-label::before {
+        content: '';
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        transition: transform 0.2s ease;
+    }
+
+    .severity-label.normal::before { background: #4CAF50; }
+    .severity-label.minor::before { background: #FFC107; }
+    .severity-label.moderate::before { background: #FF9800; }
+    .severity-label.severe::before { background: #f44336; }
+
+    .severity-option input:checked + .severity-label {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .severity-option input:checked + .severity-label.normal {
+        background: rgba(76, 175, 80, 0.15);
+        border-color: #4CAF50;
+        color: #4CAF50;
+    }
+
+    .severity-option input:checked + .severity-label.minor {
+        background: rgba(255, 193, 7, 0.15);
+        border-color: #FFC107;
+        color: #FFC107;
+    }
+
+    .severity-option input:checked + .severity-label.moderate {
+        background: rgba(255, 152, 0, 0.15);
+        border-color: #FF9800;
+        color: #FF9800;
+    }
+
+    .severity-option input:checked + .severity-label.severe {
+        background: rgba(244, 67, 54, 0.15);
+        border-color: #f44336;
+        color: #f44336;
+    }
+
+    .severity-option input:checked + .severity-label::before {
+        transform: scale(1.3);
+    }
+
+    .severity-label:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* ---------- 图片上传区域 - 完全重构 ---------- */
+    .image-upload-group {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 16px;
+        padding: 20px;
+        margin: 0 -4px;
+    }
+
+    .upload-section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 16px;
+    }
+
+    .upload-section-title i {
+        color: #2196F3;
+        font-size: 1.1em;
+    }
+
+    /* 上传按钮组 - 视觉层次 */
+    .upload-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .btn-upload-primary {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        border: none;
+        border-radius: 14px;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-upload-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .btn-upload-primary:hover::before {
+        left: 100%;
+    }
+
+    .btn-upload-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(33, 150, 243, 0.4);
+    }
+
+    .btn-upload-primary:active {
+        transform: translateY(0);
+    }
+
+    .btn-upload-primary.btn-camera {
+        background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    }
+
+    .btn-upload-primary.btn-camera:hover {
+        box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+    }
+
+    .upload-btn-icon {
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        backdrop-filter: blur(4px);
+    }
+
+    .upload-btn-text {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+
+    .btn-main-text {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .btn-sub-text {
+        font-size: 0.75rem;
+        opacity: 0.85;
+    }
+
+    /* 拖拽上传区域 */
+    .image-upload-area {
+        border: 2px dashed rgba(255, 255, 255, 0.15);
+        border-radius: 14px;
+        padding: 28px;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .image-upload-area::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at center, rgba(33, 150, 243, 0.1) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .image-upload-area:hover,
+    .image-upload-area.drag-over {
+        border-color: #2196F3;
+        background: rgba(33, 150, 243, 0.08);
+        transform: scale(1.01);
+    }
+
+    .image-upload-area.drag-over::before {
+        opacity: 1;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .upload-area-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .upload-icon {
+        font-size: 2.5rem;
+        color: #2196F3;
+        margin-bottom: 12px;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .upload-text {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #fff;
+        margin-bottom: 6px;
+    }
+
+    .upload-hint {
+        font-size: 0.8rem;
+        color: #888;
+    }
+
+    /* 图片计数和统计 */
+    .image-count-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 16px 0;
+        padding: 12px 16px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+    }
+
+    .image-count {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .image-count .count-current {
+        color: #2196F3;
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+
+    .image-count .count-separator {
+        color: #666;
+    }
+
+    .image-count .count-max {
+        color: #888;
+    }
+
+    .image-size-info {
+        font-size: 0.8rem;
+        color: #888;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .image-size-info::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        background: #4CAF50;
+        border-radius: 50%;
+    }
+
+    /* 进度指示器 */
+    .upload-progress-bar {
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+
+    .upload-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #2196F3, #64B5F6);
+        border-radius: 2px;
+        transition: width 0.3s ease;
+        position: relative;
+    }
+
+    .upload-progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 20px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+        animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-20px); }
+        100% { transform: translateX(20px); }
+    }
+
+    /* ---------- 图片预览网格优化 ---------- */
+    .image-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        min-height: 100px;
+    }
+
+    /* 空状态设计 */
+    .image-empty-state {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 20px;
+        border: 2px dashed rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+    }
+
+    .image-empty-state:hover {
+        border-color: rgba(33, 150, 243, 0.3);
+        background: rgba(33, 150, 243, 0.05);
+    }
+
+    .empty-state-icon {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        animation: iconPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes iconPulse {
+        0%, 100% { 
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.2);
+        }
+        50% { 
+            transform: scale(1.05);
+            box-shadow: 0 0 0 10px rgba(33, 150, 243, 0);
+        }
+    }
+
+    .empty-state-icon i {
+        font-size: 1.8rem;
+        color: #666;
+    }
+
+    .empty-state-text {
+        color: #777;
+        font-size: 0.9rem;
+        text-align: center;
+    }
+
+    .empty-state-hint {
+        color: #555;
+        font-size: 0.75rem;
+        margin-top: 4px;
+    }
+
+    /* 预览项 */
+    .preview-item {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: 10px;
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .preview-item:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+        z-index: 10;
+    }
+
+    .preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .preview-item:hover img {
+        transform: scale(1.1);
+    }
+
+    .preview-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: 8px;
+    }
+
+    .preview-item:hover .preview-overlay {
+        opacity: 1;
+    }
+
+    .preview-index {
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        width: 22px;
+        height: 22px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .preview-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .preview-action-btn {
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(4px);
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .preview-action-btn:hover {
+        background: rgba(244, 67, 54, 0.8);
+        transform: scale(1.1);
+    }
+
+    .preview-action-btn.view:hover {
+        background: rgba(33, 150, 243, 0.8);
+    }
+
+    /* 上传中状态 */
+    .preview-item.uploading::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .upload-spinner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 28px;
+        height: 28px;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        border-top-color: #2196F3;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        z-index: 2;
+    }
+
+    @keyframes spin {
+        to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* ---------- 表单操作按钮优化 ---------- */
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        padding: 20px 24px;
+        background: linear-gradient(135deg, #252525 0%, #2a2a2a 100%);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .form-actions .btn {
+        flex: 1;
+        padding: 14px 20px;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .form-actions .btn-secondary {
+        background: rgba(255, 255, 255, 0.08);
+        color: #ccc;
+    }
+
+    .form-actions .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+    }
+
+    .form-actions .btn-primary {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+
+    .form-actions .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+    }
+
+    .form-actions .btn-primary:active {
+        transform: translateY(0);
+    }
+
+    /* 移动端适配 */
+    @media (max-width: 480px) {
+        .modal-content {
+            border-radius: 16px;
+            max-height: 95vh;
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+        }
+
+        .form-section {
+            padding: 16px 20px;
+        }
+
+        .upload-buttons {
+            grid-template-columns: 1fr;
+        }
+
+        .btn-upload-primary {
+            padding: 12px 16px;
+        }
+
+        .upload-btn-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 1.1rem;
+        }
+
+        .severity-selector {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .image-preview-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .form-actions {
+            flex-direction: column;
+            padding: 16px 20px;
+        }
+
+        .form-actions .btn {
+            width: 100%;
+        }
+    }
+
+    /* 桌面端隐藏移动端元素 */
+    @media (min-width: 769px) {
+        .mobile-only {
+            display: none !important;
+        }
+    }
+
+    /* 移动端隐藏桌面端元素 */
+    @media (max-width: 768px) {
+        .desktop-only {
+            display: none !important;
+        }
+    }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-icon">
+                <i class="fas fa-car-side"></i>
+            </div>
+            <h1 class="loading-title">新能源二手车检测系统</h1>
+            <p class="loading-text">正在初始化3D检测系统...</p>
+            <div class="loading-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            <p class="loading-hint">请使用Chrome/Edge浏览器访问以获得最佳体验</p>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" class="app-container">
+        
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="header-title">新能源二手车检测</h1>
+                <span class="header-subtitle">比亚迪秦Pro DM 2019款</span>
+            </div>
+            <div class="header-right">
+                <label class="role-switch">
+                    <span>用户模式</span>
+                    <input type="checkbox" id="role-switch">
+                    <span class="switch-slider"></span>
+                    <span>商家模式</span>
+                </label>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                
+                <!-- Type Selector -->
+                <div class="section">
+                    <h2 class="section-title"><i class="fas fa-layer-group"></i> 检测类型</h2>
+                    <div class="inspection-types">
+                        <button class="type-btn active" data-type="paint">
+                            <i class="fas fa-paint-roller"></i>
+                            <span>漆面检测</span>
+                        </button>
+                        <button class="type-btn" data-type="structure">
+                            <i class="fas fa-car-crash"></i>
+                            <span>结构检测</span>
+                        </button>
+                        <button class="type-btn" data-type="all">
+                            <i class="fas fa-eye"></i>
+                            <span>显示全部</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Inspection Flow -->
+                <div class="section">
+                    <h2 class="section-title"><i class="fas fa-route"></i> 检测流程</h2>
+                    <div class="flow-panel">
+                        <div class="flow-header">
+                            <span>第 <strong id="current-step">0</strong>/18 步</span>
+                            <select id="flow-jump-select" class="flow-jump">
+                                <option value="">跳转到...</option>
+                            </select>
+                        </div>
+                        <div class="progress-bar">
+                            <div id="flow-progress-fill" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="flow-point-name">点击"开始检测"开始</div>
+                        <div class="flow-buttons">
+                            <button id="btn-start-flow" class="btn btn-primary">
+                                <i class="fas fa-play"></i> 开始检测
+                            </button>
+                            <button id="btn-prev-point" class="btn btn-secondary" style="display:none">
+                                <i class="fas fa-arrow-left"></i> 上一步
+                            </button>
+                            <button id="btn-next-point" class="btn btn-secondary" style="display:none">
+                                下一步 <i class="fas fa-arrow-right"></i>
+                            </button>
+                            <button id="btn-complete-point" class="btn btn-success" style="display:none">
+                                <i class="fas fa-check"></i> 完成
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Panel -->
+                <div class="section">
+                    <h2 class="section-title"><i class="fas fa-chart-pie"></i> 检测概览</h2>
+                    <div class="summary-panel">
+                        <div class="score-display">
+                            <div class="score-value" id="overall-score">100</div>
+                            <div class="score-label">综合评分</div>
+                            <div class="grade-badge" id="grade-value">优秀</div>
+                        </div>
+                        <div class="issues-summary-grid">
+                            <div class="issue-stat-item" data-severity="normal">
+                                <span class="stat-value" id="normal-count">0</span>
+                                <span class="stat-label">正常</span>
+                            </div>
+                            <div class="issue-stat-item" data-severity="minor">
+                                <span class="stat-value" id="minor-count">0</span>
+                                <span class="stat-label">轻微</span>
+                            </div>
+                            <div class="issue-stat-item" data-severity="moderate">
+                                <span class="stat-value" id="moderate-count">0</span>
+                                <span class="stat-label">中等</span>
+                            </div>
+                            <div class="issue-stat-item" data-severity="severe">
+                                <span class="stat-value" id="severe-count">0</span>
+                                <span class="stat-label">严重</span>
+                            </div>
+                            <div class="issue-stat-item">
+                                <span class="stat-value" id="issue-count">0处</span>
+                                <span class="stat-label">总计</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tool Buttons -->
+                <div class="section tools-section">
+                    <h2 class="section-title"><i class="fas fa-tools"></i> 工具</h2>
+                    <div class="tool-buttons">
+                        <button id="btn-add-issue" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> 添加问题
+                        </button>
+                        <button id="btn-export-word" class="btn btn-secondary">
+                            <i class="fas fa-file-word"></i> 导出Word
+                        </button>
+                        <button id="btn-export-pdf" class="btn btn-secondary">
+                            <i class="fas fa-file-pdf"></i> 导出PDF
+                        </button>
+                        <button id="btn-save-data" class="btn btn-secondary">
+                            <i class="fas fa-save"></i> 保存数据
+                        </button>
+                        <button id="btn-load-data" class="btn btn-secondary">
+                            <i class="fas fa-folder-open"></i> 加载数据
+                        </button>
+                        <button id="btn-reset-data" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> 重置
+                        </button>
+                    </div>
+                </div>
+
+            </aside>
+
+            <!-- Main Panel -->
+            <div class="main-panel">
+                
+                <!-- 3D Canvas -->
+                <div id="canvas-container" class="canvas-container">
+                    <canvas id="main-canvas"></canvas>
+                    
+                    <!-- View Controls -->
+                    <div class="view-controls">
+                        <div class="view-buttons">
+                            <button class="view-btn" data-view="front" title="前视图">
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button class="view-btn" data-view="rear" title="后视图">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                            <button class="view-btn" data-view="left" title="左视图">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <button class="view-btn" data-view="right" title="右视图">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                            <button class="view-btn active" data-view="iso" title="等轴测视图">
+                                <i class="fas fa-cube"></i>
+                            </button>
+                            <button class="view-btn" data-view="full" title="全车视角">
+                                <i class="fas fa-car"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Hotspot Legend -->
+                    <div class="hotspot-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot paint"></span>
+                            <span>漆面检测点</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot structure"></span>
+                            <span>结构检测点</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Panel -->
+                <div class="info-panel">
+                    
+                    <!-- Point Details -->
+                    <div class="info-section">
+                        <h3 class="info-title"><i class="fas fa-info-circle"></i> 检测点详情</h3>
+                        <div id="point-details">
+                            <p class="hint-text">点击3D模型上的热点查看详情</p>
+                        </div>
+                    </div>
+
+                    <!-- Issues List -->
+                    <div class="info-section">
+                        <h3 class="info-title">
+                            <i class="fas fa-clipboard-list"></i> 问题清单
+                            <span id="issues-filter-badge" class="filter-badge" style="display:none"></span>
+                        </h3>
+                        <div id="issues-list" class="issues-list">
+                            <p class="hint-text">暂无发现问题</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+
+    </div>
+
+    <!-- ============================================
+         优化后的添加问题模态框
+         ============================================ -->
+    <div id="add-issue-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <!-- 模态框头部 -->
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> 添加检测记录</h3>
+                <button class="close-btn" title="关闭"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <!-- 表单主体 -->
+            <form id="add-issue-form" class="modal-body">
+                
+                <!-- 基本信息分区 -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-car"></i>
+                        <span>基本信息</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>检测部位 <span class="required">*</span></label>
+                        <select id="issue-point" name="point" required>
+                            <optgroup label="结构检测 - 对称性与框架">
+                                <option value="vehicleSymmetry">车辆对称性检测 (第1步)</option>
+                                <option value="frontFrameRails">前左右纵梁 (第2步)</option>
+                            </optgroup>
+                            <optgroup label="结构检测 - 右侧">
+                                <option value="rightFrontSuspension">右前悬挂基座 (第3步)</option>
+                                <option value="rightAPillarWeld">右前A柱下接合点 (第5步)</option>
+                                <option value="rightBPillarWeld">右B柱内板加强梁 (第7步)</option>
+                                <option value="rightCPillarWeld">右C柱内板加强梁 (第9步)</option>
+                            </optgroup>
+                            <optgroup label="漆面检测 - 右侧">
+                                <option value="rightAPillar">右A柱漆面 (第4步)</option>
+                                <option value="rightBPillar">右B柱漆面 (第6步)</option>
+                                <option value="rightCPillar">右C柱漆面 (第8步)</option>
+                            </optgroup>
+                            <optgroup label="结构检测 - 车尾">
+                                <option value="rightRearSuspension">右后悬挂减震器部位 (第10步)</option>
+                            </optgroup>
+                            <optgroup label="结构检测 - 左侧">
+                                <option value="leftRearSuspension">左后悬挂减震器部位 (第11步)</option>
+                                <option value="leftCPillarWeld">左C柱内板加强梁 (第12步)</option>
+                                <option value="leftBPillarWeld">左B柱内板加强梁 (第14步)</option>
+                                <option value="leftAPillarWeld">左前A柱下接合点 (第16步)</option>
+                                <option value="leftFrontSuspension">左前悬挂基座 (第18步)</option>
+                            </optgroup>
+                            <optgroup label="漆面检测 - 左侧">
+                                <option value="leftCPillar">左C柱漆面 (第13步)</option>
+                                <option value="leftBPillar">左B柱漆面 (第15步)</option>
+                                <option value="leftAPillar">左A柱漆面 (第17步)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>问题类型 <span class="required">*</span></label>
+                        <select id="issue-type" name="type" required>
+                            <option value="normal">✓ 正常 - 无问题</option>
+                            <option value="scratch">划痕</option>
+                            <option value="dent">凹陷</option>
+                            <option value="deformation">变形</option>
+                            <option value="rust">锈蚀</option>
+                            <option value="paint_anomaly">漆面异常</option>
+                            <option value="weld_abnormal">焊接异常</option>
+                            <option value="crack">裂纹/裂缝</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 严重程度分区 -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>严重程度评估</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>严重程度 <span class="required">*</span></label>
+                        <div class="severity-selector">
+                            <label class="severity-option">
+                                <input type="radio" name="severity" value="normal" checked>
+                                <span class="severity-label normal">正常</span>
+                            </label>
+                            <label class="severity-option">
+                                <input type="radio" name="severity" value="minor">
+                                <span class="severity-label minor">轻微</span>
+                            </label>
+                            <label class="severity-option">
+                                <input type="radio" name="severity" value="moderate">
+                                <span class="severity-label moderate">中等</span>
+                            </label>
+                            <label class="severity-option">
+                                <input type="radio" name="severity" value="severe">
+                                <span class="severity-label severe">严重</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 详细描述分区 -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-edit"></i>
+                        <span>详细描述</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            问题描述
+                            <span id="desc-hint" class="hint-optional">选择"正常"时可不填</span>
+                        </label>
+                        <textarea id="issue-description" rows="3" placeholder="请详细描述问题的具体情况、位置、大小等信息..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>修复建议</label>
+                        <textarea id="issue-suggestion" rows="2" placeholder="请输入针对该问题的修复建议..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>预估费用 (元)</label>
+                        <input type="number" id="issue-cost" min="0" value="0" placeholder="0">
+                    </div>
+                </div>
+                
+                <!-- 图片上传分区 - 完全重构 -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-images"></i>
+                        <span>问题图片</span>
+                    </div>
+                    
+                    <div class="form-group image-upload-group">
+                        <!-- 隐藏的文件输入 -->
+                        <input type="file" id="image-upload-input" accept="image/jpeg,image/png,image/webp" multiple style="display: none;">
+                        <input type="file" id="camera-upload-input" accept="image/*" capture="environment" style="display: none;">
+                        
+                        <!-- 上传按钮组 -->
+                        <div class="upload-buttons">
+                            <button type="button" class="btn-upload-primary" id="btn-select-files">
+                                <div class="upload-btn-icon">
+                                    <i class="fas fa-images"></i>
+                                </div>
+                                <div class="upload-btn-text">
+                                    <span class="btn-main-text">选择图片</span>
+                                    <span class="btn-sub-text">从相册选择</span>
+                                </div>
+                            </button>
+                            <button type="button" class="btn-upload-primary btn-camera" id="btn-take-photo">
+                                <div class="upload-btn-icon">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                                <div class="upload-btn-text">
+                                    <span class="btn-main-text">拍照</span>
+                                    <span class="btn-sub-text">打开相机</span>
+                                </div>
+                            </button>
+                        </div>
+                        
+                        <!-- 拖拽上传区域（桌面端） -->
+                        <div id="image-drop-zone" class="image-upload-area desktop-only">
+                            <div class="upload-area-content">
+                                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                                <p class="upload-text">拖拽图片到此处上传</p>
+                                <p class="upload-hint">支持 JPG、PNG、WebP 格式，每张 ≤ 2MB</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 图片计数和进度 -->
+                        <div class="image-count-wrapper">
+                            <div class="image-count" id="image-count">
+                                <span class="count-current">0</span>
+                                <span class="count-separator">/</span>
+                                <span class="count-max">6</span>
+                            </div>
+                            <div class="image-size-info" id="image-size-info">已用: 0 MB</div>
+                        </div>
+                        
+                        <!-- 上传进度条 -->
+                        <div class="upload-progress-bar" id="upload-progress-bar" style="display: none;">
+                            <div class="upload-progress-fill" id="upload-progress-fill" style="width: 0%"></div>
+                        </div>
+                        
+                        <!-- 图片预览网格 -->
+                        <div id="image-preview-container" class="image-preview-grid">
+                            <div class="image-empty-state" id="image-empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-images"></i>
+                                </div>
+                                <p class="empty-state-text">暂无图片</p>
+                                <p class="empty-state-hint">点击上方按钮添加</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- 表单操作按钮 -->
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary close-btn">
+                    <i class="fas fa-times"></i> 取消
+                </button>
+                <button type="button" id="btn-skip-step" class="btn btn-secondary">
+                    <i class="fas fa-forward"></i> 跳过此步
+                </button>
+                <button type="button" class="btn btn-primary" id="btn-save-continue">
+                    <i class="fas fa-check"></i> 保存并继续
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts - Load order matters -->
+    
+    <!-- 3D Libraries (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    
+    <!-- Animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <!-- Core (order: Utils -> EventBus -> Constants -> Store -> DataService -> Engine3D -> ModelLoader -> ReportService -> UI -> App) -->
+    <script src="src/js/core/EventBus.js"></script>
+    <script src="src/js/core/Constants.js"></script>
+    <script src="src/js/core/Store.js"></script>
+    <script src="src/js/services/DataService.js"></script>
+    <script src="src/js/services/ImageService.js"></script>
+    <script src="src/js/services/Engine3DService.js"></script>
+    <script src="src/js/services/ModelLoader.js"></script>
+    <script src="src/js/services/ReportService.js"></script>
+    <script src="src/js/ui/UIController.js"></script>
+    <script src="src/js/utils/HotspotDebugger.js"></script>
+    <script src="src/js/app.js"></script>
+
+</body>
 </html>
