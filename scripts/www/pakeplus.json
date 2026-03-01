@@ -1,0 +1,30 @@
+{
+    "name": "BYD Qin Pro Inspection",
+    "main": "index.html",
+    "window": {
+        "width": 1400,
+        "height": 900,
+        "minWidth": 1200,
+        "minHeight": 700,
+        "resizable": true,
+        "fullscreen": false,
+        "maximizable": true,
+        "minimizable": true,
+        "closable": true,
+        "title": "新能源二手车检测系统 - BYD Qin Pro DM"
+    },
+    "webPreferences": {
+        "nodeIntegration": false,
+        "contextIsolation": true,
+        "webSecurity": false,
+        "allowRunningInsecureContent": true
+    },
+    "resources": [
+        "index.html",
+        "favicon.svg",
+        "src/**/*",
+        "src/assets/**/*",
+        "models/**/*",
+        "sw.js"
+    ]
+}
