@@ -1,11 +1,3961 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="description" content="车易 CarEase - 东盟二手车市场分析系统，支持10国货币转换、市场分析、车辆评估">
+    <title>车易 CarEase - 东盟二手车市场分析</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#64748b',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                        dark: '#1e293b',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            min-height: 100vh;
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+        }
+        
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .country-card {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .country-card:hover {
+            border-color: #3b82f6;
+            background: #f8fafc;
+        }
+        
+        .country-card.selected {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .stat-card.success { border-left-color: #10b981; }
+        .stat-card.warning { border-left-color: #f59e0b; }
+        .stat-card.danger { border-left-color: #ef4444; }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .input-field {
+            transition: all 0.2s ease;
+        }
+        
+        .input-field:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .range-slider {
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #e2e8f0;
+            outline: none;
+        }
+        
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+        }
+        
+        .currency-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #1e293b;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 9999;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .tab-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .tab-btn.active {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .vehicle-item {
+            transition: all 0.2s ease;
+        }
+        
+        .vehicle-item:hover {
+            background: #f8fafc;
+        }
+        
+        /* Brand Analysis Styles */
+        .market-content {
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .brand-filter-btn {
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .brand-filter-btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        .brand-filter-btn.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .model-row {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .model-row:hover {
+            background: #f1f5f9;
+        }
+        
+        .model-row.selected {
+            background: #dbeafe;
+        }
+        
+        .price-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .price-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #3b82f6 0%, #10b981 100%);
+        }
+        
+        .trend-up {
+            color: #10b981;
+        }
+        
+        .trend-down {
+            color: #ef4444;
+        }
+        
+        .trend-flat {
+            color: #94a3b8;
+        }
+        
+        .compare-checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 2px solid #cbd5e1;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .compare-checkbox:checked {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+        
+        /* Mobile Responsive Styles (移动端响应式样式) */
+        
+        /* 平板适配 (768px - 1024px) */
+        @media (max-width: 1024px) {
+            .chart-container {
+                height: 250px;
+            }
+            
+            .card {
+                border-radius: 12px;
+            }
+        }
+        
+        /* 手机适配 (小于 768px) */
+        @media (max-width: 768px) {
+            /* 头部优化 */
+            header {
+                padding: 0.5rem 0;
+            }
+            
+            header h1 {
+                font-size: 16px !important;
+            }
+            
+            header .subtitle {
+                font-size: 10px !important;
+            }
+            
+            /* 统计卡片调整为2列 */
+            .grid.grid-cols-2.md\\:grid-cols-4 {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+            
+            .stat-card p.text-xl {
+                font-size: 16px;
+            }
+            
+            /* 导航标签优化 */
+            .nav-item {
+                padding: 0.5rem 0.75rem;
+                font-size: 12px;
+            }
+            
+            .nav-item svg {
+                width: 16px;
+                height: 16px;
+            }
+            
+            /* 图表高度调整 */
+            .chart-container {
+                height: 200px;
+            }
+            
+            /* 卡片内边距调整 */
+            .card.p-5 {
+                padding: 1rem;
+            }
+            
+            /* 表格横向滚动 */
+            .overflow-x-auto {
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            table {
+                min-width: 600px;
+            }
+            
+            /* 底部安全区域 */
+            main {
+                padding-bottom: 100px !important;
+            }
+            
+            /* 悬浮按钮位置调整 */
+            #calcToggleBtn {
+                bottom: 80px;
+                right: 16px;
+                width: 48px;
+                height: 48px;
+            }
+            
+            /* 计算器窗口全屏 */
+            #calcWidget {
+                width: calc(100vw - 32px) !important;
+                left: 16px !important;
+                right: 16px !important;
+                bottom: 80px !important;
+            }
+            
+            /* 国家选择器全屏 */
+            #countryModal > div {
+                max-width: 100%;
+                border-radius: 1rem 1rem 0 0;
+                max-height: 70vh;
+            }
+            
+            /* 输入框优化 */
+            input, select {
+                font-size: 16px !important; /* 防止iOS缩放 */
+                padding: 0.625rem 0.75rem;
+            }
+            
+            /* 触摸优化 */
+            .btn, .nav-item, .brand-filter-btn {
+                min-height: 44px; /* iOS推荐触摸目标大小 */
+            }
+            
+            /* 品牌筛选横向滚动 */
+            #brandFilterList {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 0.5rem;
+            }
+        }
+        
+        /* 小屏手机 (小于 480px) */
+        @media (max-width: 480px) {
+            .chart-container {
+                height: 180px;
+            }
+            
+            .nav-item span {
+                display: none; /* 隐藏导航文字 */
+            }
+            
+            .nav-item {
+                padding: 0.5rem;
+            }
+            
+            .grid.md\\:grid-cols-2, 
+            .grid.md\\:grid-cols-3 {
+                grid-template-columns: 1fr;
+            }
+            
+            /* KPI卡片全宽 */
+            #queryResults .grid.grid-cols-2.md\\:grid-cols-4 > div {
+                grid-column: span 2;
+            }
+        }
+        
+        /* 底部导航栏 (移动端专用) */
+        .mobile-nav {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-top: 1px solid rgba(0,0,0,0.1);
+                padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
+                z-index: 100;
+                justify-content: space-around;
+            }
+            
+            .mobile-nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 0.25rem;
+                color: #64748b;
+                font-size: 10px;
+                transition: all 0.2s;
+                min-height: 50px;
+            }
+            
+            .mobile-nav-item.active {
+                color: #3b82f6;
+            }
+            
+            .mobile-nav-item svg {
+                width: 24px;
+                height: 24px;
+                margin-bottom: 2px;
+            }
+            
+            /* 桌面端导航隐藏 */
+            .desktop-nav {
+                display: none;
+            }
+        }
+        
+        /* 触摸设备优化 */
+        @media (hover: none) and (pointer: coarse) {
+            .card:hover {
+                transform: none;
+            }
+            
+            .vehicle-item:hover,
+            .model-row:hover {
+                background: transparent;
+            }
+            
+            .vehicle-item:active,
+            .model-row:active {
+                background: #f1f5f9;
+            }
+        }
+        
+        /* 横屏模式优化 */
+        @media (max-height: 500px) and (orientation: landscape) {
+            header {
+                position: relative;
+            }
+            
+            main {
+                padding-top: 1rem;
+            }
+            
+            .mobile-nav {
+                display: none;
+            }
+        }
+        
+        /* PowerBI Style Query Section */
+        .time-range-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .time-range-btn.active {
+            background: #3b82f6 !important;
+            color: white !important;
+        }
+        
+        .dealer-row {
+            transition: all 0.2s ease;
+        }
+        
+        .dealer-row:hover {
+            background: #f8fafc;
+        }
+        
+        .condition-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .condition-excellent {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .condition-good {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .condition-fair {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .kpi-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--kpi-color) 0%, transparent 100%);
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+    <!-- Header -->
+    <header class="glass fixed top-0 left-0 right-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div>
+                <h1 class="font-bold text-lg leading-tight">车易 CarEase</h1>
+                <p class="text-xs text-slate-500">东盟二手车市场分析</p>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <!-- Country Selector -->
+                <button onclick="openCountryModal()" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors">
+                    <span id="currentFlag" class="text-xl">🇸🇬</span>
+                    <span id="currentCountry" class="text-sm font-medium">新加坡</span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
+                </button>
+                
+                <!-- Currency Display -->
+                <div class="currency-badge" id="currencyBadge">SGD</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="pt-20 pb-24 px-4 max-w-7xl mx-auto">
+        
+        <!-- Dashboard Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="card stat-card p-4">
+                <p class="text-xs text-slate-500 mb-1">市场规模</p>
+                <p class="text-xl font-bold text-slate-800" id="marketSize">¥2.8B</p>
+                <p class="text-xs text-green-500 flex items-center gap-1 mt-1">
+                    <i data-lucide="trending-up" class="w-3 h-3"></i> +12.5%
+                </p>
+            </div>
+            <div class="card stat-card success p-4">
+                <p class="text-xs text-slate-500 mb-1">月均交易量</p>
+                <p class="text-xl font-bold text-slate-800" id="monthlyVolume">15,280</p>
+                <p class="text-xs text-green-500 flex items-center gap-1 mt-1">
+                    <i data-lucide="trending-up" class="w-3 h-3"></i> +8.3%
+                </p>
+            </div>
+            <div class="card stat-card warning p-4">
+                <p class="text-xs text-slate-500 mb-1">平均车龄</p>
+                <p class="text-xl font-bold text-slate-800">5.2年</p>
+                <p class="text-xs text-slate-400 mt-1">同比持平</p>
+            </div>
+            <div class="card stat-card danger p-4">
+                <p class="text-xs text-slate-500 mb-1">汇率 (CNY)</p>
+                <p class="text-xl font-bold text-slate-800" id="exchangeRate">5.35</p>
+                <p class="text-xs text-red-500 flex items-center gap-1 mt-1">
+                    <i data-lucide="trending-down" class="w-3 h-3"></i> -1.2%
+                </p>
+            </div>
+        </div>
+
+        <!-- Desktop Navigation Tabs (桌面端导航) -->
+        <div class="desktop-nav flex gap-2 mb-6 overflow-x-auto pb-2">
+            <button class="nav-item active px-5 py-2.5 rounded-xl font-medium text-sm whitespace-nowrap flex items-center gap-2" onclick="switchTab('market')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="20" y2="10"></line><line x1="18" x2="18" y1="20" y2="4"></line><line x1="6" x2="6" y1="20" y2="16"></line></svg>
+                市场分析
+            </button>
+            <button class="nav-item px-5 py-2.5 rounded-xl font-medium text-sm whitespace-nowrap flex items-center gap-2 bg-white text-slate-600" onclick="switchTab('query')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                车型查询
+            </button>
+            <button class="nav-item px-5 py-2.5 rounded-xl font-medium text-sm whitespace-nowrap flex items-center gap-2 bg-white text-slate-600" onclick="switchTab('vehicle')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M12 18v-6"></path><path d="M9 15l3 3 3-3"></path></svg>
+                单车分析
+            </button>
+            <button class="nav-item px-5 py-2.5 rounded-xl font-medium text-sm whitespace-nowrap flex items-center gap-2 bg-white text-slate-600" onclick="switchTab('database')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path></svg>
+                数据库
+            </button>
+        </div>
+
+        <!-- Market Analysis Section -->
+        <div id="section-market" class="section active space-y-6">
+            <!-- Market Sub-tabs -->
+            <div class="flex gap-2 mb-4">
+                <button class="tab-btn active px-4 py-2 rounded-lg text-sm font-medium bg-slate-100" onclick="switchMarketTab('overview')" id="tab-overview">
+                    市场概览
+                </button>
+                <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-100" onclick="switchMarketTab('brand-analysis')" id="tab-brand-analysis">
+                    品牌车型价格分析
+                </button>
+            </div>
+            
+            <!-- Overview Content -->
+            <div id="market-overview" class="market-content space-y-6">
+            <!-- Charts Row 1 -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="card p-5">
+                    <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                        <i data-lucide="trending-up" class="w-5 h-5 text-blue-500"></i>
+                        价格趋势 (近12个月)
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="priceTrendChart"></canvas>
+                    </div>
+                </div>
+                <div class="card p-5">
+                    <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                        <i data-lucide="pie-chart" class="w-5 h-5 text-green-500"></i>
+                        品牌市场份额
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="brandShareChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts Row 2 -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="card p-5">
+                    <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                        <i data-lucide="clock" class="w-5 h-5 text-orange-500"></i>
+                        车龄分布
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="ageDistChart"></canvas>
+                    </div>
+                </div>
+                <div class="card p-5">
+                    <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                        <i data-lucide="dollar-sign" class="w-5 h-5 text-purple-500"></i>
+                        价格区间分布
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="priceRangeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Top Models Table -->
+            <div class="card p-5">
+                <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="award" class="w-5 h-5 text-yellow-500"></i>
+                    热门车型排行
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left text-xs text-slate-500 border-b border-slate-100">
+                                <th class="pb-3 font-medium">排名</th>
+                                <th class="pb-3 font-medium">车型</th>
+                                <th class="pb-3 font-medium">品牌</th>
+                                <th class="pb-3 font-medium text-right">均价</th>
+                                <th class="pb-3 font-medium text-right">交易量</th>
+                                <th class="pb-3 font-medium text-right">保值率</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topModelsTable" class="text-sm">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </div><!-- End of market-overview -->
+            
+            <!-- Brand Analysis Content -->
+            <div id="market-brand-analysis" class="market-content hidden space-y-6">
+                <!-- Brand Filter -->
+                <div class="card p-4">
+                    <h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                        <i data-lucide="filter" class="w-5 h-5 text-blue-500"></i>
+                        品牌筛选
+                    </h3>
+                    <div class="flex gap-2 overflow-x-auto pb-2" id="brandFilterList">
+                        <!-- Brand filter buttons -->
+                    </div>
+                </div>
+                
+                <!-- Brand Summary Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="brandSummaryStats">
+                    <!-- Dynamic stats -->
+                </div>
+                
+                <!-- Price Chart for Selected Brand -->
+                <div class="card p-5">
+                    <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                        <i data-lucide="line-chart" class="w-5 h-5 text-green-500"></i>
+                        <span id="brandChartTitle">丰田 - 车型价格分布</span>
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="brandPriceChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Model Price Analysis Table -->
+                <div class="card p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="list" class="w-5 h-5 text-purple-500"></i>
+                            <span id="brandTableTitle">丰田车型价格分析</span>
+                        </h3>
+                        <div class="flex gap-2">
+                            <select id="sortBy" onchange="sortModelTable()" class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm">
+                                <option value="price-desc">价格从高到低</option>
+                                <option value="price-asc">价格从低到高</option>
+                                <option value="volume">销量优先</option>
+                                <option value="retention">保值率优先</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left text-xs text-slate-500 border-b border-slate-100">
+                                    <th class="pb-3 font-medium">车型</th>
+                                    <th class="pb-3 font-medium text-right">均价</th>
+                                    <th class="pb-3 font-medium text-right">最低价</th>
+                                    <th class="pb-3 font-medium text-right">最高价</th>
+                                    <th class="pb-3 font-medium text-right">月销量</th>
+                                    <th class="pb-3 font-medium text-right">保值率</th>
+                                    <th class="pb-3 font-medium text-right">价格趋势</th>
+                                </tr>
+                            </thead>
+                            <tbody id="brandModelTable" class="text-sm">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Model Comparison Section -->
+                <div class="card p-5" id="comparisonSection" style="display: none;">
+                    <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                        <i data-lucide="git-compare" class="w-5 h-5 text-orange-500"></i>
+                        车型对比分析
+                    </h3>
+                    <div class="chart-container mb-4">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+                    <div id="comparisonDetails" class="grid md:grid-cols-2 gap-4">
+                        <!-- Dynamic comparison details -->
+                    </div>
+                </div>
+            </div><!-- End of market-brand-analysis -->
+        </div>
+
+        <!-- Car Model Query Section (PowerBI Style) -->
+        <div id="section-query" class="section space-y-6">
+            <!-- Search Header -->
+            <div class="card p-5">
+                <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="search" class="w-5 h-5 text-blue-500"></i>
+                    车型价格查询
+                </h3>
+                <div class="flex gap-3">
+                    <div class="flex-1 relative">
+                        <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="carSearchInput" 
+                               class="input-field w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-base"
+                               placeholder="搜索车型，如：迈腾 2023、凯美瑞 2022、宝马3系..."
+                               onkeypress="if(event.key==='Enter') searchCarModel()">
+                    </div>
+                    <button onclick="searchCarModel()" class="btn-primary px-6 py-3 rounded-xl text-white font-semibold flex items-center gap-2">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                        查询
+                    </button>
+                </div>
+                <div class="flex gap-2 mt-3 flex-wrap">
+                    <span class="text-xs text-slate-400">热门搜索：</span>
+                    <button onclick="quickSearch('迈腾 2023')" class="text-xs px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">迈腾 2023</button>
+                    <button onclick="quickSearch('凯美瑞 2022')" class="text-xs px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">凯美瑞 2022</button>
+                    <button onclick="quickSearch('宝马3系 2023')" class="text-xs px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">宝马3系 2023</button>
+                    <button onclick="quickSearch('卡罗拉 2021')" class="text-xs px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">卡罗拉 2021</button>
+                    <button onclick="quickSearch('CR-V 2022')" class="text-xs px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">CR-V 2022</button>
+                </div>
+            </div>
+            
+            <!-- Search Results & PowerBI Dashboard -->
+            <div id="queryResults" class="hidden space-y-6">
+                <!-- Car Header Info -->
+                <div class="card p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <div class="flex items-center gap-3 mb-2">
+                                <h2 class="text-2xl font-bold text-slate-800" id="queryCarName">大众 迈腾 2023款</h2>
+                                <span class="px-3 py-1 bg-blue-500 text-white text-sm rounded-full" id="queryCarYear">2023款</span>
+                            </div>
+                            <p class="text-slate-500" id="queryCarSubtitle">中型轿车 | 2.0T 双离合 | 前置前驱</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-slate-500">市场指导价</p>
+                            <p class="text-3xl font-bold text-blue-600" id="queryCarPrice">¥189,900</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PowerBI Style KPI Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="card p-4 border-l-4 border-blue-500">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-slate-500">二手车均价</span>
+                            <i data-lucide="dollar-sign" class="w-4 h-4 text-blue-500"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-slate-800" id="kpiAvgPrice">¥158,000</p>
+                        <p class="text-xs text-green-500 mt-1 flex items-center gap-1">
+                            <i data-lucide="trending-up" class="w-3 h-3"></i> 较上月 +2.3%
+                        </p>
+                    </div>
+                    <div class="card p-4 border-l-4 border-green-500">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-slate-500">价格区间</span>
+                            <i data-lucide="arrow-left-right" class="w-4 h-4 text-green-500"></i>
+                        </div>
+                        <p class="text-lg font-bold text-slate-800" id="kpiPriceRange">¥142k - ¥175k</p>
+                        <p class="text-xs text-slate-400 mt-1">全国经销商报价</p>
+                    </div>
+                    <div class="card p-4 border-l-4 border-orange-500">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-slate-500">保值率</span>
+                            <i data-lucide="shield-check" class="w-4 h-4 text-orange-500"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-slate-800" id="kpiRetention">73%</p>
+                        <p class="text-xs text-slate-400 mt-1">3年保值率</p>
+                    </div>
+                    <div class="card p-4 border-l-4 border-purple-500">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-slate-500">月交易量</span>
+                            <i data-lucide="activity" class="w-4 h-4 text-purple-500"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-slate-800" id="kpiVolume">1,258</p>
+                        <p class="text-xs text-green-500 mt-1 flex items-center gap-1">
+                            <i data-lucide="trending-up" class="w-3 h-3"></i> 较上月 +5.8%
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- PowerBI Charts Row 1 -->
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- Price Trend Chart -->
+                    <div class="card p-5 md:col-span-2">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-semibold text-slate-800 flex items-center gap-2">
+                                <i data-lucide="line-chart" class="w-5 h-5 text-blue-500"></i>
+                                历史价格走势
+                            </h3>
+                            <div class="flex gap-2">
+                                <button onclick="changeTimeRange('6m')" class="time-range-btn px-3 py-1 text-xs rounded-lg bg-blue-500 text-white" data-range="6m">6个月</button>
+                                <button onclick="changeTimeRange('1y')" class="time-range-btn px-3 py-1 text-xs rounded-lg bg-slate-100" data-range="1y">1年</button>
+                                <button onclick="changeTimeRange('2y')" class="time-range-btn px-3 py-1 text-xs rounded-lg bg-slate-100" data-range="2y">2年</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="queryPriceTrendChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Price Distribution Gauge -->
+                    <div class="card p-5">
+                        <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                            <i data-lucide="gauge" class="w-5 h-5 text-green-500"></i>
+                            价格健康度
+                        </h3>
+                        <div class="chart-container" style="height: 200px;">
+                            <canvas id="priceGaugeChart"></canvas>
+                        </div>
+                        <div class="text-center mt-3">
+                            <p class="text-sm text-slate-500">当前价格处于</p>
+                            <p class="text-lg font-bold text-green-500">合理区间</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PowerBI Charts Row 2 -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Regional Price Comparison -->
+                    <div class="card p-5">
+                        <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                            <i data-lucide="map-pin" class="w-5 h-5 text-orange-500"></i>
+                            区域价格对比
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="regionalPriceChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Competitor Comparison -->
+                    <div class="card p-5">
+                        <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                            <i data-lucide="users" class="w-5 h-5 text-purple-500"></i>
+                            竞品对比
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="competitorChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PowerBI Charts Row 3 -->
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- Age vs Price Scatter -->
+                    <div class="card p-5">
+                        <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                            <i data-lucide="scatter-chart" class="w-5 h-5 text-blue-500"></i>
+                            里程-价格分布
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="mileagePriceChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Depreciation Forecast -->
+                    <div class="card p-5 md:col-span-2">
+                        <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                            <i data-lucide="trending-down" class="w-5 h-5 text-red-500"></i>
+                            残值预测 (未来5年)
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="depreciationForecastChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dealers Table -->
+                <div class="card p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="store" class="w-5 h-5 text-indigo-500"></i>
+                            在售车源 (全国)
+                        </h3>
+                        <div class="flex gap-2">
+                            <select id="dealerSort" onchange="sortDealerTable()" class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm">
+                                <option value="price-asc">价格从低到高</option>
+                                <option value="price-desc">价格从高到低</option>
+                                <option value="mileage">里程从低到高</option>
+                                <option value="newest">最新发布</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left text-xs text-slate-500 border-b border-slate-100">
+                                    <th class="pb-3 font-medium">车辆信息</th>
+                                    <th class="pb-3 font-medium text-right">价格</th>
+                                    <th class="pb-3 font-medium text-right">里程</th>
+                                    <th class="pb-3 font-medium text-right">车龄</th>
+                                    <th class="pb-3 font-medium">所在地</th>
+                                    <th class="pb-3 font-medium">车况评级</th>
+                                    <th class="pb-3 font-medium text-right">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dealerTable" class="text-sm">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="queryEmptyState" class="card p-12 text-center">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
+                    <i data-lucide="search" class="w-10 h-10 text-slate-400"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-slate-700 mb-2">搜索车型查看价格分析</h3>
+                <p class="text-slate-500 mb-4">输入品牌和车型年份，获取详细的市场价格报告</p>
+                <div class="flex gap-2 justify-center flex-wrap">
+                    <button onclick="quickSearch('迈腾 2023')" class="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors">
+                        试试搜索 "迈腾 2023"
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicle Analysis Section -->
+        <div id="section-vehicle" class="section space-y-6">
+            <!-- Vehicle Input Form -->
+            <div class="card p-5">
+                <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="file-input" class="w-5 h-5 text-blue-500"></i>
+                    车辆信息录入
+                </h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-2">品牌</label>
+                        <select id="vBrand" class="input-field w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white">
+                            <option value="">选择品牌</option>
+                            <option value="toyota">丰田 Toyota</option>
+                            <option value="honda">本田 Honda</option>
+                            <option value="nissan">日产 Nissan</option>
+                            <option value="mazda">马自达 Mazda</option>
+                            <option value="mitsubishi">三菱 Mitsubishi</option>
+                            <option value="bmw">宝马 BMW</option>
+                            <option value="mercedes">奔驰 Mercedes</option>
+                            <option value="audi">奥迪 Audi</option>
+                            <option value="volkswagen">大众 Volkswagen</option>
+                            <option value="hyundai">现代 Hyundai</option>
+                            <option value="kia">起亚 Kia</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-2">车型</label>
+                        <input type="text" id="vModel" class="input-field w-full px-4 py-2.5 rounded-xl border border-slate-200" placeholder="如：Camry 2.5">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-2">年份</label>
+                        <select id="vYear" class="input-field w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white">
+                            <!-- Dynamic years -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-2">行驶里程 (km)</label>
+                        <input type="number" id="vMileage" class="input-field w-full px-4 py-2.5 rounded-xl border border-slate-200" placeholder="0">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-2">
+                            新车价格 (<span id="newPriceUnit">万CNY</span>)
+                        </label>
+                        <input type="number" id="vNewPrice" class="input-field w-full px-4 py-2.5 rounded-xl border border-slate-200" placeholder="如: 18.99">
+                        <p class="text-xs text-slate-400 mt-1">输入万元为单位，如18.99表示18.99万元</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-2">
+                            当前报价 (<span id="priceUnit">万CNY</span>)
+                        </label>
+                        <input type="number" id="vPrice" class="input-field w-full px-4 py-2.5 rounded-xl border border-slate-200" placeholder="如: 12.8">
+                        <p class="text-xs text-slate-400 mt-1">输入万元为单位，如12.8表示12.8万元</p>
+                    </div>
+                </div>
+                <button onclick="analyzeVehicle()" class="btn-primary w-full mt-5 py-3 rounded-xl text-white font-semibold">
+                    开始分析
+                </button>
+            </div>
+            
+            <!-- Analysis Results -->
+            <div id="vehicleResults" class="hidden space-y-6">
+                <!-- AI Score Card -->
+                <div class="card p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/><path d="M8.5 8.5v.01"/><path d="M16 15.5v.01"/><path d="M12 12v.01"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-slate-800">AI智能评分</h3>
+                                <p class="text-xs text-slate-500">基于多维数据分析</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent" id="totalScore">85</span>
+                            <span class="text-sm text-slate-400">/100</span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-3 mb-4 overflow-hidden">
+                        <div id="scoreBar" class="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 h-3 rounded-full transition-all duration-1000 relative" style="width: 85%">
+                            <div class="absolute inset-0 bg-white/30 animate-pulse"></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-3 text-center">
+                        <div class="p-3 bg-white/70 backdrop-blur rounded-xl shadow-sm">
+                            <p class="text-xs text-slate-500 mb-1">AI性价比</p>
+                            <p class="text-lg font-bold text-green-500" id="scoreValue">90</p>
+                        </div>
+                        <div class="p-3 bg-white/70 backdrop-blur rounded-xl shadow-sm">
+                            <p class="text-xs text-slate-500 mb-1">AI车况</p>
+                            <p class="text-lg font-bold text-blue-500" id="scoreCondition">82</p>
+                        </div>
+                        <div class="p-3 bg-white/70 backdrop-blur rounded-xl shadow-sm">
+                            <p class="text-xs text-slate-500 mb-1">AI保值率</p>
+                            <p class="text-lg font-bold text-orange-500" id="scoreRetention">78</p>
+                        </div>
+                        <div class="p-3 bg-white/70 backdrop-blur rounded-xl shadow-sm">
+                            <p class="text-xs text-slate-500 mb-1">AI市场热度</p>
+                            <p class="text-lg font-bold text-purple-500" id="scoreDemand">88</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Price Prediction -->
+                <div class="card p-5">
+                    <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </div>
+                        AI价格预测分析
+                    </h3>
+                    <div class="grid md:grid-cols-3 gap-4 mb-4">
+                        <div class="bg-emerald-50 rounded-xl p-4 text-center">
+                            <p class="text-xs text-emerald-600 mb-1">AI评估合理价</p>
+                            <p class="text-2xl font-bold text-emerald-700" id="aiFairPrice">-</p>
+                            <span class="text-xs text-emerald-500">万CNY</span>
+                        </div>
+                        <div class="bg-blue-50 rounded-xl p-4 text-center">
+                            <p class="text-xs text-blue-600 mb-1">AI价格区间</p>
+                            <p class="text-lg font-bold text-blue-700" id="aiPriceRange">-</p>
+                            <span class="text-xs text-blue-500">万CNY</span>
+                        </div>
+                        <div class="bg-purple-50 rounded-xl p-4 text-center">
+                            <p class="text-xs text-purple-600 mb-1">AI议价空间</p>
+                            <p class="text-2xl font-bold text-purple-700" id="aiNegotiate">-</p>
+                        </div>
+                    </div>
+                    <div id="aiPriceAnalysis" class="text-sm text-slate-600 bg-slate-50 rounded-xl p-4">
+                        <!-- AI价格分析文本 -->
+                    </div>
+                </div>
+                
+                <!-- Charts -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="card p-5">
+                        <h3 class="font-semibold text-slate-800 mb-4">车辆评估维度</h3>
+                        <div class="chart-container">
+                            <canvas id="vehicleRadarChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card p-5">
+                        <h3 class="font-semibold text-slate-800 mb-4">残值预测</h3>
+                        <div class="chart-container">
+                            <canvas id="depreciationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Recommendation -->
+                <div class="card p-5" id="recommendationCard">
+                    <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>
+                        </div>
+                        AI智能购买建议
+                    </h3>
+                    
+                    <!-- AI Risk Alert -->
+                    <div id="aiRiskAlert" class="mb-4 hidden">
+                        <!-- 风险警告 -->
+                    </div>
+                    
+                    <!-- AI Recommendation Cards -->
+                    <div class="space-y-3" id="aiRecommendationContent">
+                        <!-- Dynamic AI recommendations -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Database Section -->
+        <div id="section-database" class="section space-y-6">
+            <div class="card p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="archive" class="w-5 h-5 text-purple-500"></i>
+                        已保存的车辆记录
+                    </h3>
+                    <button onclick="exportDatabase()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium transition-colors">
+                        导出数据
+                    </button>
+                </div>
+                <div id="savedVehiclesList" class="space-y-3">
+                    <!-- Dynamic content -->
+                </div>
+                <div id="emptyState" class="text-center py-12 text-slate-400">
+                    <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+                    <p>暂无保存的记录</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile Bottom Navigation (移动端底部导航) -->
+    <nav class="mobile-nav">
+        <button class="mobile-nav-item active" onclick="switchMobileTab('market')" data-tab="market">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="20" y2="10"></line><line x1="18" x2="18" y1="20" y2="4"></line><line x1="6" x2="6" y1="20" y2="16"></line></svg>
+            市场
+        </button>
+        <button class="mobile-nav-item" onclick="switchMobileTab('query')" data-tab="query">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            查询
+        </button>
+        <button class="mobile-nav-item" onclick="switchMobileTab('vehicle')" data-tab="vehicle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M12 18v-6"></path><path d="M9 15l3 3 3-3"></path></svg>
+            分析
+        </button>
+        <button class="mobile-nav-item" onclick="switchMobileTab('database')" data-tab="database">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path></svg>
+            记录
+        </button>
+    </nav>
+
+    <!-- Country Selection Modal -->
+    <div id="countryModal" class="fixed inset-0 bg-black/50 z-50 hidden items-end sm:items-center justify-center">
+        <div class="bg-white w-full max-w-md sm:rounded-2xl rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-lg">选择国家/地区</h3>
+                <button onclick="closeCountryModal()" class="p-2 hover:bg-slate-100 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-3" id="countryList">
+                <!-- Dynamic country cards -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // ==========================================
+        // ASEAN Countries Configuration
+        // ==========================================
+        // ==========================================
+        // Multi-Agent System (多Agent适配系统)
+        // ==========================================
+        
+        // Agent 配置定义
+        const AGENT_CONFIG = {
+            china: {
+                name: '中国Agent',
+                nameEn: 'China Agent',
+                features: {
+                    showCNYFirst: true,           // 优先显示人民币
+                    showDomesticBrands: true,      // 突出国产品牌
+                    showImportTax: false,          // 不显示进口税信息
+                    enablePlateQuery: true,        // 支持车牌查询
+                    enableVINQuery: true,          // 支持VIN查询
+                    showLocalMarket: true,         // 显示本地市场数据
+                },
+                dataSource: 'china-mainland',
+                apiEndpoints: {
+                    price: '/api/china/price',
+                    market: '/api/china/market',
+                    dealer: '/api/china/dealer'
+                },
+                ui: {
+                    primaryColor: '#ef4444',       // 中国红
+                    secondaryColor: '#f59e0b',     // 金色
+                    showProvinces: true,           // 显示省份选择
+                    cities: ['北京', '上海', '广州', '深圳', '成都', '杭州', '武汉', '西安', '重庆', '南京']
+                }
+            },
+            asean: {
+                name: '东盟Agent',
+                nameEn: 'ASEAN Agent',
+                features: {
+                    showCNYFirst: false,           // 不优先显示人民币
+                    showDomesticBrands: false,     // 不突出特定品牌
+                    showImportTax: true,           // 显示进口税信息
+                    enablePlateQuery: false,       // 不支持车牌查询
+                    enableVINQuery: true,          // 支持VIN查询
+                    showLocalMarket: true,         // 显示本地市场数据
+                },
+                dataSource: 'asean-regional',
+                apiEndpoints: {
+                    price: '/api/asean/price',
+                    market: '/api/asean/market',
+                    dealer: '/api/asean/dealer'
+                },
+                ui: {
+                    primaryColor: '#3b82f6',       // 蓝色
+                    secondaryColor: '#10b981',     // 绿色
+                    showProvinces: false,          // 不显示省份选择
+                    cities: ['Singapore', 'Kuala Lumpur', 'Bangkok', 'Jakarta', 'Ho Chi Minh', 'Manila', 'Yangon', 'Phnom Penh']
+                }
+            }
+        };
+        
+        // 当前Agent实例
+        let currentAgent = null;
+        
+        // Agent Manager (Agent管理器)
+        const AgentManager = {
+            // 初始化Agent
+            init(agentType) {
+                const config = AGENT_CONFIG[agentType];
+                if (!config) {
+                    console.error(`Unknown agent type: ${agentType}`);
+                    return null;
+                }
+                
+                currentAgent = {
+                    type: agentType,
+                    config: config,
+                    
+                    // 获取本地化的价格显示
+                    formatPrice(price, currency) {
+                        if (this.config.features.showCNYFirst && currency === 'CNY') {
+                            return `¥${price.toLocaleString('zh-CN')}`;
+                        }
+                        return `${currentCountry.symbol}${price.toLocaleString()}`;
+                    },
+                    
+                    // 获取本地化的时间
+                    formatTime(date) {
+                        return new Intl.DateTimeFormat(currentCountry.locale, {
+                            timeZone: currentCountry.timezone,
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }).format(date);
+                    },
+                    
+                    // 获取当前Agent支持的城市列表
+                    getCities() {
+                        return this.config.ui.cities;
+                    },
+                    
+                    // 检查功能是否启用
+                    isFeatureEnabled(featureName) {
+                        return this.config.features[featureName] || false;
+                    },
+                    
+                    // 获取主题色
+                    getThemeColor() {
+                        return this.config.ui.primaryColor;
+                    }
+                };
+                
+                // 应用Agent特定的UI主题
+                this.applyTheme();
+                
+                return currentAgent;
+            },
+            
+            // 应用主题
+            applyTheme() {
+                if (!currentAgent) return;
+                
+                const root = document.documentElement;
+                root.style.setProperty('--agent-primary', currentAgent.config.ui.primaryColor);
+                root.style.setProperty('--agent-secondary', currentAgent.config.ui.secondaryColor);
+                
+                // 更新Header颜色
+                const header = document.querySelector('header');
+                if (header && currentAgent.type === 'china') {
+                    header.style.background = 'linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%)';
+                } else if (header) {
+                    header.style.background = 'rgba(255, 255, 255, 0.85)';
+                }
+            },
+            
+            // 根据国家代码自动切换Agent
+            switchAgentByCountry(countryCode) {
+                const country = SUPPORTED_COUNTRIES.find(c => c.code === countryCode);
+                if (!country) return;
+                
+                const newAgentType = country.agent;
+                if (newAgentType !== (currentAgent?.type)) {
+                    this.init(newAgentType);
+                    console.log(`Switched to ${newAgentType} agent`);
+                }
+            },
+            
+            // 获取当前Agent
+            getCurrentAgent() {
+                return currentAgent;
+            }
+        };
+        
+        // ==========================================
+        // Multi-Agent Country Configuration (多Agent国家配置)
+        // ==========================================
+        const SUPPORTED_COUNTRIES = [
+            // 中国 (China) - 新增
+            { 
+                code: 'CN', 
+                name: '中国', 
+                nameEn: 'China',
+                currency: 'CNY', 
+                symbol: '¥', 
+                flag: '🇨🇳', 
+                rate: 1.0,
+                timezone: 'Asia/Shanghai',
+                locale: 'zh-CN',
+                agent: 'china'
+            },
+            // 东盟国家 (ASEAN Countries)
+            { code: 'SG', name: '新加坡', nameEn: 'Singapore', currency: 'SGD', symbol: 'S$', flag: '🇸🇬', rate: 5.35, timezone: 'Asia/Singapore', locale: 'en-SG', agent: 'asean' },
+            { code: 'MY', name: '马来西亚', nameEn: 'Malaysia', currency: 'MYR', symbol: 'RM', flag: '🇲🇾', rate: 1.52, timezone: 'Asia/Kuala_Lumpur', locale: 'ms-MY', agent: 'asean' },
+            { code: 'TH', name: '泰国', nameEn: 'Thailand', currency: 'THB', symbol: '฿', flag: '🇹🇭', rate: 0.20, timezone: 'Asia/Bangkok', locale: 'th-TH', agent: 'asean' },
+            { code: 'ID', name: '印尼', nameEn: 'Indonesia', currency: 'IDR', symbol: 'Rp', flag: '🇮🇩', rate: 0.00045, timezone: 'Asia/Jakarta', locale: 'id-ID', agent: 'asean' },
+            { code: 'VN', name: '越南', nameEn: 'Vietnam', currency: 'VND', symbol: '₫', flag: '🇻🇳', rate: 0.00029, timezone: 'Asia/Ho_Chi_Minh', locale: 'vi-VN', agent: 'asean' },
+            { code: 'PH', name: '菲律宾', nameEn: 'Philippines', currency: 'PHP', symbol: '₱', flag: '🇵🇭', rate: 0.13, timezone: 'Asia/Manila', locale: 'en-PH', agent: 'asean' },
+            { code: 'MM', name: '缅甸', nameEn: 'Myanmar', currency: 'MMK', symbol: 'K', flag: '🇲🇲', rate: 0.0034, timezone: 'Asia/Yangon', locale: 'my-MM', agent: 'asean' },
+            { code: 'KH', name: '柬埔寨', nameEn: 'Cambodia', currency: 'KHR', symbol: '៛', flag: '🇰🇭', rate: 0.0017, timezone: 'Asia/Phnom_Penh', locale: 'km-KH', agent: 'asean' },
+            { code: 'LA', name: '老挝', nameEn: 'Laos', currency: 'LAK', symbol: '₭', flag: '🇱🇦', rate: 0.00033, timezone: 'Asia/Vientiane', locale: 'lo-LA', agent: 'asean' },
+            { code: 'BN', name: '文莱', nameEn: 'Brunei', currency: 'BND', symbol: 'B$', flag: '🇧🇳', rate: 5.35, timezone: 'Asia/Brunei', locale: 'ms-BN', agent: 'asean' },
+        ];
+        
+        let currentCountry = SUPPORTED_COUNTRIES[0];
+        let savedVehicles = [];
+        let charts = {};
+        var MARKET_CHART_BASE = {
+            priceTrend: [[85000,86000,84500,87000,88000,86500,89000,90000,88500,91000,92000,91500],[92000,93000,91500,94000,95000,93500,96000,97000,95500,98000,99000,98500]]
+        };
+        
+        // ==========================================
+        // Car Model Query Database
+        // ==========================================
+        const CAR_MODEL_DATABASE = {
+            '迈腾': {
+                brand: '大众',
+                model: '迈腾',
+                englishName: 'Volkswagen Magotan',
+                category: '中型轿车',
+                specs: '2.0T 双离合 | 前置前驱',
+                newCarPrice: 189900,
+                years: {
+                    '2023': { avgPrice: 158000, minPrice: 142000, maxPrice: 175000, retention: 83, volume: 1258 },
+                    '2022': { avgPrice: 142000, minPrice: 128000, maxPrice: 158000, retention: 75, volume: 2156 },
+                    '2021': { avgPrice: 128000, minPrice: 115000, maxPrice: 142000, retention: 67, volume: 1890 },
+                    '2020': { avgPrice: 112000, minPrice: 98000, maxPrice: 128000, retention: 59, volume: 1420 }
+                },
+                priceHistory: {
+                    '6m': [155000, 156000, 154000, 157000, 158000, 158000],
+                    '1y': [162000, 160000, 158000, 156000, 155000, 154000, 155000, 156000, 157000, 158000, 158000, 158000],
+                    '2y': [178000, 175000, 172000, 168000, 165000, 162000, 160000, 158000, 156000, 155000, 154000, 155000, 156000, 157000, 158000, 158000, 158000, 157000, 156000, 155000, 154000, 155000, 156000, 157000]
+                },
+                competitors: [
+                    { name: '凯美瑞', avgPrice: 152000, retention: 78 },
+                    { name: '雅阁', avgPrice: 148000, retention: 76 },
+                    { name: '天籁', avgPrice: 138000, retention: 71 },
+                    { name: '君威', avgPrice: 128000, retention: 68 }
+                ]
+            },
+            '凯美瑞': {
+                brand: '丰田',
+                model: '凯美瑞',
+                englishName: 'Toyota Camry',
+                category: '中型轿车',
+                specs: '2.5L 自动 | 前置前驱',
+                newCarPrice: 219800,
+                years: {
+                    '2023': { avgPrice: 185000, minPrice: 168000, maxPrice: 205000, retention: 84, volume: 2156 },
+                    '2022': { avgPrice: 168000, minPrice: 152000, maxPrice: 188000, retention: 76, volume: 3240 },
+                    '2021': { avgPrice: 152000, minPrice: 138000, maxPrice: 168000, retention: 69, volume: 2890 },
+                    '2020': { avgPrice: 138000, minPrice: 122000, maxPrice: 152000, retention: 63, volume: 2120 }
+                },
+                priceHistory: {
+                    '6m': [182000, 183000, 184000, 185000, 185000, 185000],
+                    '1y': [192000, 190000, 188000, 186000, 184000, 183000, 182000, 183000, 184000, 185000, 185000, 185000],
+                    '2y': [205000, 202000, 198000, 195000, 192000, 190000, 188000, 186000, 184000, 183000, 182000, 183000, 184000, 185000, 185000, 185000, 184000, 183000, 182000, 181000, 180000, 181000, 182000, 183000]
+                },
+                competitors: [
+                    { name: '迈腾', avgPrice: 158000, retention: 83 },
+                    { name: '雅阁', avgPrice: 148000, retention: 76 },
+                    { name: '天籁', avgPrice: 138000, retention: 71 },
+                    { name: '亚洲龙', avgPrice: 162000, retention: 74 }
+                ]
+            },
+            '宝马3系': {
+                brand: '宝马',
+                model: '3系',
+                englishName: 'BMW 3 Series',
+                category: '中型豪华轿车',
+                specs: '2.0T 自动 | 前置后驱',
+                newCarPrice: 325000,
+                years: {
+                    '2023': { avgPrice: 285000, minPrice: 258000, maxPrice: 318000, retention: 88, volume: 1560 },
+                    '2022': { avgPrice: 262000, minPrice: 238000, maxPrice: 292000, retention: 81, volume: 2340 },
+                    '2021': { avgPrice: 238000, minPrice: 215000, maxPrice: 265000, retention: 73, volume: 1980 },
+                    '2020': { avgPrice: 215000, minPrice: 192000, maxPrice: 238000, retention: 66, volume: 1560 }
+                },
+                priceHistory: {
+                    '6m': [282000, 283000, 284000, 285000, 285000, 285000],
+                    '1y': [298000, 295000, 292000, 288000, 285000, 283000, 282000, 283000, 284000, 285000, 285000, 285000],
+                    '2y': [315000, 310000, 305000, 300000, 295000, 292000, 288000, 285000, 283000, 282000, 281000, 282000, 283000, 284000, 285000, 285000, 284000, 283000, 282000, 281000, 280000, 281000, 282000, 283000]
+                },
+                competitors: [
+                    { name: '奔驰C级', avgPrice: 268000, retention: 82 },
+                    { name: '奥迪A4L', avgPrice: 245000, retention: 75 },
+                    { name: '雷克萨斯ES', avgPrice: 285000, retention: 85 },
+                    { name: '凯迪拉克CT5', avgPrice: 215000, retention: 72 }
+                ]
+            },
+            '卡罗拉': {
+                brand: '丰田',
+                model: '卡罗拉',
+                englishName: 'Toyota Corolla',
+                category: '紧凑型轿车',
+                specs: '1.2T CVT | 前置前驱',
+                newCarPrice: 128800,
+                years: {
+                    '2023': { avgPrice: 108000, minPrice: 98000, maxPrice: 118000, retention: 84, volume: 3250 },
+                    '2022': { avgPrice: 98000, minPrice: 88000, maxPrice: 108000, retention: 76, volume: 4680 },
+                    '2021': { avgPrice: 88000, minPrice: 78000, maxPrice: 98000, retention: 68, volume: 4120 },
+                    '2020': { avgPrice: 78000, minPrice: 68000, maxPrice: 88000, retention: 61, volume: 3250 }
+                },
+                priceHistory: {
+                    '6m': [106000, 107000, 107000, 108000, 108000, 108000],
+                    '1y': [112000, 111000, 110000, 109000, 108000, 107000, 106000, 107000, 107000, 108000, 108000, 108000],
+                    '2y': [118000, 116000, 114000, 112000, 110000, 109000, 108000, 107000, 106000, 105000, 106000, 107000, 107000, 108000, 108000, 108000, 107000, 106000, 105000, 104000, 105000, 106000, 107000, 108000]
+                },
+                competitors: [
+                    { name: '轩逸', avgPrice: 88000, retention: 72 },
+                    { name: '朗逸', avgPrice: 92000, retention: 74 },
+                    { name: '思域', avgPrice: 105000, retention: 78 },
+                    { name: '宝来', avgPrice: 85000, retention: 70 }
+                ]
+            },
+            'CR-V': {
+                brand: '本田',
+                model: 'CR-V',
+                englishName: 'Honda CR-V',
+                category: '紧凑型SUV',
+                specs: '1.5T CVT | 前置前驱',
+                newCarPrice: 209800,
+                years: {
+                    '2023': { avgPrice: 178000, minPrice: 162000, maxPrice: 198000, retention: 85, volume: 1890 },
+                    '2022': { avgPrice: 162000, minPrice: 148000, maxPrice: 182000, retention: 77, volume: 2680 },
+                    '2021': { avgPrice: 148000, minPrice: 135000, maxPrice: 165000, retention: 71, volume: 2340 },
+                    '2020': { avgPrice: 135000, minPrice: 118000, maxPrice: 152000, retention: 64, volume: 1890 }
+                },
+                priceHistory: {
+                    '6m': [175000, 176000, 177000, 178000, 178000, 178000],
+                    '1y': [185000, 183000, 181000, 179000, 177000, 176000, 175000, 176000, 177000, 178000, 178000, 178000],
+                    '2y': [195000, 192000, 189000, 186000, 183000, 181000, 179000, 177000, 175000, 174000, 175000, 176000, 177000, 178000, 178000, 178000, 177000, 176000, 175000, 174000, 175000, 176000, 177000, 178000]
+                },
+                competitors: [
+                    { name: 'RAV4', avgPrice: 168000, retention: 79 },
+                    { name: '途观L', avgPrice: 158000, retention: 76 },
+                    { name: '奇骏', avgPrice: 142000, retention: 68 },
+                    { name: '皓影', avgPrice: 165000, retention: 78 }
+                ]
+            }
+        };
+        
+        let currentQueryCar = null;
+        let currentQueryYear = null;
+        let currentTimeRange = '6m';
+        
+        // ==========================================
+        // Initialization
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            var savedCode = '';
+            try { savedCode = localStorage.getItem('selectedCountry') || ''; } catch (e) {}
+            if (savedCode) {
+                var c = SUPPORTED_COUNTRIES.find(function(x) { return x.code === savedCode; });
+                if (c) { currentCountry = c; }
+            }
+            document.getElementById('currentFlag').textContent = currentCountry.flag;
+            document.getElementById('currentCountry').textContent = currentCountry.name;
+            document.getElementById('currencyBadge').textContent = currentCountry.currency;
+            document.getElementById('exchangeRate').textContent = currentCountry.rate.toFixed(2);
+            AgentManager.init(currentCountry.agent);
+            
+            Chart.defaults.responsive = true;
+            Chart.defaults.maintainAspectRatio = false;
+            Chart.defaults.plugins.legend.labels.boxWidth = 12;
+            Chart.defaults.plugins.legend.labels.font = { size: 11 };
+            
+            // Mobile-specific chart config (移动端图表配置)
+            if (window.innerWidth <= 768) {
+                Chart.defaults.plugins.legend.display = false;
+                Chart.defaults.plugins.tooltip.titleFont = { size: 12 };
+                Chart.defaults.plugins.tooltip.bodyFont = { size: 11 };
+            }
+            
+            initYearSelect();
+            // Old calculator functions removed - now using floating widget
+            renderCountryList();
+            initMarketCharts();
+            updateMarketData();
+            loadSavedVehicles();
+            updateCurrencyDisplay();
+            updateAgentIndicator();
+            
+            // Initialize touch optimizations (初始化触摸优化)
+            initTouchOptimizations();
+            
+            // Handle window resize (处理窗口大小变化)
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    // Resize all charts
+                    Object.values(charts).forEach(chart => {
+                        if (chart && typeof chart.resize === 'function') {
+                            chart.resize();
+                        }
+                    });
+                }, 250);
+            });
+            
+            // Handle orientation change (处理屏幕旋转)
+            window.addEventListener('orientationchange', function() {
+                setTimeout(function() {
+                    Object.values(charts).forEach(chart => {
+                        if (chart && typeof chart.resize === 'function') {
+                            chart.resize();
+                        }
+                    });
+                }, 300);
+            });
+        });
+        
+        // Touch Optimizations (触摸优化)
+        function initTouchOptimizations() {
+            // Prevent zoom on double tap (防止双击缩放)
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function(e) {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, { passive: false });
+            
+            // Add touch feedback (添加触摸反馈)
+            document.querySelectorAll('.btn, .nav-item, .mobile-nav-item, .card').forEach(el => {
+                el.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.98)';
+                }, { passive: true });
+                
+                el.addEventListener('touchend', function() {
+                    this.style.transform = '';
+                }, { passive: true });
+            });
+            
+            // Smooth scroll for anchor links (锚点链接平滑滚动)
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+        }
+        
+        // ==========================================
+        // Country & Currency
+        // ==========================================
+        function renderCountryList() {
+            const container = document.getElementById('countryList');
+            container.innerHTML = SUPPORTED_COUNTRIES.map(country => `
+                <div class="country-card border-2 border-slate-100 rounded-xl p-4 ${country.code === currentCountry.code ? 'selected' : ''}" 
+                     onclick="selectCountry('${country.code}')">
+                    <div class="text-3xl mb-2">${country.flag}</div>
+                    <div class="font-medium text-sm">${country.name}</div>
+                    <div class="text-xs text-slate-500">${country.currency}</div>
+                </div>
+            `).join('');
+        }
+        
+        function selectCountry(code) {
+            currentCountry = SUPPORTED_COUNTRIES.find(c => c.code === code);
+            document.getElementById('currentFlag').textContent = currentCountry.flag;
+            document.getElementById('currentCountry').textContent = currentCountry.name;
+            document.getElementById('currencyBadge').textContent = currentCountry.currency;
+            document.getElementById('exchangeRate').textContent = currentCountry.rate.toFixed(2);
+            
+            document.querySelectorAll('.currency-label').forEach(el => {
+                el.textContent = currentCountry.currency;
+            });
+            
+            // Multi-Agent: Switch agent based on country (多Agent：根据国家切换Agent)
+            AgentManager.switchAgentByCountry(code);
+            updateAgentIndicator();
+            
+            updateCurrencyDisplay();
+            
+            // Update currency converter to select current country's currency
+            const converterSelect = document.getElementById('converterToCurrency');
+            if (converterSelect) {
+                converterSelect.value = currentCountry.currency;
+                convertCurrency();
+            }
+            
+            renderCountryList();
+            closeCountryModal();
+            showToast(`已切换到 ${currentCountry.name} | ${currentCountry.currency} | Agent: ${currentAgent?.config.name || 'Default'}`);
+            
+            // 全量刷新：市场看板
+            updateMarketData();
+            // 若当前在车型查询结果页，用新货币重绘
+            if (currentQueryCar) {
+                updateQueryCarInfo();
+                renderQueryCharts();
+                renderDealerTable();
+            }
+            // 若计算器已打开，刷新人民币换算
+            const calcEl = document.getElementById('calcWidget');
+            if (calcEl && calcEl.style.display !== 'none' && typeof widgetCalculate === 'function') {
+                widgetCalculate();
+            }
+            try { localStorage.setItem('selectedCountry', code); } catch (e) {}
+        }
+        
+        function openCountryModal() {
+            document.getElementById('countryModal').classList.remove('hidden');
+            document.getElementById('countryModal').classList.add('flex');
+        }
+        
+        function closeCountryModal() {
+            document.getElementById('countryModal').classList.add('hidden');
+            document.getElementById('countryModal').classList.remove('flex');
+        }
+        
+        function updateAgentIndicator() {
+            // Update or create Agent indicator in header
+            let indicator = document.getElementById('agentIndicator');
+            if (!indicator && currentAgent) {
+                indicator = document.createElement('div');
+                indicator.id = 'agentIndicator';
+                indicator.className = 'ml-2 px-2 py-1 rounded text-xs font-medium';
+                const header = document.querySelector('header .flex.items-center');
+                if (header) {
+                    header.appendChild(indicator);
+                }
+            }
+            
+            if (indicator && currentAgent) {
+                indicator.textContent = currentAgent.config.name;
+                indicator.style.backgroundColor = currentAgent.config.ui.primaryColor + '20'; // 20% opacity
+                indicator.style.color = currentAgent.config.ui.primaryColor;
+            }
+        }
+        
+        function updateCurrencyDisplay() {
+            // Update all currency labels
+            document.querySelectorAll('.currency-label').forEach(el => {
+                el.textContent = currentCountry.currency;
+            });
+            // Update calculator widget currency
+            const widgetCurrency = document.getElementById('widgetCurrency');
+            if (widgetCurrency) {
+                widgetCurrency.textContent = currentCountry.currency;
+            }
+        }
+        
+        // ==========================================
+        // Tab Navigation
+        // ==========================================
+        // Current active tab
+        let currentTab = 'market';
+        
+        function switchTab(tabName) {
+            currentTab = tabName;
+            
+            // Update desktop nav buttons
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('bg-white', 'text-slate-600');
+            });
+            event.target.closest('.nav-item').classList.add('active');
+            event.target.closest('.nav-item').classList.remove('bg-white', 'text-slate-600');
+            
+            // Update mobile nav
+            updateMobileNav(tabName);
+            
+            // Show section
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(`section-${tabName}`).classList.add('active');
+            
+            // Refresh charts if needed
+            if (tabName === 'market' && charts.priceTrend) {
+                Object.values(charts).forEach(chart => chart.resize());
+            }
+            
+            // Scroll to top on mobile
+            if (window.innerWidth <= 768) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+        
+        // Mobile navigation switch
+        function switchMobileTab(tabName) {
+            currentTab = tabName;
+            
+            // Update mobile nav
+            document.querySelectorAll('.mobile-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.mobile-nav-item').classList.add('active');
+            
+            // Update desktop nav
+            document.querySelectorAll('.nav-item').forEach((btn, index) => {
+                const tabs = ['market', 'query', 'vehicle', 'database'];
+                btn.classList.remove('active');
+                btn.classList.add('bg-white', 'text-slate-600');
+                if (tabs[index] === tabName) {
+                    btn.classList.add('active');
+                    btn.classList.remove('bg-white', 'text-slate-600');
+                }
+            });
+            
+            // Show section
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(`section-${tabName}`).classList.add('active');
+            
+            // Refresh charts if needed
+            if (tabName === 'market' && charts.priceTrend) {
+                Object.values(charts).forEach(chart => chart.resize());
+            }
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // Update mobile nav state
+        function updateMobileNav(tabName) {
+            document.querySelectorAll('.mobile-nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.tab === tabName) {
+                    item.classList.add('active');
+                }
+            });
+        }
+        
+        // ==========================================
+        // Market Tab Switching
+        // ==========================================
+        let currentMarketTab = 'overview';
+        let selectedBrand = 'toyota';
+        let selectedModelsForCompare = [];
+        
+        function switchMarketTab(tabName) {
+            currentMarketTab = tabName;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            
+            // Show/hide content
+            document.querySelectorAll('.market-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(`market-${tabName}`).classList.remove('hidden');
+            
+            // Initialize brand analysis if needed
+            if (tabName === 'brand-analysis' && !charts.brandPrice) {
+                initBrandAnalysis();
+            }
+        }
+        
+        // ==========================================
+        // Brand & Model Data
+        // ==========================================
+        const BRAND_MODELS_DATA = {
+            toyota: {
+                name: '丰田',
+                nameEn: 'Toyota',
+                models: [
+                    { name: 'Corolla Altis', avgPrice: 85800, minPrice: 68000, maxPrice: 108000, volume: 2840, retention: 72, trend: 'up', trendValue: 2.3 },
+                    { name: 'Camry', avgPrice: 128000, minPrice: 98000, maxPrice: 158000, volume: 1820, retention: 68, trend: 'flat', trendValue: 0 },
+                    { name: 'RAV4', avgPrice: 135000, minPrice: 108000, maxPrice: 168000, volume: 1650, retention: 70, trend: 'up', trendValue: 1.8 },
+                    { name: 'Hilux', avgPrice: 118000, minPrice: 95000, maxPrice: 145000, volume: 1420, retention: 75, trend: 'up', trendValue: 3.2 },
+                    { name: 'Vios', avgPrice: 62800, minPrice: 48000, maxPrice: 78000, volume: 2100, retention: 65, trend: 'down', trendValue: -1.5 },
+                    { name: 'Fortuner', avgPrice: 158000, minPrice: 128000, maxPrice: 195000, volume: 980, retention: 71, trend: 'up', trendValue: 2.1 },
+                    { name: 'Yaris Cross', avgPrice: 95800, minPrice: 78000, maxPrice: 118000, volume: 1200, retention: 69, trend: 'up', trendValue: 1.2 },
+                ]
+            },
+            honda: {
+                name: '本田',
+                nameEn: 'Honda',
+                models: [
+                    { name: 'Civic', avgPrice: 92000, minPrice: 72000, maxPrice: 115000, volume: 2150, retention: 70, trend: 'up', trendValue: 1.5 },
+                    { name: 'City', avgPrice: 68800, minPrice: 52000, maxPrice: 85000, volume: 1980, retention: 68, trend: 'flat', trendValue: 0 },
+                    { name: 'CR-V', avgPrice: 138000, minPrice: 110000, maxPrice: 172000, volume: 1520, retention: 69, trend: 'up', trendValue: 2.0 },
+                    { name: 'Accord', avgPrice: 118000, minPrice: 92000, maxPrice: 148000, volume: 890, retention: 66, trend: 'down', trendValue: -0.8 },
+                    { name: 'HR-V', avgPrice: 98800, minPrice: 78000, maxPrice: 122000, volume: 1380, retention: 67, trend: 'up', trendValue: 1.0 },
+                    { name: 'Jazz', avgPrice: 55800, minPrice: 42000, maxPrice: 70000, volume: 1150, retention: 64, trend: 'down', trendValue: -2.0 },
+                ]
+            },
+            nissan: {
+                name: '日产',
+                nameEn: 'Nissan',
+                models: [
+                    { name: 'Sylphy', avgPrice: 78800, minPrice: 62000, maxPrice: 98000, volume: 1650, retention: 65, trend: 'flat', trendValue: 0 },
+                    { name: 'X-Trail', avgPrice: 122000, minPrice: 98000, maxPrice: 152000, volume: 980, retention: 64, trend: 'up', trendValue: 1.2 },
+                    { name: 'Qashqai', avgPrice: 108000, minPrice: 88000, maxPrice: 132000, volume: 820, retention: 63, trend: 'up', trendValue: 0.8 },
+                    { name: 'Navara', avgPrice: 115000, minPrice: 92000, maxPrice: 142000, volume: 750, retention: 68, trend: 'up', trendValue: 2.5 },
+                    { name: 'Almera', avgPrice: 62800, minPrice: 48000, maxPrice: 78000, volume: 920, retention: 62, trend: 'down', trendValue: -1.2 },
+                ]
+            },
+            bmw: {
+                name: '宝马',
+                nameEn: 'BMW',
+                models: [
+                    { name: '3 Series', avgPrice: 185000, minPrice: 148000, maxPrice: 235000, volume: 1560, retention: 62, trend: 'up', trendValue: 1.8 },
+                    { name: '5 Series', avgPrice: 228000, minPrice: 185000, maxPrice: 288000, volume: 980, retention: 60, trend: 'flat', trendValue: 0 },
+                    { name: 'X1', avgPrice: 142000, minPrice: 115000, maxPrice: 178000, volume: 1120, retention: 61, trend: 'up', trendValue: 1.2 },
+                    { name: 'X3', avgPrice: 188000, minPrice: 152000, maxPrice: 238000, volume: 890, retention: 63, trend: 'up', trendValue: 1.5 },
+                    { name: 'X5', avgPrice: 285000, minPrice: 228000, maxPrice: 358000, volume: 520, retention: 65, trend: 'up', trendValue: 2.0 },
+                    { name: '1 Series', avgPrice: 108000, minPrice: 88000, maxPrice: 135000, volume: 680, retention: 58, trend: 'down', trendValue: -1.0 },
+                ]
+            },
+            mercedes: {
+                name: '奔驰',
+                nameEn: 'Mercedes-Benz',
+                models: [
+                    { name: 'C-Class', avgPrice: 195000, minPrice: 158000, maxPrice: 245000, volume: 1420, retention: 60, trend: 'flat', trendValue: 0 },
+                    { name: 'E-Class', avgPrice: 258000, minPrice: 208000, maxPrice: 325000, volume: 880, retention: 58, trend: 'up', trendValue: 0.5 },
+                    { name: 'GLA', avgPrice: 138000, minPrice: 112000, maxPrice: 172000, volume: 650, retention: 59, trend: 'up', trendValue: 1.0 },
+                    { name: 'GLC', avgPrice: 198000, minPrice: 162000, maxPrice: 248000, volume: 720, retention: 61, trend: 'up', trendValue: 1.2 },
+                    { name: 'A-Class', avgPrice: 118000, minPrice: 95000, maxPrice: 148000, volume: 580, retention: 56, trend: 'down', trendValue: -1.5 },
+                ]
+            },
+            mazda: {
+                name: '马自达',
+                nameEn: 'Mazda',
+                models: [
+                    { name: 'Mazda3', avgPrice: 82800, minPrice: 65000, maxPrice: 102000, volume: 1180, retention: 66, trend: 'flat', trendValue: 0 },
+                    { name: 'CX-5', avgPrice: 118000, minPrice: 95000, maxPrice: 148000, volume: 920, retention: 67, trend: 'up', trendValue: 1.5 },
+                    { name: 'Mazda2', avgPrice: 58800, minPrice: 46000, maxPrice: 72000, volume: 850, retention: 64, trend: 'down', trendValue: -1.0 },
+                    { name: 'CX-3', avgPrice: 92800, minPrice: 75000, maxPrice: 115000, volume: 680, retention: 65, trend: 'flat', trendValue: 0 },
+                    { name: '6', avgPrice: 108000, minPrice: 88000, maxPrice: 135000, volume: 420, retention: 63, trend: 'down', trendValue: -0.5 },
+                ]
+            },
+            mitsubishi: {
+                name: '三菱',
+                nameEn: 'Mitsubishi',
+                models: [
+                    { name: 'Attrage', avgPrice: 52800, minPrice: 40000, maxPrice: 65000, volume: 780, retention: 62, trend: 'down', trendValue: -1.8 },
+                    { name: 'Xpander', avgPrice: 78800, minPrice: 62000, maxPrice: 98000, volume: 1120, retention: 64, trend: 'up', trendValue: 2.0 },
+                    { name: 'Triton', avgPrice: 108000, minPrice: 88000, maxPrice: 132000, volume: 680, retention: 66, trend: 'up', trendValue: 1.5 },
+                    { name: 'Outlander', avgPrice: 128000, minPrice: 102000, maxPrice: 158000, volume: 380, retention: 63, trend: 'flat', trendValue: 0 },
+                ]
+            },
+            hyundai: {
+                name: '现代',
+                nameEn: 'Hyundai',
+                models: [
+                    { name: 'Avante', avgPrice: 78800, minPrice: 62000, maxPrice: 98000, volume: 920, retention: 63, trend: 'up', trendValue: 1.0 },
+                    { name: 'Tucson', avgPrice: 118000, minPrice: 95000, maxPrice: 148000, volume: 680, retention: 64, trend: 'up', trendValue: 1.2 },
+                    { name: 'Creta', avgPrice: 82800, minPrice: 66000, maxPrice: 102000, volume: 580, retention: 62, trend: 'flat', trendValue: 0 },
+                    { name: 'i30', avgPrice: 68800, minPrice: 54000, maxPrice: 85000, volume: 420, retention: 61, trend: 'down', trendValue: -0.8 },
+                ]
+            },
+            kia: {
+                name: '起亚',
+                nameEn: 'Kia',
+                models: [
+                    { name: 'Cerato', avgPrice: 76800, minPrice: 60000, maxPrice: 95000, volume: 780, retention: 62, trend: 'flat', trendValue: 0 },
+                    { name: 'Sportage', avgPrice: 115000, minPrice: 92000, maxPrice: 142000, volume: 620, retention: 63, trend: 'up', trendValue: 1.0 },
+                    { name: 'Seltos', avgPrice: 86800, minPrice: 69000, maxPrice: 108000, volume: 520, retention: 61, trend: 'up', trendValue: 0.8 },
+                    { name: 'Stonic', avgPrice: 62800, minPrice: 50000, maxPrice: 78000, volume: 380, retention: 60, trend: 'down', trendValue: -0.5 },
+                ]
+            },
+            audi: {
+                name: '奥迪',
+                nameEn: 'Audi',
+                models: [
+                    { name: 'A3', avgPrice: 128000, minPrice: 102000, maxPrice: 160000, volume: 480, retention: 58, trend: 'up', trendValue: 0.5 },
+                    { name: 'A4', avgPrice: 168000, minPrice: 135000, maxPrice: 210000, volume: 380, retention: 59, trend: 'flat', trendValue: 0 },
+                    { name: 'Q3', avgPrice: 148000, minPrice: 118000, maxPrice: 185000, volume: 420, retention: 60, trend: 'up', trendValue: 1.0 },
+                    { name: 'Q5', avgPrice: 198000, minPrice: 158000, maxPrice: 248000, volume: 320, retention: 62, trend: 'up', trendValue: 1.2 },
+                ]
+            },
+            volkswagen: {
+                name: '大众',
+                nameEn: 'Volkswagen',
+                models: [
+                    { name: '迈腾 Magotan', avgPrice: 158000, minPrice: 128000, maxPrice: 195000, volume: 2450, retention: 72, trend: 'up', trendValue: 2.5 },
+                    { name: '帕萨特 Passat', avgPrice: 148000, minPrice: 118000, maxPrice: 182000, volume: 2180, retention: 70, trend: 'up', trendValue: 1.8 },
+                    { name: '速腾 Sagitar', avgPrice: 108000, minPrice: 88000, maxPrice: 132000, volume: 1950, retention: 68, trend: 'flat', trendValue: 0.5 },
+                    { name: '朗逸 Lavida', avgPrice: 92000, minPrice: 75000, maxPrice: 115000, volume: 2850, retention: 69, trend: 'up', trendValue: 1.2 },
+                    { name: '宝来 Bora', avgPrice: 85000, minPrice: 68000, maxPrice: 105000, volume: 1680, retention: 67, trend: 'down', trendValue: -0.8 },
+                    { name: '高尔夫 Golf', avgPrice: 98000, minPrice: 78000, maxPrice: 122000, volume: 1420, retention: 71, trend: 'up', trendValue: 1.5 },
+                    { name: '途观L Tiguan L', avgPrice: 168000, minPrice: 135000, maxPrice: 208000, volume: 1850, retention: 69, trend: 'up', trendValue: 2.0 },
+                    { name: '探岳 Tayron', avgPrice: 152000, minPrice: 122000, maxPrice: 188000, volume: 1280, retention: 68, trend: 'flat', trendValue: 0.3 },
+                ]
+            }
+        };
+        
+        // ==========================================
+        // Brand Analysis Functions
+        // ==========================================
+        function initBrandAnalysis() {
+            renderBrandFilter();
+            selectBrand('toyota');
+        }
+        
+        function renderBrandFilter() {
+            const container = document.getElementById('brandFilterList');
+            const brands = Object.keys(BRAND_MODELS_DATA);
+            
+            container.innerHTML = brands.map(brandKey => {
+                const brand = BRAND_MODELS_DATA[brandKey];
+                return `
+                    <button class="brand-filter-btn px-4 py-2 rounded-lg bg-white border border-slate-200 text-sm font-medium ${brandKey === selectedBrand ? 'active' : ''}" 
+                            onclick="selectBrand('${brandKey}')" data-brand="${brandKey}">
+                        ${brand.name}
+                    </button>
+                `;
+            }).join('');
+        }
+        
+        function selectBrand(brandKey) {
+            selectedBrand = brandKey;
+            selectedModelsForCompare = [];
+            
+            // Update filter buttons
+            document.querySelectorAll('.brand-filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.brand === brandKey);
+            });
+            
+            const brand = BRAND_MODELS_DATA[brandKey];
+            
+            // Update titles
+            document.getElementById('brandChartTitle').textContent = `${brand.name} - 车型价格分布`;
+            document.getElementById('brandTableTitle').textContent = `${brand.name}车型价格分析`;
+            
+            // Render stats
+            renderBrandStats(brand);
+            
+            // Render chart
+            renderBrandPriceChart(brand);
+            
+            // Render table
+            renderBrandModelTable(brand);
+            
+            // Hide comparison section
+            document.getElementById('comparisonSection').style.display = 'none';
+        }
+        
+        function renderBrandStats(brand) {
+            const models = brand.models;
+            const avgPrice = Math.round(models.reduce((sum, m) => sum + m.avgPrice, 0) / models.length);
+            const totalVolume = models.reduce((sum, m) => sum + m.volume, 0);
+            const avgRetention = Math.round(models.reduce((sum, m) => sum + m.retention, 0) / models.length);
+            const risingModels = models.filter(m => m.trend === 'up').length;
+            
+            const container = document.getElementById('brandSummaryStats');
+            container.innerHTML = `
+                <div class="card stat-card p-4">
+                    <p class="text-xs text-slate-500 mb-1">品牌均价</p>
+                    <p class="text-xl font-bold text-slate-800">${currentCountry.symbol}${avgPrice.toLocaleString()}</p>
+                </div>
+                <div class="card stat-card success p-4">
+                    <p class="text-xs text-slate-500 mb-1">月销总量</p>
+                    <p class="text-xl font-bold text-slate-800">${totalVolume.toLocaleString()}</p>
+                </div>
+                <div class="card stat-card warning p-4">
+                    <p class="text-xs text-slate-500 mb-1">平均保值率</p>
+                    <p class="text-xl font-bold text-slate-800">${avgRetention}%</p>
+                </div>
+                <div class="card stat-card p-4" style="border-left-color: #8b5cf6;">
+                    <p class="text-xs text-slate-500 mb-1">涨价车型</p>
+                    <p class="text-xl font-bold text-slate-800">${risingModels}款</p>
+                </div>
+            `;
+        }
+        
+        function renderBrandPriceChart(brand) {
+            const ctx = document.getElementById('brandPriceChart');
+            
+            if (charts.brandPrice) {
+                charts.brandPrice.destroy();
+            }
+            
+            const models = brand.models;
+            const labels = models.map(m => m.name);
+            const avgPrices = models.map(m => m.avgPrice);
+            const minPrices = models.map(m => m.minPrice);
+            const maxPrices = models.map(m => m.maxPrice);
+            
+            charts.brandPrice = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '最高价',
+                            data: maxPrices,
+                            backgroundColor: 'rgba(239, 68, 68, 0.6)',
+                            borderColor: '#ef4444',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '均价',
+                            data: avgPrices,
+                            backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '最低价',
+                            data: minPrices,
+                            backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                            borderColor: '#10b981',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + currentCountry.symbol + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return currentCountry.symbol + (value / 1000) + 'k';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function renderBrandModelTable(brand) {
+            const tbody = document.getElementById('brandModelTable');
+            const models = [...brand.models]; // Copy for sorting
+            
+            // Apply sorting
+            const sortBy = document.getElementById('sortBy').value;
+            switch(sortBy) {
+                case 'price-desc':
+                    models.sort((a, b) => b.avgPrice - a.avgPrice);
+                    break;
+                case 'price-asc':
+                    models.sort((a, b) => a.avgPrice - b.avgPrice);
+                    break;
+                case 'volume':
+                    models.sort((a, b) => b.volume - a.volume);
+                    break;
+                case 'retention':
+                    models.sort((a, b) => b.retention - a.retention);
+                    break;
+            }
+            
+            tbody.innerHTML = models.map((model, index) => {
+                const trendIcon = model.trend === 'up' ? '↑' : model.trend === 'down' ? '↓' : '→';
+                const trendClass = model.trend === 'up' ? 'trend-up' : model.trend === 'down' ? 'trend-down' : 'trend-flat';
+                const isSelected = selectedModelsForCompare.includes(model.name);
+                
+                return `
+                    <tr class="model-row ${isSelected ? 'selected' : ''}" data-model="${model.name}">
+                        <td class="py-3">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" class="compare-checkbox" 
+                                       ${isSelected ? 'checked' : ''} 
+                                       onchange="toggleModelCompare('${model.name}')"
+                                       onclick="event.stopPropagation()">
+                                <span class="font-medium">${brand.nameEn} ${model.name}</span>
+                            </div>
+                        </td>
+                        <td class="py-3 text-right font-semibold">${currentCountry.symbol}${model.avgPrice.toLocaleString()}</td>
+                        <td class="py-3 text-right text-slate-500">${currentCountry.symbol}${model.minPrice.toLocaleString()}</td>
+                        <td class="py-3 text-right text-slate-500">${currentCountry.symbol}${model.maxPrice.toLocaleString()}</td>
+                        <td class="py-3 text-right">${model.volume.toLocaleString()}</td>
+                        <td class="py-3 text-right">
+                            <span class="px-2 py-1 rounded-full text-xs ${model.retention >= 70 ? 'bg-green-100 text-green-600' : model.retention >= 60 ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'}">
+                                ${model.retention}%
+                            </span>
+                        </td>
+                        <td class="py-3 text-right">
+                            <span class="${trendClass} font-medium">
+                                ${trendIcon} ${Math.abs(model.trendValue)}%
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function sortModelTable() {
+            const brand = BRAND_MODELS_DATA[selectedBrand];
+            renderBrandModelTable(brand);
+        }
+        
+        function toggleModelCompare(modelName) {
+            const index = selectedModelsForCompare.indexOf(modelName);
+            if (index > -1) {
+                selectedModelsForCompare.splice(index, 1);
+            } else {
+                if (selectedModelsForCompare.length < 3) {
+                    selectedModelsForCompare.push(modelName);
+                } else {
+                    showToast('最多选择3款车型进行对比');
+                    return;
+                }
+            }
+            
+            const brand = BRAND_MODELS_DATA[selectedBrand];
+            renderBrandModelTable(brand);
+            
+            if (selectedModelsForCompare.length >= 2) {
+                showComparison(brand);
+            } else {
+                document.getElementById('comparisonSection').style.display = 'none';
+            }
+        }
+        
+        function showComparison(brand) {
+            const section = document.getElementById('comparisonSection');
+            section.style.display = 'block';
+            
+            const models = brand.models.filter(m => selectedModelsForCompare.includes(m.name));
+            
+            // Render comparison chart
+            const ctx = document.getElementById('comparisonChart');
+            if (charts.comparison) {
+                charts.comparison.destroy();
+            }
+            
+            charts.comparison = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['价格优势', '保值率', '销量热度', '价格稳定性', '市场认可度'],
+                    datasets: models.map((model, index) => ({
+                        label: model.name,
+                        data: [
+                            100 - (model.avgPrice / 300000) * 100,
+                            model.retention,
+                            Math.min(100, model.volume / 30),
+                            100 - Math.abs(model.trendValue) * 10,
+                            Math.min(100, model.volume / 20 + 50)
+                        ],
+                        backgroundColor: ['rgba(59, 130, 246, 0.2)', 'rgba(16, 185, 129, 0.2)', 'rgba(245, 158, 11, 0.2)'][index],
+                        borderColor: ['#3b82f6', '#10b981', '#f59e0b'][index],
+                        borderWidth: 2
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            // Render comparison details
+            const detailsDiv = document.getElementById('comparisonDetails');
+            const rate = currentCountry.rate;
+            const symbol = currentCountry.symbol;
+            
+            detailsDiv.innerHTML = models.map(model => `
+                <div class="bg-slate-50 rounded-xl p-4">
+                    <h4 class="font-semibold text-lg mb-3">${brand.nameEn} ${model.name}</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">均价</span>
+                            <span class="font-medium">${symbol}${Math.round(model.avgPrice / rate).toLocaleString()}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">价格区间</span>
+                            <span class="font-medium">${symbol}${Math.round(model.minPrice / rate).toLocaleString()} - ${symbol}${Math.round(model.maxPrice / rate).toLocaleString()}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">月销量</span>
+                            <span class="font-medium">${model.volume.toLocaleString()}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">保值率</span>
+                            <span class="font-medium ${model.retention >= 70 ? 'text-green-500' : model.retention >= 60 ? 'text-yellow-500' : 'text-red-500'}">${model.retention}%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">价格趋势</span>
+                            <span class="font-medium ${model.trend === 'up' ? 'text-green-500' : model.trend === 'down' ? 'text-red-500' : 'text-slate-500'}">
+                                ${model.trend === 'up' ? '↑ 上涨' : model.trend === 'down' ? '↓ 下跌' : '→ 持平'} ${Math.abs(model.trendValue)}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Scroll to comparison
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // ==========================================
+        // Market Analysis Charts
+        // ==========================================
+        function initMarketCharts() {
+            // Price Trend Chart
+            const priceCtx = document.getElementById('priceTrendChart').getContext('2d');
+            charts.priceTrend = new Chart(priceCtx, {
+                type: 'line',
+                data: {
+                    labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+                    datasets: [{
+                        label: '平均成交价',
+                        data: [85000, 86000, 84500, 87000, 88000, 86500, 89000, 90000, 88500, 91000, 92000, 91500],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: '市场挂牌价',
+                        data: [92000, 93000, 91500, 94000, 95000, 93500, 96000, 97000, 95500, 98000, 99000, 98500],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: false } }
+                }
+            });
+            
+            // Brand Share Chart
+            const brandCtx = document.getElementById('brandShareChart').getContext('2d');
+            charts.brandShare = new Chart(brandCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['大众', '丰田', '本田', '宝马', '奔驰', '日产', '其他'],
+                    datasets: [{
+                        data: [22, 20, 15, 12, 10, 8, 13],
+                        backgroundColor: ['#2563eb', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#94a3b8']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+            
+            // Age Distribution Chart
+            const ageCtx = document.getElementById('ageDistChart').getContext('2d');
+            charts.ageDist = new Chart(ageCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['1-3年', '3-5年', '5-7年', '7-10年', '10年以上'],
+                    datasets: [{
+                        label: '车辆占比',
+                        data: [25, 32, 22, 15, 6],
+                        backgroundColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+            
+            // Price Range Chart
+            const rangeCtx = document.getElementById('priceRangeChart').getContext('2d');
+            charts.priceRange = new Chart(rangeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['<5万', '5-10万', '10-15万', '15-25万', '25-40万', '>40万'],
+                    datasets: [{
+                        label: '交易量',
+                        data: [18, 28, 24, 18, 8, 4],
+                        backgroundColor: '#10b981'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+            
+            // Render top models table
+            renderTopModels();
+        }
+        
+        function renderTopModels() {
+            const models = [
+                { rank: 1, model: 'Toyota Corolla Altis', brand: '丰田', price: 85800, volume: 2840, retention: '72%' },
+                { rank: 2, model: 'Honda Civic', brand: '本田', price: 92000, volume: 2150, retention: '70%' },
+                { rank: 3, model: 'Toyota Camry', brand: '丰田', price: 128000, volume: 1820, retention: '68%' },
+                { rank: 4, model: 'BMW 3 Series', brand: '宝马', price: 185000, volume: 1560, retention: '62%' },
+                { rank: 5, model: 'Mercedes C-Class', brand: '奔驰', price: 195000, volume: 1420, retention: '60%' },
+            ];
+            
+            document.getElementById('topModelsTable').innerHTML = models.map(m => `
+                <tr class="border-b border-slate-50 last:border-0">
+                    <td class="py-3">
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full ${m.rank <= 3 ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600'} text-xs font-bold">${m.rank}</span>
+                    </td>
+                    <td class="py-3 font-medium">${m.model}</td>
+                    <td class="py-3 text-slate-500">${m.brand}</td>
+                    <td class="py-3 text-right font-medium">${currentCountry.symbol}${m.price.toLocaleString()}</td>
+                    <td class="py-3 text-right">${m.volume.toLocaleString()}</td>
+                    <td class="py-3 text-right text-green-500">${m.retention}</td>
+                </tr>
+            `).join('');
+        }
+        
+        function updateMarketData() {
+            var multipliers = {
+                'CN': 1, 'SG': 1, 'MY': 0.3, 'TH': 0.25, 'ID': 0.15, 'VN': 0.18,
+                'PH': 0.12, 'MM': 0.08, 'KH': 0.06, 'LA': 0.05, 'BN': 1
+            };
+            var multiplier = multipliers[currentCountry.code] || 1;
+            var baseSize = 2.8;
+            var baseVolume = 15280;
+            document.getElementById('marketSize').textContent = '¥' + (baseSize * multiplier).toFixed(1) + 'B';
+            document.getElementById('monthlyVolume').textContent = Math.floor(baseVolume * multiplier).toLocaleString();
+            if (charts.priceTrend && MARKET_CHART_BASE && MARKET_CHART_BASE.priceTrend) {
+                charts.priceTrend.data.datasets[0].data = MARKET_CHART_BASE.priceTrend[0].map(function(v) { return v * multiplier; });
+                charts.priceTrend.data.datasets[1].data = MARKET_CHART_BASE.priceTrend[1].map(function(v) { return v * multiplier; });
+                charts.priceTrend.update();
+            }
+            renderTopModels();
+        }
+        
+        // ==========================================
+        // Car Model Query Functions
+        // ==========================================
+        function quickSearch(query) {
+            document.getElementById('carSearchInput').value = query;
+            searchCarModel();
+        }
+        
+        function searchCarModel() {
+            const query = document.getElementById('carSearchInput').value.trim();
+            if (!query) {
+                showToast('请输入车型名称');
+                return;
+            }
+            
+            // Parse query to find car model and year
+            let carKey = null;
+            let year = '2023';
+            
+            // Check for car model
+            for (const key in CAR_MODEL_DATABASE) {
+                if (query.includes(key)) {
+                    carKey = key;
+                    break;
+                }
+            }
+            
+            // Check for year
+            const yearMatch = query.match(/20\d{2}/);
+            if (yearMatch) {
+                year = yearMatch[0];
+            }
+            
+            if (!carKey) {
+                showToast('未找到该车型，试试：迈腾、凯美瑞、宝马3系、卡罗拉、CR-V');
+                return;
+            }
+            
+            currentQueryCar = CAR_MODEL_DATABASE[carKey];
+            currentQueryYear = year;
+            
+            // Show results
+            document.getElementById('queryEmptyState').classList.add('hidden');
+            document.getElementById('queryResults').classList.remove('hidden');
+            
+            // Update UI
+            updateQueryCarInfo();
+            renderQueryCharts();
+            renderDealerTable();
+            
+            // Scroll to results
+            document.getElementById('queryResults').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function updateQueryCarInfo() {
+            const car = currentQueryCar;
+            const yearData = car.years[currentQueryYear] || car.years['2023'];
+            const rate = currentCountry.rate;
+            const symbol = currentCountry.symbol;
+            
+            document.getElementById('queryCarName').textContent = `${car.brand} ${car.model}`;
+            document.getElementById('queryCarYear').textContent = `${currentQueryYear}款`;
+            document.getElementById('queryCarSubtitle').textContent = `${car.category} | ${car.specs}`;
+            
+            // Convert prices to current country currency
+            const newCarPriceLocal = Math.round(car.newCarPrice / rate);
+            const avgPriceLocal = Math.round(yearData.avgPrice / rate);
+            const minPriceLocal = Math.round(yearData.minPrice / rate);
+            const maxPriceLocal = Math.round(yearData.maxPrice / rate);
+            
+            document.getElementById('queryCarPrice').textContent = `${symbol}${newCarPriceLocal.toLocaleString()}`;
+            
+            // Update KPI cards
+            document.getElementById('kpiAvgPrice').textContent = `${symbol}${avgPriceLocal.toLocaleString()}`;
+            document.getElementById('kpiPriceRange').textContent = `${symbol}${(minPriceLocal/1000).toFixed(0)}k - ${symbol}${(maxPriceLocal/1000).toFixed(0)}k`;
+            document.getElementById('kpiRetention').textContent = `${yearData.retention}%`;
+            document.getElementById('kpiVolume').textContent = yearData.volume.toLocaleString();
+        }
+        
+        function changeTimeRange(range) {
+            currentTimeRange = range;
+            
+            // Update button styles
+            document.querySelectorAll('.time-range-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-blue-500', 'text-white');
+                btn.classList.add('bg-slate-100');
+                if (btn.dataset.range === range) {
+                    btn.classList.add('active', 'bg-blue-500', 'text-white');
+                    btn.classList.remove('bg-slate-100');
+                }
+            });
+            
+            // Update chart
+            renderPriceTrendChart();
+        }
+        
+        function renderQueryCharts() {
+            renderPriceTrendChart();
+            renderPriceGaugeChart();
+            renderRegionalPriceChart();
+            renderCompetitorChart();
+            renderMileagePriceChart();
+            renderDepreciationForecastChart();
+        }
+        
+        function renderPriceTrendChart() {
+            const ctx = document.getElementById('queryPriceTrendChart');
+            if (charts.queryPriceTrend) {
+                charts.queryPriceTrend.destroy();
+            }
+            
+            const priceData = currentQueryCar.priceHistory[currentTimeRange];
+            let labels;
+            if (currentTimeRange === '6m') {
+                labels = ['1月', '2月', '3月', '4月', '5月', '6月'];
+            } else if (currentTimeRange === '1y') {
+                labels = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+            } else {
+                labels = Array.from({length: 24}, (_, i) => `${i + 1}月`);
+            }
+            
+            // Convert price data to current country currency
+            const rate = currentCountry.rate;
+            const symbol = currentCountry.symbol;
+            const localPriceData = priceData.map(price => Math.round(price / rate));
+            
+            charts.queryPriceTrend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels.slice(0, priceData.length),
+                    datasets: [{
+                        label: '平均成交价',
+                        data: localPriceData,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '均价: ' + symbol + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return symbol + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function renderPriceGaugeChart() {
+            const ctx = document.getElementById('priceGaugeChart');
+            if (charts.priceGauge) {
+                charts.priceGauge.destroy();
+            }
+            
+            const yearData = currentQueryCar.years[currentQueryYear] || currentQueryCar.years['2023'];
+            const avgPrice = yearData.avgPrice;
+            const minPrice = yearData.minPrice;
+            const maxPrice = yearData.maxPrice;
+            const percentage = ((avgPrice - minPrice) / (maxPrice - minPrice)) * 100;
+            
+            charts.priceGauge = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['当前价位', '剩余空间'],
+                    datasets: [{
+                        data: [percentage, 100 - percentage],
+                        backgroundColor: ['#10b981', '#e2e8f0'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false }
+                    }
+                },
+                plugins: [{
+                    id: 'gaugeText',
+                    beforeDraw: function(chart) {
+                        const ctx = chart.ctx;
+                        ctx.save();
+                        ctx.font = 'bold 24px Inter';
+                        ctx.fillStyle = '#10b981';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(Math.round(percentage) + '%', chart.width / 2, chart.height / 2);
+                        ctx.restore();
+                    }
+                }]
+            });
+        }
+        
+        function renderRegionalPriceChart() {
+            const ctx = document.getElementById('regionalPriceChart');
+            if (charts.regionalPrice) {
+                charts.regionalPrice.destroy();
+            }
+            
+            const yearData = currentQueryCar.years[currentQueryYear] || currentQueryCar.years['2023'];
+            const basePrice = yearData.avgPrice;
+            const rate = currentCountry.rate;
+            const symbol = currentCountry.symbol;
+            
+            charts.regionalPrice = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['北京', '上海', '广州', '深圳', '成都', '杭州', '武汉', '西安'],
+                    datasets: [{
+                        label: '平均价格',
+                        data: [
+                            Math.round(basePrice * 1.02 / rate),
+                            Math.round(basePrice * 1.05 / rate),
+                            Math.round(basePrice * 0.98 / rate),
+                            Math.round(basePrice * 0.99 / rate),
+                            Math.round(basePrice * 0.95 / rate),
+                            Math.round(basePrice * 1.00 / rate),
+                            Math.round(basePrice * 0.93 / rate),
+                            Math.round(basePrice * 0.91 / rate)
+                        ],
+                        backgroundColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return symbol + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function renderCompetitorChart() {
+            const ctx = document.getElementById('competitorChart');
+            if (charts.competitor) {
+                charts.competitor.destroy();
+            }
+            
+            const competitors = currentQueryCar.competitors;
+            const yearData = currentQueryCar.years[currentQueryYear] || currentQueryCar.years['2023'];
+            
+            const rate = currentCountry.rate;
+            const symbol = currentCountry.symbol;
+            
+            charts.competitor = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [currentQueryCar.model, ...competitors.map(c => c.name)],
+                    datasets: [{
+                        label: '平均价格',
+                        data: [Math.round(yearData.avgPrice / rate), ...competitors.map(c => Math.round(c.avgPrice / rate))],
+                        backgroundColor: ['#3b82f6', '#94a3b8', '#94a3b8', '#94a3b8', '#94a3b8']
+                    }, {
+                        label: '保值率',
+                        data: [yearData.retention, ...competitors.map(c => c.retention)],
+                        type: 'line',
+                        borderColor: '#f59e0b',
+                        backgroundColor: '#f59e0b',
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return symbol + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        },
+                        y1: {
+                            position: 'right',
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function renderMileagePriceChart() {
+            const ctx = document.getElementById('mileagePriceChart');
+            if (charts.mileagePrice) {
+                charts.mileagePrice.destroy();
+            }
+            
+            const yearData = currentQueryCar.years[currentQueryYear] || currentQueryCar.years['2023'];
+            const basePrice = yearData.avgPrice;
+            const rate = currentCountry.rate;
+            const symbol = currentCountry.symbol;
+            
+            // Generate scatter data
+            const scatterData = [];
+            for (let i = 0; i < 50; i++) {
+                const mileage = Math.random() * 80000;
+                const depreciation = 1 - (mileage / 200000);
+                const priceVariation = 0.9 + Math.random() * 0.2;
+                scatterData.push({
+                    x: mileage,
+                    y: Math.round(basePrice * depreciation * priceVariation / rate)
+                });
+            }
+            
+            charts.mileagePrice = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: '车源分布',
+                        data: scatterData,
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '里程 (km)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return (value / 10000) + '万';
+                                }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '价格'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return symbol + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function renderDepreciationForecastChart() {
+            const ctx = document.getElementById('depreciationForecastChart');
+            if (charts.depreciationForecast) {
+                charts.depreciationForecast.destroy();
+            }
+            
+            const yearData = currentQueryCar.years[currentQueryYear] || currentQueryCar.years['2023'];
+            const currentPrice = yearData.avgPrice;
+            const rate = currentCountry.rate;
+            const symbol = currentCountry.symbol;
+            
+            // Calculate depreciation for next 5 years
+            const years = ['当前', '1年后', '2年后', '3年后', '4年后', '5年后'];
+            const values = [Math.round(currentPrice / rate)];
+            let price = currentPrice;
+            for (let i = 0; i < 5; i++) {
+                price = price * 0.88; // 12% annual depreciation
+                values.push(Math.round(price / rate));
+            }
+            
+            charts.depreciationForecast = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [{
+                        label: '预测残值',
+                        data: values,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return symbol + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function renderDealerTable() {
+            const tbody = document.getElementById('dealerTable');
+            const yearData = currentQueryCar.years[currentQueryYear] || currentQueryCar.years['2023'];
+            
+            const cities = ['北京', '上海', '广州', '深圳', '成都', '杭州'];
+            const conditions = ['excellent', 'good', 'good', 'excellent', 'fair', 'good'];
+            const conditionLabels = {
+                'excellent': { text: '优', class: 'condition-excellent' },
+                'good': { text: '良', class: 'condition-good' },
+                'fair': { text: '中', class: 'condition-fair' }
+            };
+            
+            const rate = currentCountry.rate;
+            const symbol = currentCountry.symbol;
+            
+            const dealers = cities.map((city, index) => {
+                const priceVariation = 0.95 + Math.random() * 0.15;
+                const mileage = Math.floor(10000 + Math.random() * 60000);
+                const carAge = new Date().getFullYear() - parseInt(currentQueryYear);
+                const price = Math.floor(yearData.avgPrice * priceVariation / rate);
+                const condition = conditions[index];
+                
+                return {
+                    city,
+                    price,
+                    mileage,
+                    carAge,
+                    condition
+                };
+            });
+            
+            // Sort by price ascending by default
+            dealers.sort((a, b) => a.price - b.price);
+            
+            tbody.innerHTML = dealers.map(d => {
+                const cond = conditionLabels[d.condition];
+                return `
+                    <tr class="dealer-row">
+                        <td class="py-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-12 h-8 bg-slate-200 rounded"></div>
+                                <div>
+                                    <p class="font-medium">${currentQueryCar.brand} ${currentQueryCar.model}</p>
+                                    <p class="text-xs text-slate-500">${currentQueryYear}款 ${currentQueryCar.specs.split('|')[0]}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3 text-right">
+                            <p class="font-bold text-blue-600">${symbol}${d.price.toLocaleString()}</p>
+                        </td>
+                        <td class="py-3 text-right text-slate-600">${(d.mileage / 10000).toFixed(1)}万公里</td>
+                        <td class="py-3 text-right text-slate-600">${d.carAge}年</td>
+                        <td class="py-3">${d.city}</td>
+                        <td class="py-3">
+                            <span class="condition-badge ${cond.class}">${cond.text}</span>
+                        </td>
+                        <td class="py-3 text-right">
+                            <button onclick="contactDealer('${d.city}')" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors">
+                                联系卖家
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function sortDealerTable() {
+            renderDealerTable();
+        }
+        
+        function contactDealer(city) {
+            showToast(`已获取${city}卖家联系方式`);
+        }
+        
+        // ==========================================
+        // Vehicle Analysis
+        // ==========================================
+        function initYearSelect() {
+            const select = document.getElementById('vYear');
+            const currentYear = new Date().getFullYear();
+            for (let year = currentYear; year >= currentYear - 20; year--) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year + '年';
+                select.appendChild(option);
+            }
+        }
+        
+        function analyzeVehicle() {
+            const brand = document.getElementById('vBrand').value;
+            const model = document.getElementById('vModel').value;
+            const year = parseInt(document.getElementById('vYear').value);
+            const mileage = parseInt(document.getElementById('vMileage').value) || 0;
+            // 输入以万为单位，转换为实际金额（乘以10000）
+            const newPriceWan = parseFloat(document.getElementById('vNewPrice').value) || 0;
+            const priceWan = parseFloat(document.getElementById('vPrice').value) || 0;
+            const newPrice = newPriceWan * 10000;  // 转换为元
+            const price = priceWan * 10000;        // 转换为元
+            
+            if (!brand || !model || !year) {
+                showToast('请填写完整的车辆信息');
+                return;
+            }
+            
+            // AI Analysis Data
+            const age = new Date().getFullYear() - year;
+            const mileage10k = mileage / 10000;
+            
+            // AI Scoring Algorithm
+            const aiScores = calculateAIScores(brand, age, mileage10k, newPrice, price);
+            
+            // Update UI
+            document.getElementById('totalScore').textContent = aiScores.total;
+            document.getElementById('scoreBar').style.width = aiScores.total + '%';
+            document.getElementById('scoreValue').textContent = aiScores.value;
+            document.getElementById('scoreCondition').textContent = aiScores.condition;
+            document.getElementById('scoreRetention').textContent = aiScores.retention;
+            document.getElementById('scoreDemand').textContent = aiScores.demand;
+            
+            // Show results
+            document.getElementById('vehicleResults').classList.remove('hidden');
+            
+            // Create radar chart
+            const radarCtx = document.getElementById('vehicleRadarChart');
+            if (charts.vehicleRadar) charts.vehicleRadar.destroy();
+            charts.vehicleRadar = new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['AI性价比', 'AI车况', 'AI保值率', 'AI市场热度', 'AI配置指数'],
+                    datasets: [{
+                        label: 'AI评分',
+                        data: [aiScores.value, aiScores.condition, aiScores.retention, aiScores.demand, aiScores.config],
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { r: { min: 0, max: 100 } }
+                }
+            });
+            
+            // Create depreciation chart
+            const deprCtx = document.getElementById('depreciationChart');
+            if (charts.depreciation) charts.depreciation.destroy();
+            const years = [0, 1, 2, 3, 4, 5];
+            const values = years.map(y => (newPrice * Math.pow(0.85, y + age)) / 10000); // 转换为万
+            charts.depreciation = new Chart(deprCtx, {
+                type: 'line',
+                data: {
+                    labels: years.map(y => (new Date().getFullYear() + y) + '年'),
+                    datasets: [{
+                        label: 'AI预测残值 (万CNY)',
+                        data: values,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '残值: ' + context.parsed.y.toFixed(2) + '万CNY';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(1) + '万';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // AI Price Prediction
+            updateAIPricePrediction(brand, model, year, mileage, newPrice, price, aiScores);
+            
+            // Generate AI recommendation
+            generateAIRecommendation(aiScores, brand, model, age, mileage, price, newPrice);
+            
+            // Scroll to results
+            document.getElementById('vehicleResults').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // AI Scoring Algorithm
+        function calculateAIScores(brand, age, mileage10k, newPrice, price) {
+            // Brand weights (higher = better resale value)
+            const brandWeights = {
+                toyota: 1.08, honda: 1.06, nissan: 1.0, mazda: 0.98, mitsubishi: 0.95,
+                bmw: 0.92, mercedes: 0.90, audi: 0.88, volkswagen: 1.02,
+                hyundai: 0.96, kia: 0.94
+            };
+            const brandWeight = brandWeights[brand] || 1.0;
+            
+            // Age scoring (exponential decay)
+            const ageScore = Math.max(0, Math.round(100 * Math.pow(0.92, age)));
+            
+            // Mileage scoring (linear with cap)
+            const mileageScore = Math.max(0, Math.round(100 - mileage10k * 4));
+            
+            // Value scoring
+            let valueScore = 70;
+            if (newPrice > 0 && price > 0) {
+                const expectedDepreciation = 1 - Math.pow(0.85, age);
+                const expectedPrice = newPrice * (1 - expectedDepreciation);
+                const priceRatio = expectedPrice / price;
+                valueScore = Math.min(100, Math.round(priceRatio * 60));
+            }
+            
+            // Retention scoring
+            const baseRetention = Math.max(30, 100 - age * 6);
+            const retentionScore = Math.round(baseRetention * brandWeight);
+            
+            // Demand scoring (based on brand popularity)
+            const demandBase = { toyota: 90, honda: 88, volkswagen: 85, nissan: 75, bmw: 82, mercedes: 80, audi: 78, mazda: 72, hyundai: 70, kia: 68, mitsubishi: 65 };
+            const demandScore = demandBase[brand] || 70;
+            
+            // Config score (simulated based on age - newer cars have better config)
+            const configScore = Math.min(95, Math.round(70 + (5 - Math.min(age, 5)) * 5));
+            
+            // Calculate total with weights
+            const total = Math.round(
+                ageScore * 0.20 +
+                mileageScore * 0.20 +
+                valueScore * 0.25 +
+                retentionScore * 0.20 +
+                demandScore * 0.10 +
+                configScore * 0.05
+            );
+            
+            return {
+                total: total,
+                condition: Math.round((ageScore + mileageScore) / 2),
+                value: valueScore,
+                retention: retentionScore,
+                demand: demandScore,
+                config: configScore
+            };
+        }
+        
+        // AI Price Prediction
+        function updateAIPricePrediction(brand, model, year, mileage, newPrice, price, aiScores) {
+            const age = new Date().getFullYear() - year;
+            const symbol = currentCountry.symbol;
+            
+            // Calculate AI fair price (in CNY)
+            let fairPriceCNY = 0;
+            if (newPrice > 0) {
+                // Depreciation model
+                const depreciationRate = 0.88;
+                const mileageDepreciation = Math.min(0.3, mileage / 600000);
+                const ageDepreciation = 1 - Math.pow(depreciationRate, age);
+                const totalDepreciation = ageDepreciation + mileageDepreciation * 0.3;
+                fairPriceCNY = newPrice * (1 - Math.min(0.8, totalDepreciation));
+            } else {
+                // Estimate based on typical values
+                fairPriceCNY = 80000 * Math.pow(0.85, age);
+            }
+            
+            // Apply brand premium/discount
+            const brandMultipliers = {
+                toyota: 1.05, honda: 1.04, volkswagen: 1.03, nissan: 0.98,
+                bmw: 0.95, mercedes: 0.93, audi: 0.92, mazda: 0.97,
+                hyundai: 0.96, kia: 0.95, mitsubishi: 0.94
+            };
+            fairPriceCNY *= (brandMultipliers[brand] || 1.0);
+            
+            // Convert to Wan CNY (除以10000)
+            const fairPriceWan = (fairPriceCNY / 10000).toFixed(2);
+            const minPriceWan = (fairPriceCNY * 0.85 / 10000).toFixed(2);
+            const maxPriceWan = (fairPriceCNY * 1.15 / 10000).toFixed(2);
+            
+            // Update UI - 显示为万CNY
+            document.getElementById('aiFairPrice').textContent = fairPriceWan;
+            document.getElementById('aiPriceRange').textContent = minPriceWan + ' - ' + maxPriceWan;
+            
+            // Calculate negotiation space
+            let negotiateText = '-';
+            let priceAnalysis = '';
+            if (price > 0) {
+                const currentPriceWan = price / 10000;  // 转换为万
+                const diffPercent = ((currentPriceWan - fairPriceWan) / fairPriceWan * 100).toFixed(1);
+                const diffWan = (currentPriceWan - fairPriceWan).toFixed(2);
+                
+                if (diffPercent > 10) {
+                    negotiateText = '↓' + diffPercent + '%';
+                    document.getElementById('aiNegotiate').className = 'text-2xl font-bold text-red-500';
+                    priceAnalysis = `<span class="text-red-500 font-medium">⚠️ 当前报价偏高：</span>AI分析显示该车报价高于市场合理价${diffPercent}%，建议议价空间约${diffWan}万CNY。`;
+                } else if (diffPercent < -10) {
+                    negotiateText = '↑' + Math.abs(diffPercent) + '%';
+                    document.getElementById('aiNegotiate').className = 'text-2xl font-bold text-green-500';
+                    priceAnalysis = `<span class="text-green-500 font-medium">✅ 当前报价偏低：</span>AI分析显示该车报价低于市场合理价${Math.abs(diffPercent)}%，性价比较高，建议尽快入手。`;
+                } else {
+                    negotiateText = '±' + Math.abs(diffPercent) + '%';
+                    document.getElementById('aiNegotiate').className = 'text-2xl font-bold text-blue-500';
+                    priceAnalysis = `<span class="text-blue-500 font-medium">✓ 当前报价合理：</span>AI分析显示该车报价处于市场合理区间，与预估价相差${Math.abs(diffPercent)}%。`;
+                }
+            } else {
+                priceAnalysis = '<span class="text-slate-500">请输入当前报价以获取AI价格分析。</span>';
+            }
+            document.getElementById('aiNegotiate').textContent = negotiateText;
+            document.getElementById('aiPriceAnalysis').innerHTML = priceAnalysis;
+        }
+        
+        function generateAIRecommendation(aiScores, brand, model, age, mileage, price, newPrice) {
+            const container = document.getElementById('aiRecommendationContent');
+            const riskAlert = document.getElementById('aiRiskAlert');
+            
+            // AI Risk Analysis
+            const risks = [];
+            if (age > 10) risks.push({ level: 'high', text: '车龄超过10年，可能存在潜在故障风险' });
+            else if (age > 7) risks.push({ level: 'medium', text: '车龄较长，建议重点检查发动机、变速箱' });
+            
+            if (mileage > 150000) risks.push({ level: 'high', text: '行驶里程超过15万公里，需注意磨损件更换' });
+            else if (mileage > 100000) risks.push({ level: 'medium', text: '行驶里程超过10万公里，建议检查轮胎、刹车片' });
+            
+            if (aiScores.value < 60) risks.push({ level: 'medium', text: '性价比评分较低，建议多方比价' });
+            
+            // Show risk alerts
+            if (risks.length > 0) {
+                riskAlert.classList.remove('hidden');
+                const highRisks = risks.filter(r => r.level === 'high');
+                const mediumRisks = risks.filter(r => r.level === 'medium');
+                
+                let riskHTML = '';
+                if (highRisks.length > 0) {
+                    riskHTML += `<div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span class="font-semibold text-red-700">AI风险提示</span>
+                        </div>
+                        <ul class="text-sm text-red-600 space-y-1">${highRisks.map(r => `<li>• ${r.text}</li>`).join('')}</ul>
+                    </div>`;
+                }
+                if (mediumRisks.length > 0) {
+                    riskHTML += `<div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span class="font-semibold text-amber-700">AI注意事项</span>
+                        </div>
+                        <ul class="text-sm text-amber-600 space-y-1">${mediumRisks.map(r => `<li>• ${r.text}</li>`).join('')}</ul>
+                    </div>`;
+                }
+                riskAlert.innerHTML = riskHTML;
+            } else {
+                riskAlert.classList.add('hidden');
+            }
+            
+            // AI Recommendation Cards
+            let recommendationHTML = '';
+            
+            // Overall recommendation
+            if (aiScores.total >= 85) {
+                recommendationHTML += createAICard('success', 'AI综合评估', '强烈推荐', '该车辆AI综合评分优秀，各项指标表现良好，建议优先考虑购买。');
+            } else if (aiScores.total >= 70) {
+                recommendationHTML += createAICard('warning', 'AI综合评估', '可以考虑', '车辆整体状况良好，建议实地看车后决定，注意核实保养记录。');
+            } else {
+                recommendationHTML += createAICard('danger', 'AI综合评估', '谨慎考虑', '车辆评分偏低，可能存在使用风险，建议仔细评估或寻找其他车源。');
+            }
+            
+            // Brand-specific recommendation
+            const brandTips = {
+                toyota: '丰田品牌以可靠性著称，保值率较高，维修保养成本低。',
+                honda: '本田品牌发动机技术成熟，动力表现优秀，适合追求驾驶乐趣的用户。',
+                volkswagen: '大众品牌底盘扎实，内饰质感好，迈腾等车型商务气息浓厚。',
+                nissan: '日产品牌舒适性较好，适合家庭使用，注意检查CVT变速箱状况。',
+                bmw: '宝马品牌操控性优秀，但后期维护成本较高，建议购买延保。',
+                mercedes: '奔驰品牌豪华感强，但配件价格较高，建议充分预算维护费用。',
+                audi: '奥迪品牌科技感强，四驱版本适合多路况，注意检查四驱系统。'
+            };
+            if (brandTips[brand]) {
+                recommendationHTML += createAICard('info', 'AI品牌分析', '品牌特点', brandTips[brand]);
+            }
+            
+            // Price recommendation
+            if (price > 0 && newPrice > 0) {
+                const priceRatio = price / newPrice;
+                if (priceRatio < 0.4) {
+                    recommendationHTML += createAICard('warning', 'AI价格分析', '价格异常偏低', '当前价格远低于新车价，建议核实车况，确认无重大事故、水泡等问题。');
+                } else if (priceRatio > 0.8 && age > 3) {
+                    recommendationHTML += createAICard('warning', 'AI价格分析', '价格偏高', '当前价格接近新车价，建议议价或考虑购买新车。');
+                }
+            }
+            
+            // Action checklist
+            recommendationHTML += `
+                <div class="bg-slate-50 rounded-xl p-4 mt-4">
+                    <h4 class="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                        AI建议检查清单
+                    </h4>
+                    <div class="grid md:grid-cols-2 gap-2 text-sm">
+                        <label class="flex items-center gap-2 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
+                            <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-blue-500">
+                            <span class="text-slate-600">查询4S店保养记录</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
+                            <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-blue-500">
+                            <span class="text-slate-600">核实保险理赔记录</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
+                            <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-blue-500">
+                            <span class="text-slate-600">第三方检测报告</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
+                            <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-blue-500">
+                            <span class="text-slate-600">验证车辆手续齐全</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
+                            <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-blue-500">
+                            <span class="text-slate-600">实地试驾体验</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
+                            <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-blue-500">
+                            <span class="text-slate-600">对比同类车源价格</span>
+                        </label>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = recommendationHTML;
+        }
+        
+        function createAICard(type, label, title, content) {
+            const colors = {
+                success: { bg: 'bg-emerald-50', border: 'border-emerald-200', label: 'text-emerald-600', title: 'text-emerald-700', icon: 'text-emerald-500' },
+                warning: { bg: 'bg-amber-50', border: 'border-amber-200', label: 'text-amber-600', title: 'text-amber-700', icon: 'text-amber-500' },
+                danger: { bg: 'bg-red-50', border: 'border-red-200', label: 'text-red-600', title: 'text-red-700', icon: 'text-red-500' },
+                info: { bg: 'bg-blue-50', border: 'border-blue-200', label: 'text-blue-600', title: 'text-blue-700', icon: 'text-blue-500' }
+            };
+            const c = colors[type];
+            return `
+                <div class="${c.bg} border ${c.border} rounded-xl p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-white/70 flex items-center justify-center ${c.icon} flex-shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs ${c.label} font-medium mb-1">${label}</p>
+                            <h4 class="font-semibold ${c.title} mb-1">${title}</h4>
+                            <p class="text-sm text-slate-600">${content}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // ==========================================
+        // Calculator Functions
+        // ==========================================
+        // Database Functions
+        // ==========================================
+        function loadSavedVehicles() {
+            const saved = localStorage.getItem('aseanUsedCarRecords');
+            if (saved) {
+                savedVehicles = JSON.parse(saved);
+            }
+            
+            const container = document.getElementById('savedVehiclesList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (savedVehicles.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            container.innerHTML = savedVehicles.map(v => `
+                <div class="vehicle-item flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                    <div>
+                        <p class="font-medium">${v.brand} ${v.model}</p>
+                        <p class="text-xs text-slate-500">${v.year}年 · ${v.date}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-blue-500">${v.value} ${v.currency}</p>
+                        <button onclick="deleteRecord(${v.id})" class="text-xs text-red-500 mt-1">删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function deleteRecord(id) {
+            savedVehicles = savedVehicles.filter(v => v.id !== id);
+            localStorage.setItem('aseanUsedCarRecords', JSON.stringify(savedVehicles));
+            loadSavedVehicles();
+            showToast('已删除');
+        }
+        
+        function exportDatabase() {
+            const data = {
+                exportTime: new Date().toISOString(),
+                country: currentCountry,
+                records: savedVehicles
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `asean-used-car-backup-${new Date().toLocaleDateString('zh-CN')}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('导出成功');
+        }
+        
+        // ==========================================
+        // Utility Functions
+        // ==========================================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+    </script>
+    
+    <!-- ==========================================
+         Floating Calculator Widget (右下角悬浮计算器)
+         ========================================== -->
+    
+    <!-- Floating Toggle Button -->
+    <button id="calcToggleBtn" onclick="toggleCalculator()" 
+            class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-xl"
+            title="车辆评估计算器">
+        <!-- Calculator Icon SVG -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+            <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+            <line x1="8" x2="16" y1="6" y2="6"></line>
+            <line x1="16" x2="16" y1="14" y2="18"></line>
+            <path d="M16 10h.01"></path>
+            <path d="M12 10h.01"></path>
+            <path d="M8 10h.01"></path>
+            <path d="M12 14h.01"></path>
+            <path d="M8 14h.01"></path>
+            <path d="M12 18h.01"></path>
+            <path d="M8 18h.01"></path>
+        </svg>
+    </button>
+    
+    <!-- Calculator Widget Window -->
+    <div id="calcWidget" class="fixed bottom-24 right-6 z-50 w-[400px] max-w-[calc(100vw-48px)] bg-white rounded-2xl shadow-2xl transform transition-all duration-300 origin-bottom-right scale-0 opacity-0 pointer-events-none">
+        <!-- Widget Header -->
+        <div class="flex items-center justify-between p-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white rounded-t-2xl">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white">
+                    <!-- Calculator Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+                        <line x1="8" x2="16" y1="6" y2="6"></line>
+                        <line x1="16" x2="16" y1="14" y2="18"></line>
+                        <path d="M16 10h.01"></path>
+                        <path d="M12 10h.01"></path>
+                        <path d="M8 10h.01"></path>
+                        <path d="M12 14h.01"></path>
+                        <path d="M8 14h.01"></path>
+                        <path d="M12 18h.01"></path>
+                        <path d="M8 18h.01"></path>
+                    </svg>
+                </div>
+                <span class="font-semibold text-slate-800">车辆评估</span>
+            </div>
+            <div class="flex items-center gap-1">
+                <button onclick="minimizeCalculator()" class="p-1.5 hover:bg-slate-100 rounded-lg transition-colors" title="最小化">
+                    <!-- Minus Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400">
+                        <path d="M5 12h14"></path>
+                    </svg>
+                </button>
+                <button onclick="toggleCalculator()" class="p-1.5 hover:bg-slate-100 rounded-lg transition-colors" title="关闭">
+                    <!-- X Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400">
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Widget Body (Scrollable) -->
+        <div class="max-h-[70vh] overflow-y-auto p-4">
+            <!-- Quick Result Card (Always Visible) -->
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 text-white mb-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-blue-100 text-sm">评估价值</span>
+                    <button onclick="resetCalculator()" class="text-xs text-blue-100 hover:text-white transition-colors">
+                        重置
+                    </button>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-bold" id="widgetCalcResult">0.00</span>
+                    <span class="text-lg">万</span>
+                    <span class="text-lg" id="widgetCurrency"></span>
+                </div>
+                <p class="text-blue-100 text-sm mt-1" id="widgetCalcResultCNY">≈ ¥0.00万 (CNY)</p>
+            </div>
+            
+            <!-- Currency Converter Card -->
+            <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl p-4 text-white mb-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                    <span class="font-medium text-sm">汇率换算</span>
+                    <span class="text-emerald-100 text-xs">(CNY → 其他货币)</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div>
+                        <label class="text-emerald-100 text-xs block mb-1">人民币金额</label>
+                        <input type="number" id="converterAmount" placeholder="0.00" 
+                               class="w-full px-3 py-2 rounded-lg bg-white/20 border border-white/30 text-white placeholder-emerald-200 text-sm focus:outline-none focus:bg-white/30"
+                               oninput="convertCurrency()">
+                    </div>
+                    <div>
+                        <label class="text-emerald-100 text-xs block mb-1">目标货币</label>
+                        <select id="converterToCurrency" onchange="convertCurrency()"
+                                class="w-full px-3 py-2 rounded-lg bg-white/20 border border-white/30 text-white text-sm focus:outline-none focus:bg-white/30 cursor-pointer">
+                            <option value="SGD" class="text-slate-800">SGD (新加坡元)</option>
+                            <option value="MYR" class="text-slate-800">MYR (马来西亚令吉)</option>
+                            <option value="THB" class="text-slate-800">THB (泰铢)</option>
+                            <option value="IDR" class="text-slate-800">IDR (印尼盾)</option>
+                            <option value="VND" class="text-slate-800">VND (越南盾)</option>
+                            <option value="PHP" class="text-slate-800">PHP (菲律宾比索)</option>
+                            <option value="MMK" class="text-slate-800">MMK (缅甸元)</option>
+                            <option value="KHR" class="text-slate-800">KHR (柬埔寨瑞尔)</option>
+                            <option value="LAK" class="text-slate-800">LAK (老挝基普)</option>
+                            <option value="BND" class="text-slate-800">BND (文莱元)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="bg-white/10 rounded-lg p-3">
+                    <p class="text-emerald-100 text-xs mb-1">换算结果</p>
+                    <p class="text-xl font-bold" id="converterResult">≈ S$0.00</p>
+                    <p class="text-emerald-200 text-xs mt-1" id="converterRate">汇率: 1 CNY ≈ 0.1869 SGD</p>
+                </div>
+            </div>
+            
+            <!-- Collapsible Sections -->
+            <div class="space-y-3">
+                <!-- Basic Info Section -->
+                <div class="border border-slate-100 rounded-xl overflow-hidden">
+                    <button onclick="toggleSection('basicInfo')" class="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 transition-colors">
+                        <span class="font-medium text-sm text-slate-700">基础信息</span>
+                        <svg id="icon-basicInfo" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform">
+                            <path d="m6 9 6 6 6-6"></path>
+                        </svg>
+                    </button>
+                    <div id="section-basicInfo" class="p-3 space-y-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1.5">新车购置价 (万元 CNY)</label>
+                            <input type="number" id="widgetCalcPrice" step="0.01" 
+                                   class="input-field w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" 
+                                   placeholder="如: 20.5" oninput="widgetCalculate()">
+                            <p class="text-xs text-slate-400 mt-1">固定使用人民币计算</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1.5">购置税</label>
+                                <input type="number" id="widgetCalcTax" step="0.01" 
+                                       class="input-field w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" 
+                                       placeholder="自动" oninput="widgetCalculate()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1.5">其他费用</label>
+                                <input type="number" id="widgetCalcOther" step="0.01" 
+                                       class="input-field w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" 
+                                       placeholder="0.00" oninput="widgetCalculate()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Usage Section -->
+                <div class="border border-slate-100 rounded-xl overflow-hidden">
+                    <button onclick="toggleSection('usage')" class="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 transition-colors">
+                        <span class="font-medium text-sm text-slate-700">使用情况</span>
+                        <svg id="icon-usage" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform">
+                            <path d="m6 9 6 6 6-6"></path>
+                        </svg>
+                    </button>
+                    <div id="section-usage" class="p-3 space-y-3 hidden">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1.5">已用年限</label>
+                                <input type="number" id="widgetCalcUsedYears" step="0.1" 
+                                       class="input-field w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" 
+                                       placeholder="0.0" oninput="widgetCalculate()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1.5">规定年限</label>
+                                <input type="number" id="widgetCalcTotalYears" value="15" 
+                                       class="input-field w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" 
+                                       oninput="widgetCalculate()">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1.5">已行驶里程(km)</label>
+                                <input type="number" id="widgetCalcMileage" step="1000" 
+                                       class="input-field w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" 
+                                       placeholder="0" oninput="widgetCalculate()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1.5">规定里程(km)</label>
+                                <input type="number" id="widgetCalcTotalMileage" value="600000" 
+                                       class="input-field w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" 
+                                       oninput="widgetCalculate()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Coefficients Section -->
+                <div class="border border-slate-100 rounded-xl overflow-hidden">
+                    <button onclick="toggleSection('coefficients')" class="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 transition-colors">
+                        <span class="font-medium text-sm text-slate-700">调整系数 <span class="text-xs text-slate-400">(手动输入 0-1)</span></span>
+                        <svg id="icon-coefficients" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform">
+                            <path d="m6 9 6 6 6-6"></path>
+                        </svg>
+                    </button>
+                    <div id="section-coefficients" class="p-3 hidden">
+                        <div class="text-xs text-slate-500 mb-2">请输入0-1之间的数值，默认为1.0</div>
+                        <div class="space-y-1" id="widgetCoefficientsContainer">
+                            <!-- Coefficient inputs will be generated here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Details Section -->
+                <div class="border border-slate-100 rounded-xl overflow-hidden">
+                    <button onclick="toggleSection('details')" class="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 transition-colors">
+                        <span class="font-medium text-sm text-slate-700">计算明细</span>
+                        <svg id="icon-details" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform">
+                            <path d="m6 9 6 6 6-6"></path>
+                        </svg>
+                    </button>
+                    <div id="section-details" class="p-3 hidden">
+                        <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                            <div class="bg-slate-50 rounded-lg p-2">
+                                <p class="text-slate-500 mb-1">重置成本</p>
+                                <p class="font-semibold text-slate-800" id="widgetCalcResetCost">0.00</p>
+                            </div>
+                            <div class="bg-slate-50 rounded-lg p-2">
+                                <p class="text-slate-500 mb-1">成新率</p>
+                                <p class="font-semibold text-slate-800" id="widgetCalcNewRate">0%</p>
+                            </div>
+                            <div class="bg-slate-50 rounded-lg p-2">
+                                <p class="text-slate-500 mb-1">综合系数</p>
+                                <p class="font-semibold text-slate-800" id="widgetCalcCoef">0.000</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Save Button -->
+            <button onclick="saveWidgetCalculation()" class="btn-primary w-full mt-4 py-2.5 rounded-xl text-white font-medium text-sm">
+                保存评估记录
+            </button>
+        </div>
+    </div>
+    
+    <!-- Calculator Widget Styles -->
+    <style>
+        /* Floating Calculator Widget Styles */
+        #calcWidget {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+        }
+        
+        #calcWidget.open {
+            transform: scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        #calcWidget.minimized {
+            height: 60px;
+            overflow: hidden;
+        }
+        
+        #calcWidget.minimized .maximize-btn {
+            display: block;
+        }
+        
+        #calcToggleBtn {
+            animation: pulse 2s infinite;
+        }
+        
+        #calcToggleBtn:hover {
+            animation: none;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+            }
+            50% {
+                box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.6), 0 0 0 10px rgba(59, 130, 246, 0.1);
+            }
+        }
+        
+        .widget-section-content {
+            transition: all 0.2s ease;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 640px) {
+            #calcWidget {
+                width: calc(100vw - 48px);
+                right: 24px;
+                left: 24px;
+            }
+        }
+    </style>
+    
+    <!-- Calculator Widget JavaScript -->
+    <script>
+        // Re-initialize Lucide icons for dynamically added elements
+        function refreshIcons() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+        
+        // Initialize widget coefficients
+        function initWidgetCoefficients() {
+            const coefficients = [
+                { id: 'widgetTechStatus', name: '车况技术状况', default: 1.0, min: 0, max: 1, step: 0.01 },
+                { id: 'widgetMaintenance', name: '维护保养', default: 1.0, min: 0, max: 1, step: 0.01 },
+                { id: 'widgetReputation', name: '品牌车型口碑', default: 1.0, min: 0, max: 1, step: 0.01 },
+                { id: 'widgetUsageType', name: '车辆用途', default: 1.0, min: 0, max: 1, step: 0.01 },
+                { id: 'widgetEnvironment', name: '工作环境', default: 1.0, min: 0, max: 1, step: 0.01 },
+                { id: 'widgetConfig', name: '配置与颜色', default: 1.0, min: 0, max: 1, step: 0.01 },
+            ];
+            
+            const container = document.getElementById('widgetCoefficientsContainer');
+            container.innerHTML = coefficients.map(coef => `
+                <div class="flex items-center justify-between py-1">
+                    <label class="text-xs text-slate-600 flex-1">${coef.name}</label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="${coef.id}" 
+                               min="${coef.min}" max="${coef.max}" step="${coef.step}" value="${coef.default}"
+                               class="input-field w-16 px-2 py-1 rounded-lg border border-slate-200 text-sm text-right"
+                               oninput="widgetCalculate()">
+                        <span class="text-xs text-slate-400 w-8">(${coef.min}-${coef.max})</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Auto-calculate tax in widget (基于万元CNY)
+        document.getElementById('widgetCalcPrice').addEventListener('input', function() {
+            const priceWan = parseFloat(this.value) || 0;
+            // 购置税约为车价的8.85% (1/11.3)
+            document.getElementById('widgetCalcTax').value = (priceWan / 11.3).toFixed(2);
+            widgetCalculate();
+        });
+        
+        function widgetCalculate() {
+            // 输入都是万元CNY单位
+            const priceWan = parseFloat(document.getElementById('widgetCalcPrice').value) || 0;
+            const taxWan = parseFloat(document.getElementById('widgetCalcTax').value) || 0;
+            const otherWan = parseFloat(document.getElementById('widgetCalcOther').value) || 0;
+            const usedYears = parseFloat(document.getElementById('widgetCalcUsedYears').value) || 0;
+            const totalYears = parseFloat(document.getElementById('widgetCalcTotalYears').value) || 15;
+            const mileage = parseFloat(document.getElementById('widgetCalcMileage').value) || 0;
+            const totalMileage = parseFloat(document.getElementById('widgetCalcTotalMileage').value) || 600000;
+            
+            // Get coefficients (使用原始输入值，不自动修正)
+            const coefs = ['widgetTechStatus', 'widgetMaintenance', 'widgetReputation', 'widgetUsageType', 
+                          'widgetEnvironment', 'widgetConfig'];
+            let adjustCoef = 1;
+            coefs.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    const val = parseFloat(input.value);
+                    // 只有有效数值才参与计算，无效或空则视为1
+                    adjustCoef *= (!isNaN(val) && val !== '' && val > 0) ? val : 1;
+                }
+            });
+            
+            // 计算（基于万元CNY）
+            const resetCostWan = priceWan + taxWan + otherWan;
+            const yearRate = Math.max(0, (1 - usedYears / totalYears) * 100);
+            const mileageRate = Math.max(0, (1 - mileage / totalMileage) * 100);
+            const conditionRate = (yearRate * mileageRate) / 100;
+            const finalRate = conditionRate * adjustCoef;
+            const finalValueWan = resetCostWan * (finalRate / 100);
+            
+            // 转换为当地货币显示（currentCountry.rate 是1单位当地货币兑换多少人民币）
+            // 万元CNY / rate = 万元当地货币
+            const rate = currentCountry.rate;
+            const finalValueLocal = finalValueWan / rate;
+            
+            // Update display
+            document.getElementById('widgetCalcResult').textContent = finalValueLocal.toFixed(2);
+            document.getElementById('widgetCalcResultCNY').textContent = `≈ ¥${(finalValueWan).toFixed(2)}万`;
+            document.getElementById('widgetCalcResetCost').textContent = resetCostWan.toFixed(2);
+            document.getElementById('widgetCalcNewRate').textContent = finalRate.toFixed(1) + '%';
+            document.getElementById('widgetCalcCoef').textContent = adjustCoef.toFixed(4);
+        }
+        
+        // Currency Converter Functions
+        function convertCurrency() {
+            const amount = parseFloat(document.getElementById('converterAmount').value) || 0;
+            const toCurrency = document.getElementById('converterToCurrency').value;
+            
+            // Get rate relative to CNY (rate = 1单位当地货币兑换多少人民币)
+            // To convert CNY to target: amount / targetRate = target currency amount
+            const rates = {
+                'CNY': 1.0,
+                'SGD': 5.35,
+                'MYR': 1.52,
+                'THB': 0.20,
+                'IDR': 0.00045,
+                'VND': 0.00029,
+                'PHP': 0.13,
+                'MMK': 0.0034,
+                'KHR': 0.0017,
+                'LAK': 0.00033,
+                'BND': 5.35
+            };
+            
+            const symbols = {
+                'CNY': '¥',
+                'SGD': 'S$',
+                'MYR': 'RM',
+                'THB': '฿',
+                'IDR': 'Rp',
+                'VND': '₫',
+                'PHP': '₱',
+                'MMK': 'K',
+                'KHR': '៛',
+                'LAK': '₭',
+                'BND': 'B$'
+            };
+            
+            const toRate = rates[toCurrency];
+            const toSymbol = symbols[toCurrency];
+            
+            // Convert CNY to target currency: amount / toRate
+            // e.g., 100 CNY / 5.35 = 18.69 SGD
+            const result = amount / toRate;
+            
+            // Format based on currency value (for currencies with small rates like IDR/VND)
+            let formattedResult;
+            if (toRate < 0.01) {
+                // For low-value currencies like IDR, VND, show as integer
+                formattedResult = Math.round(result).toLocaleString('zh-CN');
+            } else {
+                formattedResult = result.toLocaleString('zh-CN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
+            
+            document.getElementById('converterResult').textContent = `≈ ${toSymbol}${formattedResult}`;
+            document.getElementById('converterRate').textContent = `汇率: 1 CNY ≈ ${(1 / toRate).toFixed(4)} ${toCurrency}`;
+        }
+        
+        function toggleCalculator() {
+            const widget = document.getElementById('calcWidget');
+            const isOpen = widget.classList.contains('open');
+            
+            if (isOpen) {
+                widget.classList.remove('open');
+                setTimeout(() => {
+                    widget.style.display = 'none';
+                }, 300);
+            } else {
+                widget.style.display = 'block';
+                setTimeout(() => {
+                    widget.classList.add('open');
+                    refreshIcons(); // Refresh icons when widget opens
+                }, 10);
+            }
+        }
+        
+        function minimizeCalculator() {
+            const widget = document.getElementById('calcWidget');
+            widget.classList.remove('open');
+            setTimeout(() => {
+                widget.style.display = 'none';
+            }, 300);
+        }
+        
+        function toggleSection(sectionId) {
+            const section = document.getElementById('section-' + sectionId);
+            const icon = document.getElementById('icon-' + sectionId);
+            
+            if (section.classList.contains('hidden')) {
+                section.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                section.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+        
+        function resetCalculator() {
+            document.getElementById('widgetCalcPrice').value = '';
+            document.getElementById('widgetCalcTax').value = '';
+            document.getElementById('widgetCalcOther').value = '';
+            document.getElementById('widgetCalcUsedYears').value = '';
+            document.getElementById('widgetCalcMileage').value = '';
+            
+            // Reset coefficients to default value 1.0
+            const coefs = ['widgetTechStatus', 'widgetMaintenance', 'widgetReputation', 'widgetUsageType', 
+                          'widgetEnvironment', 'widgetConfig'];
+            coefs.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.value = '1';
+                }
+            });
+            
+            widgetCalculate();
+            showToast('已重置');
+        }
+        
+        function saveWidgetCalculation() {
+            const record = {
+                id: Date.now(),
+                date: new Date().toLocaleString('zh-CN'),
+                brand: '评估车辆',
+                model: document.getElementById('widgetCalcPrice').value ? '价格:' + document.getElementById('widgetCalcPrice').value + '万' : '未命名',
+                year: new Date().getFullYear(),
+                value: document.getElementById('widgetCalcResult').textContent,
+                currency: currentCountry.currency
+            };
+            
+            savedVehicles.push(record);
+            localStorage.setItem('aseanUsedCarRecords', JSON.stringify(savedVehicles));
+            showToast('保存成功');
+        }
+        
+        // Initialize widget on load
+        document.addEventListener('DOMContentLoaded', function() {
+            initWidgetCoefficients();
+            document.getElementById('calcWidget').style.display = 'none';
+        });
+    </script>
+</body>
 </html>
